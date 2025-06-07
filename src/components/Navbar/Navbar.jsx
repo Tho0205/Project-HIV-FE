@@ -1,5 +1,6 @@
-import React from "react";
+
 import "./nav-bar.css";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
@@ -12,10 +13,10 @@ const Navbar = () => {
           <div className="heading-title">TSDZ</div>
         </div>
         <div className="list">
-          <a href="#" className="menu-item">Trang chủ</a>
-          <a href="#" className="menu-item">Đặt Lịch Hẹn</a>
-          <a href="#" className="menu-item">Blog</a>
-          <a href="#" className="menu-item">Tài Liệu Giáo Dục</a>
+          <Link to="/" className="menu-item">Trang chủ</Link>  
+          <Link to="" className="menu-item">Đặt lịch hẹn</Link>
+          <Link to="/blog" className="menu-item">Blog</Link>
+          <Link to="" className="menu-item">Tài liệu giáo dúc</Link>
           <div className="menu-item menu-lang">
             <div className="vi-png">
               <img src="" alt="Flag" />

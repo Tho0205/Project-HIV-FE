@@ -1,14 +1,12 @@
-import React from "react";
-import "./footer.css";
-import { useEffect, useState } from "react";
 
+import "./footer.css";
 
 const Footer = () => {
 
   return (
     <div className="footer">
       <div className="footer-container">
-        <a href="https://jiohealth.com/" target="_blank" rel="noopener noreferrer">
+        <a href="#" target="_blank" rel="noopener noreferrer">
           <div className="footer-logo"></div>
         </a>
         <div className="footer-content">
