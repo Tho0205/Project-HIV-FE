@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
 import "./Blog.css";
 import { getAllBlogs } from "../../services/blogservice";
+import { useNavigate } from "react-router-dom";
+
+
 
 export default function Blog() {
   const [blogs, setBlogs] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const data = await getAllBlogs();
-        // Lọc những bài đã duyệt nếu muốn
         const approved = data.filter((blog) => blog.isApproved === true); 
         setBlogs(approved);
       } catch (error) {
@@ -29,7 +32,12 @@ export default function Blog() {
             <p>Chưa có bài viết nào được duyệt.</p>
           ) : (
             blogs.map((blog) => (
-              <div key={blog.blogId} className="card">
+          <div
+            key={blog.blogId}
+            className="card"
+            onClick={() => navigate(`/blog/${blog.blogId}`)}
+            style={{ cursor: "pointer" }}
+          >
               <img
                 className="img"
                 src={
