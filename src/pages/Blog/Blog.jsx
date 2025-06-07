@@ -10,7 +10,7 @@ export default function Blog() {
       try {
         const data = await getAllBlogs();
         // Lọc những bài đã duyệt nếu muốn
-        const approved = data.filter((blog) => blog.isApproved === false); //Khi cần sửa lại thì phải sửa lại là true
+        const approved = data.filter((blog) => blog.isApproved === true); 
         setBlogs(approved);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách blog:", error);
