@@ -44,11 +44,6 @@ export default function Blog() {
                     {new Date(blog.createdAt).toLocaleDateString("vi-VN")}
                   </span>
                   <h3 className="name">{blog.title}</h3>
-                  <p className="preview">
-                    {blog.content.length > 100
-                      ? blog.content.substring(0, 100) + "..."
-                      : blog.content}
-                  </p>
                 </div>
               </div>
             ))
