@@ -1,17 +1,9 @@
 import React from "react";
 import "./footer.css";
 import { useEffect, useState } from "react";
-import { getFacilityInfo } from "../services/facilityService";
+
 
 const Footer = () => {
-
-  const [facilities, setFacilities] = useState([]);
-
-  useEffect(() => {
-    getFacilityInfo()
-      .then(data => setFacilities(data))
-      .catch(err => console.error("Facility load error:", err));
-  }, []);
 
   return (
     <div className="footer">
@@ -72,17 +64,6 @@ const Footer = () => {
             </a>
           </div>
           
-          <div className="footer-section">
-            <div className="footer-title">Cơ Sở Y Tế</div>
-            {facilities.map((f) => (
-              <div key={f.facilityId} className="footer-facility">
-                <p><strong>{f.name}</strong></p>
-                <p>{f.address}</p>
-                <p>{f.phone}</p>
-                <p>{f.email}</p>  
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
