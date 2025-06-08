@@ -1,38 +1,38 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
-import { getBlogById, getAllBlogs } from "../../services/blogservice"
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { getBlogById, getAllBlogs } from "../../services/blogservice";
 import { useNavigate } from "react-router-dom";
-import "./BlogDetail.css"
+import "./BlogDetail.css";
 
 export default function BlogDetail() {
-  const { id } = useParams()
-  const [blog, setBlog] = useState(null)
-  const [latestBlogs, setLatestBlogs] = useState([])
+  const { id } = useParams();
+  const [blog, setBlog] = useState(null);
+  const [latestBlogs, setLatestBlogs] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     getBlogById(id)
       .then(setBlog)
-      .catch(() => setBlog(null))
-  }, [id])
+      .catch(() => setBlog(null));
+  }, [id]);
 
   useEffect(() => {
     getAllBlogs()
-      .then(data => {
-        const approved = data.filter(b => b.isApproved)
-        setLatestBlogs(approved)
+      .then((data) => {
+        const approved = data.filter((b) => b.isApproved);
+        setLatestBlogs(approved);
       })
-      .catch(() => setLatestBlogs([]))
-  }, [])
+      .catch(() => setLatestBlogs([]));
+  }, []);
 
   if (!blog) {
     return (
       <div className="blog-detail">
         <div className="loading">Đang tải bài viết...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -47,15 +47,21 @@ export default function BlogDetail() {
         </header>
         <div className="article-img">
           <img
-            src={blog.imageUrl && blog.imageUrl.trim() !== "" ? blog.imageUrl : "/placeholder.svg?height=400&width=600"}
+            src={
+              blog.imageUrl && blog.imageUrl.trim() !== ""
+                ? blog.imageUrl
+                : "/placeholder.svg?height=400&width=600"
+            }
             alt={blog.title}
           />
         </div>
         <div className="article-content">
-          {blog.content.split("\n").map((p, i) => p.trim() && <p key={i}>{p}</p>)}
+          {blog.content
+            .split("\n")
+            .map((p, i) => p.trim() && <p key={i}>{p}</p>)}
         </div>
       </article>
-      
+
       {/* Đây là phần của các bài viết mới nhất bên cạnh bài viết chi tiết. */}
       <aside className="related">
         <h1>Bài viết mới nhất</h1>
@@ -69,16 +75,22 @@ export default function BlogDetail() {
                 className="related-item"
                 onClick={() => navigate(`/blog/${a.blogId}`)}
                 style={{ cursor: "pointer" }}
-              > 
+              >
                 <img
-                  src={a.imageUrl && a.imageUrl.trim() !== "" ? a.imageUrl : "/placeholder.svg?height=80&width=80"}
+                  src={
+                    a.imageUrl && a.imageUrl.trim() !== ""
+                      ? a.imageUrl
+                      : "/placeholder.svg?height=80&width=80"
+                  }
                   alt={a.title}
                   className="related-img"
                 />
                 <div>
                   <div className="meta">
                     <span>{a.author} |</span>
-                    <span>{new Date(a.createdAt).toLocaleDateString("vi-VN")}</span>
+                    <span>
+                      {new Date(a.createdAt).toLocaleDateString("vi-VN")}
+                    </span>
                   </div>
                   <h3 className="related-title">{a.title}</h3>
                 </div>
@@ -88,5 +100,5 @@ export default function BlogDetail() {
         </div>
       </aside>
     </div>
-  )
+  );
 }
