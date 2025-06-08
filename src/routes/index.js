@@ -7,5 +7,4 @@ export const routes = [
   { path: "/", element: <Home /> },
   {path : "/blog", element: <Blog /> },
   { path: "/blog/:id", element: <BlogDetail /> },
-  // Add more routes as needed
 ];
