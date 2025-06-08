@@ -8,15 +8,38 @@ function App() {
   return (
     <div className="app-wrapper">
       <Router>
-        <Navbar />
-        <main className="main-content">
-          <Routes>
-            {routes.map((route, idx) => (
-              <Route key={idx} path={route.path} element={route.element} />
-            ))}
-          </Routes>
-        </main>
-        <Footer />
+        <Routes>
+          {routes.map((route, idx) => {
+            if (route.children) {
+              return (
+                <Route key={idx} path={route.path} element={route.element}>
+                  {route.children.map((child, childIdx) => (
+                    <Route
+                      key={childIdx}
+                      path={child.path}
+                      element={child.element}
+                    />
+                  ))}
+                </Route>
+              );
+            }
+            return (
+              <Route
+                key={idx}
+                path={route.path}
+                element={
+                  <>
+                    <Navbar />
+                    <main className="main-content">
+                      {route.element}
+                    </main>
+                    <Footer />
+                  </>
+                }
+              />
+            );
+          })}
+        </Routes>
       </Router>
     </div>
   );
