@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import "./Profile.css";
 const backendBaseUrl = "https://localhost:7243";
 
@@ -13,11 +14,11 @@ export default function Profile() {
   const [avatarFile, setAvatarFile] = useState(null);
 
   const accountID = localStorage.getItem("account_id");
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (!accountID) {
       alert("Please Login!!");
-      window.location.href = "/Pages/ViewPage/login.html";
+      navigate("/login");
       return;
     }
     fetch(`${backendBaseUrl}/api/Account/${accountID}`)
@@ -80,6 +81,7 @@ export default function Profile() {
         );
         if (res.ok) {
           const result = await res.json();
+
           avatarPath = result.path;
         } else {
           setEditError("Upload avatar failed");
@@ -118,6 +120,12 @@ export default function Profile() {
     })
       .then(async (response) => {
         if (response.status === 204) {
+          localStorage.setItem(
+            "user_avatar",
+            avatarPath
+              ? `${backendBaseUrl}/api/account/avatar/${avatarPath}`
+              : "/assets/image/patient/patient.png"
+          );
           setShowEdit(false);
           window.location.reload();
         } else {

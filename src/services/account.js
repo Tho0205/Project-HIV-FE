@@ -1,5 +1,6 @@
+const backendBaseUrl = "https://localhost:7243";
 export const loginApi = async (email, password) => {
-  const response = await fetch("https://localhost:7243/api/Account/login", {
+  const response = await fetch(`${backendBaseUrl}/api/Account/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -13,7 +14,7 @@ export const loginApi = async (email, password) => {
 };
 
 export const registerAPI = async (formData) => {
-  const response = await fetch("https://localhost:7243/api/Account/register", {
+  const response = await fetch(`${backendBaseUrl}/api/Account/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

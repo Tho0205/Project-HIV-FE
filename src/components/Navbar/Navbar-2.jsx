@@ -22,17 +22,17 @@ const Header = () => {
     sessionStorage.clear();
     localStorage.clear();
     setRole(null);
-    navigate("/MainPage");
+    navigate("/");
   };
 
   return (
     <header className="custom-header">
       <div className="logo">
-        <Link to="/MainPage">Logo HIV</Link>
+        <Link to="/">Logo HIV</Link>
       </div>
 
       <nav className="nav-links">
-        <Link to="/MainPage">Trang Chủ</Link>
+        <Link to="/">Trang Chủ</Link>
         <a href="/Pages/ViewPage/BookingPage.html">Đặt Lịch Hẹn</a>
         <Link to="/blog">Blog</Link>
         <a href="/Pages/ViewPage/ResourcesPage.html">Tài Liệu Giáo Dục</a>
