@@ -10,6 +10,7 @@ export default function BlogDetail() {
   const { id } = useParams();
   const [blog, setBlog] = useState(null);
   const [latestBlogs, setLatestBlogs] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(4);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -34,6 +35,10 @@ export default function BlogDetail() {
       </div>
     );
   }
+
+  const handleShowMore = () => {
+    setVisibleCount((prev) => prev + 4);
+  };
 
   return (
     <div className="blog-detail">
@@ -62,18 +67,18 @@ export default function BlogDetail() {
         </div>
       </article>
 
-      {/* Đây là phần của các bài viết mới nhất bên cạnh bài viết chi tiết. */}
+      {/* Danh sách các bài viết mới nhất */}
       <aside className="related">
         <h1>Bài viết mới nhất</h1>
         <div className="related-list">
           {latestBlogs.length === 0 ? (
             <p>Chưa có bài viết nào được duyệt.</p>
           ) : (
-            latestBlogs.map((a) => (
+            latestBlogs.slice(0, visibleCount).map((a) => (
               <div
                 key={a.blogId}
                 className="related-item"
-                onClick={() => navigate(`/blog/${a.blogId}`)}
+                onClick={() => window.location.href = `/blog/${a.blogId}`} 
                 style={{ cursor: "pointer" }}
               >
                 <img
@@ -98,6 +103,11 @@ export default function BlogDetail() {
             ))
           )}
         </div>
+        {visibleCount < latestBlogs.length && (
+          <button className="btn" onClick={handleShowMore}>
+            Xem thêm
+          </button>
+        )}
       </aside>
     </div>
   );
