@@ -1,0 +1,399 @@
+/* ===================================
+   HEADER
+=================================== */
+
+.btn-dropdown {
+  background: #ede9f4;
+  border-radius: 8px;
+  padding: 5px 10px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ===================================
+   BUTTONS
+=================================== */
+.btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+}
+
+.btn-green {
+  background-color: #00c497;
+}
+
+.btn-purple {
+  background-color: #2b1cd2;
+}
+
+.btn.change {
+  background: #e2f0f1;
+  color: #007b7f;
+  transition: 0.2s ease-in-out;
+}
+.btn.change:hover {
+  background-color: #45c396;
+}
+
+.edit-btn {
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  color: #333;
+}
+
+/* ===================================
+   LAYOUT
+=================================== */
+.container {
+  display: flex;
+  margin: 30px auto;
+  max-width: 1200px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  width: 60%;
+}
+
+h2 {
+  margin-bottom: 20px;
+}
+
+/* ===================================
+   SIDEBAR
+=================================== */
+.sidebar {
+  width: 200px;
+  border-right: 1px solid #eee;
+  padding-right: 20px;
+}
+
+.sidebar a {
+  display: block;
+  padding: 10px;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.sidebar a.active {
+  background: #eaf0fd;
+  color: #1d4ed8;
+}
+
+/* ===================================
+   PROFILE CONTENT
+=================================== */
+.profile {
+  flex: 1;
+  padding-left: 20px;
+}
+
+.card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+}
+
+/* Profile Header */
+.profile-header {
+  display: flex;
+  gap: 24px;
+}
+
+.profile-photo img {
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+}
+
+.profile-info {
+  flex: 1;
+  margin-left: 15px;
+}
+
+/* Info Grid */
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.info-grid div span {
+  font-size: 12px;
+  color: #999;
+}
+
+.info-grid div p {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+/* ===================================
+   SETTINGS / TOGGLE
+=================================== */
+.settings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-size: 12px;
+  color: #555;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: 0.4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+input:checked + .slider {
+  background-color: #00c497;
+}
+
+input:checked + .slider:before {
+  transform: translateX(18px);
+}
+
+/*Form edit*/
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+#modalForm {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+#modalForm label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #333;
+}
+
+#modalForm input,
+#modalForm select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+
+#modalForm input:focus,
+#modalForm select:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+.modal-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn-green {
+  background-color: #28a745;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-purple {
+  background-color: #6f42c1;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  #modalForm {
+    grid-template-columns: 1fr;
+  }
+}
+
+.avatar-group {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  grid-column: 1 / -1;
+}
+
+.avatar-group img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #ccc;
+}
+
+/*=============Form Change Password===============*/
+#passwordForm {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+#passwordForm label {
+  font-weight: 600;
+  color: #333;
+}
+
+#passwordForm input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 15px;
+  transition: border-color 0.3s;
+}
+
+#passwordForm input:focus {
+  border-color: #4a90e2;
+  outline: none;
+}
+
+/* ===================================
+   PROFILE PAGE SPECIFIC STYLES
+=================================== */
+.profile-page .info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 cột đều nhau */
+  gap: 24px 32px;
+  margin-top: 15px;
+}
+
+.profile-page .info-grid > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.profile-page .info-grid div span {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.profile-page .info-grid div p {
+  font-size: 15px;
+  font-weight: 700;
+  color: #23202d;
+  margin: 0;
+  word-break: break-word;
+}
+
+@media (max-width: 900px) {
+  .profile-page .info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 16px;
+  }
+}
+@media (max-width: 600px) {
+  .profile-page .info-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

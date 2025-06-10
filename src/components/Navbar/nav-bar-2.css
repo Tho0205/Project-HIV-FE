@@ -1,0 +1,95 @@
+.custom-header {
+  background-color: #fff;
+  padding: 16px 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  font-family: "Roboto", sans-serif;
+  height: auto;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 20px;
+  color: #000;
+}
+
+.logo a {
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-weight: bolder;
+  color: #2320d4;
+  background: #f4f6fa;
+  padding: 10px 22px;
+  border-radius: 24px;
+  transition: background 0.3s ease-in-out, color 0.2s, box-shadow 0.2s;
+  font-size: 16px;
+  box-shadow: 0 1px 4px rgba(68, 57, 199, 0.04);
+  border: 1px solid transparent;
+}
+
+.nav-links a:hover {
+  background: #2320d4;
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(68, 57, 199, 0.1);
+  border: 1px solid #2320d4;
+  text-decoration: none;
+}
+
+.lang-switch {
+  font-size: 16px;
+  margin-left: 10px;
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-outline {
+  padding: 8px 18px;
+  border: 2px solid #00d4c4;
+  color: #00d4c4;
+  background: #fff;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-primary {
+  padding: 8px 18px;
+  background-color: #4439c7;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.header-buttons img {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+.header-buttons button img {
+  display: block;
+}
+.header-buttons button.avatar-btn {
+  padding: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+}
