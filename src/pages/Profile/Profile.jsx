@@ -160,7 +160,10 @@ export default function Profile() {
         window.location.reload();
       } else {
         const result = await response.json();
-        setPassError(result.title || "Password change failed.");
+
+        const error1 = await result.errors.password_hash[0];
+
+        setPassError(error1 || "Password change failed.");
       }
     });
   }
@@ -209,8 +212,8 @@ export default function Profile() {
           </div>
           <div className="profile-info">
             <strong>{profile.full_name}</strong>
-            <p className="title">{profile.role}</p>
-            <p className="address">{profile.address}</p>
+            <p>{profile.role}</p>
+            <p>{profile.address}</p>
           </div>
         </div>
 
