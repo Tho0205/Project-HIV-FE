@@ -61,7 +61,8 @@
   background: white;
   border-radius: 12px;
   padding: 20px;
-  width: 60%;
+  width: 100%;
+  height: auto;
 }
 
 h2 {
@@ -106,11 +107,13 @@ h2 {
   margin-bottom: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   width: 100%;
+  align-items: normal;
 }
 
 /* Profile Header */
 .profile-header {
   display: flex;
+  flex-direction: row;
   gap: 24px;
 }
 
