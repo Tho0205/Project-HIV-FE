@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 import { loginApi } from "../../services/account";
-
+const backendBaseUrl = "https://localhost:7243";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +47,12 @@ const Login = () => {
       localStorage.setItem("role", data.role);
       localStorage.setItem("account_id", data.accountid);
       localStorage.setItem("item", JSON.stringify(data.list));
-
+      localStorage.setItem(
+        "user_avatar",
+        data.user_avatar
+          ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
+          : "/assets/image/patient/patient.png"
+      );
       if (data.role === "Patient") {
         navigate("/MainPage");
       } else if (data.role === "staff") {
