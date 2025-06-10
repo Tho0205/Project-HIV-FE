@@ -37,6 +37,7 @@
   background: #e2f0f1;
   color: #007b7f;
   transition: 0.2s ease-in-out;
+  margin-left: 10px;
 }
 .btn.change:hover {
   background-color: #45c396;
@@ -49,6 +50,7 @@
   padding: 5px 10px;
   cursor: pointer;
   color: #333;
+  margin-left: 10px;
 }
 
 /* ===================================
@@ -68,7 +70,6 @@
 h2 {
   margin-bottom: 20px;
 }
-
 
 /* ===================================
    SIDEBAR
@@ -130,7 +131,7 @@ h2 {
 
 .profile-photo img {
   border-radius: 50%;
-  width: 60px;        
+  width: 60px;
   height: 60px;
   object-fit: cover;
 }
