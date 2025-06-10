@@ -54,24 +54,19 @@
 /* ===================================
    LAYOUT
 =================================== */
-.profile-container {
-  width: 100%;
-}
-
 .container {
-  width: 100%;
-  max-width: 1200px;
+  display: flex;
   margin: 30px auto;
-  padding: 20px;
+  max-width: 1200px;
   background: white;
   border-radius: 12px;
-  display: flex;
-  height: auto;
+  padding: 20px;
+  width: 60%;
 }
 
 h2 {
   margin-bottom: 20px;
-}
+}z
 
 /* ===================================
    SIDEBAR
@@ -225,6 +220,7 @@ input:checked + .slider:before {
   left: 0;
   z-index: 9999;
   width: 100vw;
+  height: 100vh;
   background: rgba(0, 0, 0, 0.5);
 
   display: none;

@@ -179,7 +179,6 @@ export default function Profile() {
   if (!profile) return <div>Loading...</div>;
 
   return (
-<div className="profile-container">
     <div className="container">
       {/* Sidebar */}
       <aside className="sidebar">
@@ -435,6 +434,5 @@ export default function Profile() {
         )}
       </section>
     </div>
-</div>
   );
 }
