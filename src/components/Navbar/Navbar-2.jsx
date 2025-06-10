@@ -22,7 +22,7 @@ const Header = () => {
     sessionStorage.clear();
     localStorage.clear();
     setRole(null);
-    navigate("/MainPage");
+    navigate("/");
   };
 
   return (

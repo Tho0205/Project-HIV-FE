@@ -61,13 +61,14 @@
   background: white;
   border-radius: 12px;
   padding: 20px;
-  width: 60%;
+  width: 80%;
   height: auto;
 }
 
 h2 {
   margin-bottom: 20px;
 }
+z
 
 /* ===================================
    SIDEBAR
@@ -102,20 +103,29 @@ h2 {
 
 .card {
   background: #f9f9f9;
-  padding: 12px 16px;
+  padding: 20px;
   border-radius: 12px;
   margin-bottom: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   width: 100%;
+  height: auto;
+  min-height: unset;
   align-items: normal;
-  height: 10px;
 }
 
 /* Profile Header */
 .profile-header {
   display: flex;
   flex-direction: row;
-  gap: 24px;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 12px 20px;
+  background: #f9f9f9;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  min-height: unset;
 }
 
 .profile-photo img {
@@ -126,15 +136,14 @@ h2 {
 }
 
 .profile-info {
-  flex: 1;
-  margin-left: 15px;
+  margin-left: 10px;
 }
 
 /* Info Grid */
 .info-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 32px;
   margin-top: 15px;
 }
 
@@ -389,7 +398,7 @@ input:checked + .slider:before {
   word-break: break-word;
 }
 
-@media (max-width: 900px) {
+@media (max-width: auto) {
   .profile-page .info-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px 16px;
