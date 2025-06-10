@@ -6,7 +6,7 @@ import Register from "../pages/Register/Register";
 import Profile from "../pages/Profile/Profile";
 
 export const routes = [
-  { path: "/MainPage", element: <Home /> },
+  { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
   { path: "/blog/:id", element: <BlogDetail /> },
   { path: "/login", element: <Login /> },
