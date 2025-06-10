@@ -2,7 +2,7 @@
   background: #fff;
   width: 100%;
   position: relative;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .header-nav {
@@ -78,9 +78,12 @@
 }
 .header-btn a {
   text-decoration: none;
-  color: inherit; 
+  color: inherit;
 }
 
 .header-btn:last-child {
   background: #2320d4;
+}
+
+.logo a {
 }
