@@ -4,7 +4,7 @@ import {
   Route,
   useLocation,
 } from "react-router-dom";
-import Navbar from "./components/Navbar/Navbar-2";
+import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import { routes } from "./routes";
 import "./App.css"; // <-- nếu bạn chưa import CSS

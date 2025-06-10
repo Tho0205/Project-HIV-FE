@@ -1,47 +1,73 @@
-import "./nav-bar.css";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import "./nav-bar.css"; // css
 
-const Navbar = () => {
+const Header = () => {
+  const navigate = useNavigate();
+
+  const [role, setRole] = useState(localStorage.getItem("role"));
+  const [avatarUrl, setAvatarUrl] = useState("");
+
+  useEffect(() => {
+    // Cập nhật avatar khi component mount
+    const storedAvatar = localStorage.getItem("user_avatar");
+    if (storedAvatar) {
+      setAvatarUrl(`${storedAvatar}?t=${new Date().getTime()}`);
+    } else {
+      setAvatarUrl("/assets/image/patient/patient.png");
+    }
+  }, []);
+
+  const Logout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    setRole(null);
+    navigate("/");
+  };
+
   return (
-    <div className="nav-bar">
-      <div className="header-nav">
-        <div className="heading">
-          <div className="logo">
-            <img src="/img/logo.png" alt="Logo" />
-          </div>
-          <div className="heading-title">TSDZ</div>
-        </div>
-        <div className="list">
-          <Link to="/" className="menu-item">
-            Trang chủ
-          </Link>
-          <Link to="" className="menu-item">
-            Đặt lịch hẹn
-          </Link>
-          <Link to="/blog" className="menu-item">
-            Blog
-          </Link>
-          <Link to="" className="menu-item">
-            Tài liệu giáo dúc
-          </Link>
-          <div className="menu-item menu-lang">
-            <div className="vi-png">
-              <img src="" alt="Flag" />
-            </div>
-            <span>Vi</span>
-          </div>
-        </div>
-        <div className="header-btn-group">
-          <div className="header-btn">
-            <a href="#">Đặt hẹn khám ngay</a>
-          </div>
-          <div className="header-btn">
-            <Link to="/login">Đăng Nhập</Link>
-          </div>
-        </div>
+    <header className="custom-header">
+      <div className="logo">
+        <Link to="/">Logo HIV</Link>
       </div>
-    </div>
+
+      <nav className="nav-links">
+        <Link to="/">Trang Chủ</Link>
+        <a href="/Pages/ViewPage/BookingPage.html">Đặt Lịch Hẹn</a>
+        <Link to="/blog">Blog</Link>
+        <a href="/Pages/ViewPage/ResourcesPage.html">Tài Liệu Giáo Dục</a>
+      </nav>
+
+      <div className="header-buttons">
+        <span className="lang-switch">🌐</span>
+
+        {/* Booking Now button - luôn hiển thị */}
+        <button className="btn-outline">Booking Now</button>
+
+        {/* Conditional Buttons */}
+        {!role ? (
+          <button
+            className="btn-primary login"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </button>
+        ) : (
+          <>
+            <button className="btn-primary logout" onClick={Logout}>
+              Logout
+            </button>
+            <button
+              className="avatar-btn profile"
+              onClick={() => navigate("/Profile-Patient")}
+            >
+              <img src={avatarUrl} alt="Avatar" />
+            </button>
+          </>
+        )}
+      </div>
+    </header>
   );
 };
 
-export default Navbar;
+export default Header;
