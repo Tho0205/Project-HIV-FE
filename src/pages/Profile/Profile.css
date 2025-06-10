@@ -54,14 +54,19 @@
 /* ===================================
    LAYOUT
 =================================== */
+.profile-container {
+  width: 100%;
+}
+
 .container {
-  display: flex;
-  margin: 30px auto;
+  width: 100%;
   max-width: 1200px;
+  margin: 30px auto;
+  padding: 20px;
   background: white;
   border-radius: 12px;
-  padding: 20px;
-  width: 60%;
+  display: flex;
+  height: auto;
 }
 
 h2 {
@@ -220,7 +225,6 @@ input:checked + .slider:before {
   left: 0;
   z-index: 9999;
   width: 100vw;
-  height: 100vh;
   background: rgba(0, 0, 0, 0.5);
 
   display: none;
