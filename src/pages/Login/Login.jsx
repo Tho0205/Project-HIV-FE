@@ -54,7 +54,7 @@ const Login = () => {
           : "/assets/image/patient/patient.png"
       );
       if (data.role === "Patient") {
-        navigate("/MainPage");
+        navigate("/");
       } else if (data.role === "staff") {
         navigate("/Staff/ManagerPatient");
       }
