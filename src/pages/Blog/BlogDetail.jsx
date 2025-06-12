@@ -172,15 +172,7 @@ export default function BlogDetail() {
                 onClick={() => window.location.href = `/blog/${a.blogId}`} 
                 style={{ cursor: "pointer" }}
               >
-                <img
-                  src={
-                    a.imageUrl && a.imageUrl.trim() !== ""
-                      ? a.imageUrl
-                      : "/placeholder.svg?height=80&width=80"
-                  }
-                  alt={a.title}
-                  className="related-img"
-                />
+              <img className="related-img" src={getImageUrl(a.imageUrl)} alt={a.title} />
                 <div>
                   <div className="meta">
                     <span>{a.author} |</span>
