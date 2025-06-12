@@ -12,11 +12,6 @@ body {
   display: flex;
   flex-direction: column;
 }
-
-main {
-  flex: 1;
-  padding: 20px;
-}
 body {
   background: #dcd5d5;
   color: #333;

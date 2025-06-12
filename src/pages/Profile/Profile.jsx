@@ -29,7 +29,6 @@ export default function Profile() {
           name: data.full_name || "",
           dob: data.birthdate ? data.birthdate.slice(0, 10) : "",
           phone: data.phone || "",
-          email: data.email || "",
           gender: data.gender || "",
           address: data.address || "",
           role: data.role || "",
@@ -103,7 +102,6 @@ export default function Profile() {
     }
 
     const data = {
-      email: editForm.email,
       full_name: editForm.name,
       gender: editForm.gender,
       phone: editForm.phone,
@@ -192,7 +190,7 @@ export default function Profile() {
   return (
     <div className="container">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className="sidebar-Profile">
         <a href="#" className="active">
           General
         </a>
@@ -253,10 +251,6 @@ export default function Profile() {
             <div>
               <span>Phone Number</span>
               <p>{profile.phone}</p>
-            </div>
-            <div>
-              <span>Email Address</span>
-              <p>{profile.email}</p>
             </div>
             <div>
               <span>Gender</span>
@@ -337,8 +331,6 @@ export default function Profile() {
                   }
                   required
                 />
-                <label>Email</label>
-                <input type="email" value={editForm.email} readOnly />
                 <label>Gender</label>
                 <select
                   value={editForm.gender}

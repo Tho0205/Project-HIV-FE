@@ -46,6 +46,7 @@ const Login = () => {
       localStorage.setItem("username", data.fullName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("account_id", data.accountid);
+      localStorage.setItem("user_id", data.userid);
       localStorage.setItem("item", JSON.stringify(data.list));
       localStorage.setItem(
         "user_avatar",
@@ -56,7 +57,7 @@ const Login = () => {
       if (data.role === "Patient") {
         navigate("/");
       } else if (data.role === "staff") {
-        navigate("/Staff/ManagerPatient");
+        navigate("/Staff-ManagerPatient");
       }
     } else {
       const error = await response.json().catch(() => null);

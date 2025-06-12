@@ -4,6 +4,7 @@ import BlogDetail from "../pages/Blog/BlogDetail";
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Profile from "../pages/Profile/Profile";
+import ManagerPatient from "../pages/Staff/ManagerPatient";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -12,4 +13,5 @@ export const routes = [
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/Profile-Patient", element: <Profile /> },
+  { path: "/Staff-ManagerPatient", element: <ManagerPatient /> },
 ];
