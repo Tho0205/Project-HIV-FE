@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getBlogById, getAllBlogs } from "../../services/blogservice";
 import { useNavigate } from "react-router-dom";
-import "./BlogDetail.css";
+import { getCommentsByBlogId, addComment } from "../../services/commentservice";
+import "./BlogDetail.css";  
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -12,6 +13,49 @@ export default function BlogDetail() {
   const [latestBlogs, setLatestBlogs] = useState([]);
   const [visibleCount, setVisibleCount] = useState(4);
   const navigate = useNavigate();
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [visibleComments, setVisibleComments] = useState(4);
+
+
+  useEffect(() => {
+    const accountId = localStorage.getItem("account_id");
+    const username = localStorage.getItem("username");
+
+    if (accountId && username) {
+      setCurrentUser({
+        userId: parseInt(accountId),
+        username: username
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (id) {
+      getCommentsByBlogId(id)
+        .then(setComments)
+        .catch(() => setComments([]));
+    }
+  }, [id]);
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !currentUser) return;
+    const commentDto = {
+      blogId: parseInt(id),
+      content: newComment.trim(),
+      userId: currentUser.userId,
+    };
+    
+    try {
+      const added = await addComment(commentDto);
+      setComments((prev) => [...prev, added]);
+      setNewComment("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      alert("Không thể thêm bình luận. Vui lòng thử lại sau.");
+    }
+  };
 
   useEffect(() => {
     getBlogById(id)
@@ -36,6 +80,16 @@ export default function BlogDetail() {
     );
   }
 
+  const getImageUrl = (imageUrl) => {
+  if (!imageUrl || imageUrl.trim() === "") {
+    return "/placeholder.svg?height=400&width=600";
+  }
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+  return `https://localhost:7243${imageUrl}`;
+};
+
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 4);
   };
@@ -51,14 +105,7 @@ export default function BlogDetail() {
           </div>
         </header>
         <div className="article-img">
-          <img
-            src={
-              blog.imageUrl && blog.imageUrl.trim() !== ""
-                ? blog.imageUrl
-                : "/placeholder.svg?height=400&width=600"
-            }
-            alt={blog.title}
-          />
+          <img src={getImageUrl(blog.imageUrl)} alt={blog.title} />
         </div>
         <div className="article-content">
           {blog.content
@@ -66,6 +113,50 @@ export default function BlogDetail() {
             .map((p, i) => p.trim() && <p key={i}>{p}</p>)}
         </div>
       </article>
+
+      {/* Phần bình luận */}
+      <section className="comments-section">
+        <h2>Bình luận</h2>
+
+        {currentUser ? (
+          <div className="comment-form">
+            <textarea
+              placeholder="Nhập bình luận..."
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+            />
+            <button onClick={handleAddComment} className="btn">Gửi</button>
+          </div>
+        ) : (
+          <p>Vui lòng <a href="/login">đăng nhập</a> để bình luận.</p>
+        )}
+
+        <div className="comments-list">
+          {comments.length === 0 ? (
+            <p>Chưa có bình luận nào.</p>
+          ) : (
+            comments.slice(0, visibleComments).map((c, i) => (
+              <div key={i} className="comment-item">
+                <div className="comment-meta">
+                  <strong>{c.user}</strong> -{" "}
+                  <small>{new Date(c.createdAt).toLocaleDateString("vi-VN")}</small>
+                </div>
+                <p>{c.content}</p>
+              </div>
+            ))
+          )}
+        </div>
+        {visibleComments < comments.length && (
+          <div className="load-more">
+            <button className="btn" onClick={() => setVisibleComments(prev => prev + 4)}>
+              Xem thêm
+            </button>
+          </div>
+        )}
+      </section>
+
+
+
 
       {/* Danh sách các bài viết mới nhất */}
       <aside className="related">
