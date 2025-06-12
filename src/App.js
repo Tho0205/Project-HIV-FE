@@ -11,7 +11,11 @@ import "./App.css"; // <-- nếu bạn chưa import CSS
 
 function App() {
   const location = useLocation();
-  const hideHeaderFooter = ["/login", "/register"].includes(location.pathname);
+  const hideHeaderFooter = [
+    "/login",
+    "/register",
+    "/Staff-ManagerPatient",
+  ].includes(location.pathname);
 
   return (
     <div className="app-wrapper">
