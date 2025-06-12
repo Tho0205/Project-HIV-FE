@@ -22,6 +22,16 @@ export default function Blog() {
     fetchData();
   }, []);
 
+  const getImageUrl = (imageUrl) => {
+  if (!imageUrl || imageUrl.trim() === "") {
+    return "/placeholder.svg?height=400&width=600";
+  }
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+  return `https://localhost:7243${imageUrl}`;
+};
+
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 4);
   };
@@ -41,15 +51,9 @@ export default function Blog() {
                 onClick={() => navigate(`/blog/${blog.blogId}`)}
                 style={{ cursor: "pointer" }}
               >
-                <img
-                  className="img"
-                  src={
-                    blog.imageUrl && blog.imageUrl.trim() !== ""
-                      ? blog.imageUrl
-                      : "/placeholder.svg?height=200&width=300"
-                  }
-                  alt={blog.title}
-                />
+
+              <img className="img" src={getImageUrl(blog.imageUrl)} alt={blog.title} />
+
                 <div className="info">
                   <span className="date">
                     {new Date(blog.createdAt).toLocaleDateString("vi-VN")}
