@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
+import "./ARVPage123.css";
 import ARVTable from "./ARVTable";
 import ARVForm from "./ARVForm";
+import Sidebar from "../../components/Sidebar/Sidebar";
+import { toast } from "react-toastify";
 
 const API_BASE = "https://localhost:7243/api/arv";
 
@@ -50,48 +53,70 @@ const ARVPage = () => {
   );
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">📋 Quản lý thuốc ARV</h1>
-        <button
-          onClick={() => {
-            setSelected(null);
-            setFormVisible(true);
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow-md"
-        >
-          ➕ Thêm mới
-        </button>
-      </div>
-
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="🔍 Tìm kiếm theo tên thuốc..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      </div>
-
-      {isFormVisible && (
-        <div className="mb-6 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">
-            {selected ? "✏️ Cập nhật thông tin thuốc" : "🆕 Thêm thuốc mới"}
-          </h2>
-          <ARVForm
-            onSubmit={handleSubmit}
-            selected={selected}
-            onCancel={() => {
+    <div className="arv-wrapper">
+      <Sidebar active="arv" />
+      <div className="arv-content">
+        <div className="arv-user-row">
+          <div className="arv-user">
+            <span className="arv-notification">
+              🔔<span className="arv-dot"></span>
+            </span>
+            <img
+              src="https://i.pravatar.cc/40?img=5"
+              className="arv-avatar"
+              alt="avatar"
+            />
+          </div>
+        </div>
+        <div className="arv-header">
+          <div style={{ width: 120 }}></div>
+          <h1 className="arv-title">📋 Quản lý thuốc ARV</h1>
+          <button
+            onClick={() => {
               setSelected(null);
-              setFormVisible(false);
+              setFormVisible(true);
             }}
+            className="arv-add-btn"
+          >
+            ➕ Thêm mới
+          </button>
+        </div>
+
+        <div className="arv-search-box">
+          <input
+            type="text"
+            placeholder="🔍 Tìm kiếm theo tên thuốc..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="arv-search-input"
           />
         </div>
-      )}
 
-      <div className="bg-white rounded-xl shadow-md overflow-x-auto border border-gray-200">
-        <ARVTable arvs={filteredArvs} onDelete={handleDelete} onEdit={handleEdit} />
+        {isFormVisible && (
+          <div className="arv-modal">
+            <div className="arv-modal-content">
+              <h2 style={{ color: "#257df4", marginBottom: 16 }}>
+                {selected ? "✏️ Cập nhật thông tin thuốc" : "🆕 Thêm thuốc mới"}
+              </h2>
+              <ARVForm
+                onSubmit={handleSubmit}
+                selected={selected}
+                onCancel={() => {
+                  setSelected(null);
+                  setFormVisible(false);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="arv-table-container">
+          <ARVTable
+            arvs={filteredArvs}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+          />
+        </div>
       </div>
     </div>
   );

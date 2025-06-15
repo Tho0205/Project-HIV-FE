@@ -15,25 +15,6 @@ body {
   height: auto;
 }
 
-.sidebar {
-  width: 240px;
-  min-height: 100vh;
-  height: auto;
-  background-color: #fff;
-  border-right: 1px solid #e0e0e0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
-}
-
-.sidebar-top {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
 .logo {
   font-weight: bold;
   font-size: 20px;
@@ -153,12 +134,14 @@ body {
 
 .sort-bar {
   margin: 20px 0 10px;
+  font-weight: 600;
 }
 
 .sort-bar select {
   padding: 5px 10px;
   border-radius: 5px;
   margin-left: 5px;
+  font-weight: 600;
 }
 
 table {
@@ -169,6 +152,9 @@ table {
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
   border-collapse: collapse;
 }
+table tbody {
+  font-weight: 600;
+}
 
 th,
 td {
@@ -176,7 +162,6 @@ td {
   text-align: left;
   font-size: 14px;
   border-bottom: 1px solid #f1f1f1;
-  text-align: center;
 }
 
 .avatar-sm {
@@ -185,6 +170,7 @@ td {
   border-radius: 50%;
   vertical-align: middle;
   margin-right: 8px;
+  border: solid 1px black;
 }
 
 .pagination {

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./ManagerPatient.css";
 import { toast } from "react-toastify";
+import Sidebar from "../../components/Sidebar/Sidebar";
+import Pagination from "../../components/Pagination/Pagination";
 
 const API_BASE = "https://localhost:7243";
 
@@ -120,6 +122,7 @@ export default function ManagerPatient() {
       );
       if (res.status === 204) {
         closeModal();
+        toast.success("Edit Successfully", { autoClose: 2000 });
         fetchPatients(page, sort);
       } else {
         const result = await res.json();
@@ -141,59 +144,6 @@ export default function ManagerPatient() {
     }
   }
   const navigate = useNavigate();
-  // Logout
-  function logout() {
-    sessionStorage.clear();
-    localStorage.clear();
-    navigate("/login");
-    toast.success("Logout Successfully");
-  }
-
-  // Pagination render logic
-  function renderPagination() {
-    const totalPages = Math.ceil(total / PAGE_SIZE);
-    if (totalPages <= 1) return null;
-    const buttons = [];
-
-    // Trang Đầu
-    buttons.push(
-      <button
-        key="first"
-        disabled={page === 1}
-        onClick={() => setPage(1)}
-        style={{ fontWeight: 600 }}
-      >
-        Trang Đầu
-      </button>
-    );
-
-    // Các số trang
-    for (let i = 1; i <= totalPages; i++) {
-      buttons.push(
-        <button
-          key={i}
-          className={i === page ? "active" : ""}
-          onClick={() => setPage(i)}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    // Trang Cuối
-    buttons.push(
-      <button
-        key="last"
-        disabled={page === totalPages}
-        onClick={() => setPage(totalPages)}
-        style={{ fontWeight: 600 }}
-      >
-        Trang Cuối
-      </button>
-    );
-
-    return <div className="pagination">{buttons}</div>;
-  }
 
   // Capitalize helper
   function capitalize(str) {
@@ -220,52 +170,7 @@ export default function ManagerPatient() {
   return (
     <div className="wrapper">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-top">
-          <div className="logo">Logo HIV</div>
-          <div className="welcome">Welcome Staff</div>
-          <ul className="nav">
-            <li>
-              <span className="icon">📅</span>
-              <span>Quản Lí Lịch Đặt Khám</span>
-            </li>
-            <li className="active">
-              <span className="icon">👤</span>
-              <span>Quản Lí Thông Tin KH</span>
-            </li>
-            <li>
-              <span className="icon">📋</span>
-              <span>Quản Lí DS Tư Vấn Đã Đặt</span>
-            </li>
-            <li>
-              <span className="icon">🧪</span>
-              <span>Quản Lí Kết Quả Xét Nghiệm</span>
-            </li>
-            <li>             
-              <span className="icon">🧪</span>
-              <Link to="/arv">
-              <span>Quản Lí ARV</span>
-              </Link>
-            </li>
-            <li>
-                <span className="icon">🧪</span>
-                <Link to="/ARVProtocol">
-                <span>Quản Lí ARV Protocol</span>
-              </Link>
-            </li>
-            <li>
-              <span className="icon">🧪</span>
-              <span>Quản Lí Custom ARV Protocol</span>
-            </li>
-          </ul>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="help">❔ Help</div>
-          <div className="logout">
-            <button onClick={logout}>🚪 Logout</button>
-          </div>
-        </div>
-      </aside>
+      <Sidebar active="patient" />
 
       {/* Main Content */}
       <main className="content">
@@ -362,7 +267,12 @@ export default function ManagerPatient() {
         </table>
 
         {/* Pagination */}
-        {renderPagination()}
+        <Pagination
+          page={page}
+          total={total}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
 
         {/* Edit Modal */}
         {showModal && (

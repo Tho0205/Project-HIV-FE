@@ -2,7 +2,7 @@ import React from "react";
 
 const ARVTable = ({ arvs, onEdit, onDelete }) => {
   return (
-    <table className="w-full table-auto text-left border-collapse">
+    <table className="arv-table">
       <thead className="bg-blue-100 text-blue-800">
         <tr>
           <th className="border px-4 py-2">ID</th>
@@ -20,19 +20,21 @@ const ARVTable = ({ arvs, onEdit, onDelete }) => {
               <td className="border px-4 py-2">{item.name}</td>
               <td className="border px-4 py-2">{item.description}</td>
               <td className="border px-4 py-2">{item.status}</td>
-              <td className="border px-4 py-2 text-center space-x-2">
-                <button
-                  onClick={() => onEdit(item)}
-                  className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1 rounded-md"
-                >
-                  ✏️ Sửa
-                </button>
-                <button
-                  onClick={() => onDelete(item.arvId)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md"
-                >
-                  🗑️ Xóa
-                </button>
+              <td className="border px-4 py-2 text-center action-btn">
+                <div className="arv-actions">
+                  <button
+                    onClick={() => onEdit(item)}
+                    className="arv-action-btn edit"
+                  >
+                    ✏️ Sửa
+                  </button>
+                  <button
+                    onClick={() => onDelete(item.arvId)}
+                    className="arv-action-btn delete"
+                  >
+                    🗑️ Xóa
+                  </button>
+                </div>
               </td>
             </tr>
           ))
