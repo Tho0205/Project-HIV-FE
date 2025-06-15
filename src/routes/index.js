@@ -5,6 +5,8 @@ import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
 import Profile from "../pages/Profile/Profile";
 import ManagerPatient from "../pages/Staff/ManagerPatient";
+import ARVPage from "../pages/ARV/ARVPage";
+import ARVProtocolPage from "../pages/ARVProtocol/ARVProtocolPage"; // ✅ Sửa đường dẫn đúng
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -14,4 +16,6 @@ export const routes = [
   { path: "/register", element: <Register /> },
   { path: "/Profile-Patient", element: <Profile /> },
   { path: "/Staff-ManagerPatient", element: <ManagerPatient /> },
+  { path: "/arv", element: <ARVPage /> },
+  { path: "/arv-protocol", element: <ARVProtocolPage /> }, // ✅ Đường dẫn chuẩn, viết thường và dùng dấu gạch ngang
 ];
