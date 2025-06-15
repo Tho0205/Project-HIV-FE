@@ -15,6 +15,7 @@ function App() {
     "/login",
     "/register",
     "/Staff-ManagerPatient",
+    "/arv"
   ].includes(location.pathname);
 
   return (

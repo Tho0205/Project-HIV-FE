@@ -254,6 +254,22 @@ export default function ManagerPatient() {
               <span className="icon">🧪</span>
               <span>Quản Lí Kết Quả Xét Nghiệm</span>
             </li>
+            <li>             
+              <span className="icon">🧪</span>
+              <Link to="/arv">
+              <span>Quản Lí ARV</span>
+              </Link>
+            </li>
+            <li>
+                <span className="icon">🧪</span>
+                <Link to="/ARVProtocol">
+                <span>Quản Lí ARV Protocol</span>
+              </Link>
+            </li>
+            <li>
+              <span className="icon">🧪</span>
+              <span>Quản Lí Custom ARV Protocol</span>
+            </li>
           </ul>
         </div>
         <div className="sidebar-bottom">
