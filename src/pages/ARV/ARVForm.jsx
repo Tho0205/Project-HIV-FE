@@ -23,7 +23,7 @@ const ARVForm = ({ onSubmit, selected, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -35,7 +35,7 @@ const ARVForm = ({ onSubmit, selected, onCancel }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="arv-form">
       <div>
         <label className="block font-medium mb-1">Tên thuốc ARV</label>
         <input
@@ -61,17 +61,17 @@ const ARVForm = ({ onSubmit, selected, onCancel }) => {
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="arv-modal-actions">
         <button
           type="button"
           onClick={onCancel}
-          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md"
+          className="arv-btn-cancel"
         >
           Hủy
         </button>
         <button
           type="submit"
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+          className="arv-btn-submit"
         >
           {formData.arvId ? "Cập nhật" : "Thêm mới"}
         </button>
