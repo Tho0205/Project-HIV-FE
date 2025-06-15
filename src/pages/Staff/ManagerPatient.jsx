@@ -262,7 +262,7 @@ export default function ManagerPatient() {
             </li>
             <li>
                 <span className="icon">🧪</span>
-                <Link to="/ARVProtocol">
+                <Link to="/arv-protocol">
                 <span>Quản Lí ARV Protocol</span>
               </Link>
             </li>
