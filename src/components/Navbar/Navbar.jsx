@@ -33,7 +33,7 @@ const Header = () => {
 
       <nav className="nav-links">
         <Link to="/">Trang Chủ</Link>
-        <a href="/Pages/ViewPage/BookingPage.html">Đặt Lịch Hẹn</a>
+         <Link to="/appointment">Đặt Lịch Hẹn</Link> {/* Thay đổi từ <a> thành <Link> */}
         <Link to="/blog">Blog</Link>
         <a href="/Pages/ViewPage/ResourcesPage.html">Tài Liệu Giáo Dục</a>
       </nav>
@@ -42,7 +42,12 @@ const Header = () => {
         <span className="lang-switch">🌐</span>
 
         {/* Booking Now button - luôn hiển thị */}
-        <button className="btn-outline">Booking Now</button>
+        <button 
+          className="btn-outline"
+          onClick={() => navigate("/appointment")} // Thêm onClick handler
+        >
+          Booking Now
+        </button>
 
         {/* Conditional Buttons */}
         {!role ? (
