@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./ManagerPatient.css";
+import { toast } from "react-toastify";
 
 const API_BASE = "https://localhost:7243";
 
@@ -79,19 +80,6 @@ export default function ManagerPatient() {
     setShowModal(true);
   }
 
-  // Handle avatar file change
-  function handleAvatarChange(e) {
-    const file = e.target.files[0];
-    setAvatarFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPreviewAvatar(ev.target.result);
-      reader.readAsDataURL(file);
-    } else {
-      setPreviewAvatar(editData?.avatarUrl || defaultAvatar);
-    }
-  }
-
   // Handle modal close
   function closeModal() {
     setShowModal(false);
@@ -118,7 +106,6 @@ export default function ManagerPatient() {
       birthdate: editData.dob,
       role: "Patient",
       address: editData.address,
-      // Không cập nhật user_avatar nữa
       status: editData.status,
     };
 
@@ -159,6 +146,7 @@ export default function ManagerPatient() {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
+    toast.success("Logout Successfully");
   }
 
   // Pagination render logic
@@ -220,14 +208,13 @@ export default function ManagerPatient() {
     return d.toLocaleDateString("vi-VN");
   }
 
-  // Check role on mount
+  // Ktra Staff
   useEffect(() => {
     const role = localStorage.getItem("role");
-    if (role !== "staff") {
-      alert("You are not Staff");
-      window.location.href = "/Pages/ViewPage/login.html";
+    if (role !== "Staff" && role !== "Manager") {
+      toast.error("You are not Staff or Manager");
+      navigate("/");
     }
-    // eslint-disable-next-line
   }, []);
 
   return (

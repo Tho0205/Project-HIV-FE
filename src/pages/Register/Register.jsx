@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Register.css";
 import { registerAPI } from "../../services/account";
+import { toast } from "react-toastify";
 //hello123
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const RegisterForm = () => {
     try {
       if (res.ok) {
         const json = await res.json();
-        alert(json.message || "Đăng ký thành công!");
+        toast.success(json.message || "Đăng ký thành công!");
         navigate("/login");
       } else {
         const errorText = await res.text();

@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 import { loginApi } from "../../services/account";
+import { toast } from "react-toastify";
 const backendBaseUrl = "https://localhost:7243";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,6 +44,7 @@ const Login = () => {
     }
 
     if (response.ok) {
+      toast.success("Login Successfully");
       const data = await response.json();
       localStorage.setItem("username", data.fullName);
       localStorage.setItem("role", data.role);
@@ -52,21 +55,22 @@ const Login = () => {
         "user_avatar",
         data.user_avatar
           ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
-          : "/assets/image/patient/patient.png"
+          : "./assets/image/patient/patient.png"
       );
-      if (data.role === "Patient") {
+
+      if (data.role === "Patient" || data.role === "Doctor") {
         navigate("/");
-      } else if (data.role === "staff") {
+      } else if (data.role === "Staff" || data.role === "Manager") {
         navigate("/Staff-ManagerPatient");
       }
     } else {
       const error = await response.json().catch(() => null);
       if (error?.errors?.password_hash) {
-        setResult(error.errors.password_hash[0]);
+        toast.error(error.errors.password_hash[0]);
       } else if (error?.title) {
-        setResult(error.title);
+        toast.error(error.title);
       } else {
-        setResult("Login failed");
+        toast.error("Login Fail");
       }
     }
   };

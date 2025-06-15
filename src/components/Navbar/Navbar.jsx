@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./nav-bar.css"; // css
+import { toast } from "react-toastify";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Header = () => {
     localStorage.clear();
     setRole(null);
     navigate("/");
+    toast.success("Logout Successfully");
   };
 
   return (
