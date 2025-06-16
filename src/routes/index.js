@@ -6,6 +6,9 @@ import Register from "../pages/Register/Register";
 import Profile from "../pages/Profile/Profile";
 import ManagerPatient from "../pages/Staff/ManagerPatient";
 import Appointment from "../pages/Appointment/Appointment";
+import ARVPage from "../pages/ARV/ARVPage";
+import ARVProtocolPage from "../pages/ARVProtocol/ARVProtocolPage";
+
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
@@ -15,5 +18,5 @@ export const routes = [
   { path: "/Profile-Patient", element: <Profile /> },
   { path: "/Staff-ManagerPatient", element: <ManagerPatient /> },
   { path: "/appointment", element: <Appointment /> },
-  
+  { path: "/arv", element: <ARVPage /> },
 ];

@@ -2,9 +2,12 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Register.css";
 import { registerAPI } from "../../services/account";
-//hello123
+import { toast } from "react-toastify";
+import LoadingOverlay from "../../components/Loading/Loading";
+
 const RegisterForm = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     fullName: "",
@@ -33,34 +36,49 @@ const RegisterForm = () => {
     try {
       if (res.ok) {
         const json = await res.json();
-        alert(json.message || "Đăng ký thành công!");
-        navigate("/login");
+        toast.success(json.message || "Register Successfully !");
+        setLoading(true);
+        setTimeout(() => {
+          navigate("/login");
+          setLoading(false);
+        }, 800);
       } else {
         const errorText = await res.text();
-        alert("Đăng ký thất bại: " + errorText);
+        toast.error("Register fail: " + errorText);
       }
     } catch (err) {
       console.error(err);
-      alert("Lỗi kết nối đến server.");
+      toast.error("Can't connect with Server.");
     }
   };
 
+  // Hàm chuyển trang login có loading
+  const handleGoToLogin = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      navigate("/login");
+      setLoading(false);
+    }, 800);
+  };
+
   return (
-    <div className="container">
+    <div className="register-container">
+      <LoadingOverlay isLoading={loading} />
       {/* Left Section */}
-      <div className="left-section">
+      <div className="register-left-section">
         <img
           src="/assets/image/Account/login2.png"
           alt="Background"
-          className="background-img"
+          className="register-background-img"
         />
-        <div className="overlay">
+        <div className="register-overlay">
           <img
             src="/assets/image/Account/login.png"
             alt="Doctors"
-            className="doctors-img"
+            className="register-doctors-img"
           />
-          <div className="badge">
+          <div className="register-badge">
             <div className="badge-icon">🔍</div>
             <div>
               <strong>Well qualified doctors</strong>
@@ -68,8 +86,8 @@ const RegisterForm = () => {
               <small>Treat with care</small>
             </div>
           </div>
-          <div className="appointment-card">
-            <div className="icon">📅</div>
+          <div className="register-appointment-card">
+            <div className="register-icon">📅</div>
             <div>
               <strong>Book an appointment</strong>
               <br />
@@ -80,11 +98,14 @@ const RegisterForm = () => {
       </div>
 
       {/* Right Section */}
-      <div className="right-section">
+      <div className="register-right-section">
         <form className="register-form" onSubmit={handleSubmit}>
           <h1 style={{ textAlign: "center", fontSize: "38px" }}>Register</h1>
-          <p className="subtext">
-            Do you have account ? <Link to="/login">Log in</Link>
+          <p className="register-subtext">
+            Do you have account ?{" "}
+            <a href="/login" onClick={handleGoToLogin}>
+              Log in
+            </a>
           </p>
 
           {/* Form Inputs */}
@@ -150,7 +171,7 @@ const RegisterForm = () => {
           />
 
           {/* Gender */}
-          <div className="gender-options">
+          <div className="register-gender-options">
             <label>Gender:</label>
             <label>
               <input
@@ -184,16 +205,19 @@ const RegisterForm = () => {
             </label>
           </div>
 
-          <button type="submit" className="sign-up-btn">
+          <button type="submit" className="register-sign-up-btn">
             Sign Up
           </button>
 
-          <button type="button" className="social-btn google">
+          <button type="button" className="register-social-btn register-google">
             <img src="https://www.google.com/favicon.ico" alt="Google" />
             <span>Register With Google</span>
           </button>
 
-          <button type="button" className="social-btn facebook">
+          <button
+            type="button"
+            className="register-social-btn register-facebook"
+          >
             <img src="https://www.facebook.com/favicon.ico" alt="Facebook" />
             <span>Register With Facebook</span>
           </button>
