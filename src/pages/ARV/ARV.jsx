@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ARVService from "../../services/ARVService";
+import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARV.css";
 
 export default function ARV() {
@@ -32,9 +33,10 @@ export default function ARV() {
   }
 
   // Filter ARVs based on search term
-  const filteredArvs = arvs.filter(arv => 
-    arv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    arv.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredArvs = arvs.filter(
+    (arv) =>
+      arv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      arv.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   function openEditModal(arv) {
@@ -57,7 +59,7 @@ export default function ARV() {
       const arvData = {
         name: editData.name,
         description: editData.description,
-        status: editData.status || "ACTIVE"
+        status: editData.status || "ACTIVE",
       };
 
       if (editData?.arvId) {
@@ -65,7 +67,7 @@ export default function ARV() {
       } else {
         await ARVService.createARV(arvData);
       }
-      
+
       closeModal();
       await fetchArvs();
     } catch (error) {
@@ -89,7 +91,7 @@ export default function ARV() {
   // Authorization check
   useEffect(() => {
     const role = localStorage.getItem("role");
-    if (role !== "staff") {
+    if (role !== "Staff") {
       alert("You are not authorized to access this page");
       navigate("/login");
     }
@@ -104,57 +106,13 @@ export default function ARV() {
   return (
     <div className="wrapper">
       {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-top">
-          <div className="logo">HIV Clinic</div>
-          <div className="welcome">Welcome Staff</div>
-          <ul className="nav">
-            <li>
-              <span className="icon">📅</span>
-              <span>Appointments</span>
-            </li>
-            <li>
-              <span className="icon">👤</span>
-              <Link to="/Staff-ManagerPatient">
-                <span>Patients</span>
-              </Link>
-            </li>
-            <li>
-              <span className="icon">📋</span>
-              <span>Consultations</span>
-            </li>
-            <li>
-              <span className="icon">🧪</span>
-              <span>Test Results</span>
-            </li>
-            <li className="active">
-              <span className="icon">💊</span>
-              <Link to="/arv">
-                <span>ARV Management</span>
-              </Link>
-            </li>
-            <li>
-              <span className="icon">📝</span>
-              <Link to="/arv-protocol">
-                <span>Protocols</span>
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="help">❔ Help</div>
-          <div className="logout">
-            <button onClick={handleLogout}>🚪 Logout</button>
-          </div>
-        </div>
-      </aside>
-
+      <Sidebar active="arv" />
       {/* Main Content */}
       <main className="content">
         <div className="header">
-          <input 
-            type="text" 
-            placeholder="Search ARVs..." 
+          <input
+            type="text"
+            placeholder="Search ARVs..."
             className="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,25 +122,21 @@ export default function ARV() {
         <h1 className="title">ARV Management</h1>
 
         <div className="action-bar">
-          <button 
-            className="btn-primary" 
+          <button
+            className="btn-primary"
             onClick={() => {
-              setEditData({ 
-                name: "", 
-                description: "", 
-                status: "ACTIVE" 
+              setEditData({
+                name: "",
+                description: "",
+                status: "ACTIVE",
               });
               setShowModal(true);
             }}
           >
             ➕ Add New ARV
-          </button>      
+          </button>
         </div>
-        {error && (
-          <div className="error-message">
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <div className="error-message">⚠️ {error}</div>}
 
         <div className="table-container">
           <table className="arv-table">
@@ -205,7 +159,9 @@ export default function ARV() {
               ) : filteredArvs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="no-data">
-                    {arvs.length === 0 ? "No ARVs available" : "No matching ARVs found"}
+                    {arvs.length === 0
+                      ? "No ARVs available"
+                      : "No matching ARVs found"}
                   </td>
                 </tr>
               ) : (
@@ -215,16 +171,20 @@ export default function ARV() {
                     <td>{arv.name}</td>
                     <td>{arv.description || "-"}</td>
                     <td>
-                      <span className={`status-badge ${
-                        arv.status === "ACTIVE" ? "status-active"
-                        : arv.status === "DELETED" ? "status-deleted"
-                        : "status-inactive"
-                      }`}>
+                      <span
+                        className={`status-badge ${
+                          arv.status === "ACTIVE"
+                            ? "status-active"
+                            : arv.status === "DELETED"
+                            ? "status-deleted"
+                            : "status-inactive"
+                        }`}
+                      >
                         {arv.status}
                       </span>
                     </td>
                     <td className="actions">
-                      <button 
+                      <button
                         className="action-btn edit"
                         onClick={() => openEditModal(arv)}
                         title="Edit"
@@ -252,8 +212,8 @@ export default function ARV() {
             <div className="modal-container">
               <div className="modal-header">
                 <h2>{editData?.arvId ? "Edit ARV" : "Add New ARV"}</h2>
-                <button 
-                  className="close-button" 
+                <button
+                  className="close-button"
                   onClick={closeModal}
                   aria-label="Close modal"
                 >
@@ -268,7 +228,7 @@ export default function ARV() {
                     id="arv-name"
                     type="text"
                     value={editData?.name || ""}
-                    onChange={(e) => 
+                    onChange={(e) =>
                       setEditData({ ...editData, name: e.target.value })
                     }
                     required
@@ -276,7 +236,7 @@ export default function ARV() {
                     className="form-input"
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="arv-desc">Description</label>
                   <textarea
@@ -290,7 +250,7 @@ export default function ARV() {
                     className="form-textarea"
                   />
                 </div>
-                
+
                 <div className="form-group">
                   <label htmlFor="arv-status">Status</label>
                   <select
@@ -306,12 +266,9 @@ export default function ARV() {
                     <option value="DELETED">Deleted</option>
                   </select>
                 </div>
-                
+
                 <div className="form-actions">
-                  <button 
-                    type="submit" 
-                    className="btn-primary"
-                  >
+                  <button type="submit" className="btn-primary">
                     {editData?.arvId ? "Update" : "Create"} ARV
                   </button>
                   <button

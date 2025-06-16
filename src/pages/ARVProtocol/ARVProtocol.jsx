@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import ARVProtocolService from '../../services/ARVProtocolService';
-import './ARVProtocol.css';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import ARVProtocolService from "../../services/ARVProtocolService";
+import Sidebar from "../../components/Sidebar/Sidebar";
+import "./ARVProtocol.css";
 
 export default function ARVProtocol() {
   // State quản lý dữ liệu
   const [protocols, setProtocols] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   // State quản lý modal
   const [showEditModal, setShowEditModal] = useState(false);
@@ -26,19 +27,19 @@ export default function ARVProtocol() {
         const data = await ARVProtocolService.getProtocols();
         setProtocols(data || []);
       } catch (err) {
-        setError('Failed to load protocols');
+        setError("Failed to load protocols");
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchData();
-    
+
     // Kiểm tra quyền truy cập
-    if (localStorage.getItem('role') !== 'staff') {
-      alert('You are not authorized');
-      navigate('/login');
+    if (localStorage.getItem("role") !== "Staff") {
+      alert("You are not authorized");
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -46,18 +47,20 @@ export default function ARVProtocol() {
   const handleShowARVDetails = async (protocol) => {
     setSelectedProtocol(protocol);
     try {
-      const details = await ARVProtocolService.getARVDetails(protocol.protocolId);
+      const details = await ARVProtocolService.getARVDetails(
+        protocol.protocolId
+      );
       setArvDetails(details);
       setShowARVModal(true);
     } catch (err) {
-      setError('Failed to load ARV details');
+      setError("Failed to load ARV details");
       console.error(err);
     }
   };
 
   // Hàm tạo mới protocol
   const handleCreate = async () => {
-    setEditData({ name: '', description: '', status: 'ACTIVE' });
+    setEditData({ name: "", description: "", status: "ACTIVE" });
     setShowEditModal(true);
   };
 
@@ -69,12 +72,12 @@ export default function ARVProtocol() {
 
   // Hàm xóa protocol
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure to delete this protocol?')) {
+    if (window.confirm("Are you sure to delete this protocol?")) {
       try {
         await ARVProtocolService.deleteProtocol(id);
-        setProtocols(protocols.filter(p => p.protocolId !== id));
+        setProtocols(protocols.filter((p) => p.protocolId !== id));
       } catch (err) {
-        setError('Failed to delete protocol');
+        setError("Failed to delete protocol");
         console.error(err);
       }
     }
@@ -93,7 +96,7 @@ export default function ARVProtocol() {
       const data = await ARVProtocolService.getProtocols();
       setProtocols(data || []);
     } catch (err) {
-      setError(err.message || 'Operation failed');
+      setError(err.message || "Operation failed");
       console.error(err);
     }
   };
@@ -101,44 +104,27 @@ export default function ARVProtocol() {
   // Hàm đăng xuất
   const handleLogout = () => {
     localStorage.clear();
-    navigate('/login');
+    navigate("/login");
   };
 
   // Lọc protocol theo search term
-  const filteredProtocols = protocols.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredProtocols = protocols.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
     <div className="wrapper">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="sidebar-top">
-          <div className="logo">HIV Clinic</div>
-          <div className="welcome">Welcome Staff</div>
-          <ul className="nav">
-            <li><span className="icon">📅</span> Appointments</li>
-            <li><Link to="/Staff-ManagerPatient"><span className="icon">👤</span> Patients</Link></li>
-            <li><span className="icon">📋</span> Consultations</li>
-            <li><span className="icon">🧪</span> Test Results</li>
-            <li><Link to="/arv"><span className="icon">💊</span> ARV Management</Link></li>
-            <li className="active"><span className="icon">📝</span> Protocol Management</li>
-            <li><span className="icon">🛠️</span> Custom Protocols</li>
-          </ul>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="help">❔ Help</div>
-          <button className="logout-btn" onClick={handleLogout}>🚪 Logout</button>
-        </div>
-      </aside>
-
+      <Sidebar active="arv-protocol" />
       {/* Main Content */}
       <main className="content">
         <div className="header">
           <input
             type="text"
             placeholder="Search protocols..."
+            className="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -175,27 +161,31 @@ export default function ARVProtocol() {
                   <td colSpan={5}>No protocols found</td>
                 </tr>
               ) : (
-                filteredProtocols.map(p => (
+                filteredProtocols.map((p) => (
                   <tr key={p.protocolId}>
                     <td>{p.protocolId}</td>
                     <td>{p.name}</td>
-                    <td>{p.description || '-'}</td>
+                    <td>{p.description || "-"}</td>
                     <td>
-                      <span className={`status-badge ${p.status.toLowerCase()}`}>
+                      <span
+                        className={`status-badge ${p.status.toLowerCase()}`}
+                      >
                         {p.status}
                       </span>
                     </td>
                     <td className="actions">
-                      <button onClick={() => handleUpdate(p)} title="Edit">✏️</button>
-                      <button 
-                        onClick={() => handleDelete(p.protocolId)} 
+                      <button onClick={() => handleUpdate(p)} title="Edit">
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDelete(p.protocolId)}
                         title="Delete"
-                        disabled={p.status === 'DELETED'}
+                        disabled={p.status === "DELETED"}
                       >
                         🗑️
                       </button>
-                      <button 
-                        onClick={() => handleShowARVDetails(p)} 
+                      <button
+                        onClick={() => handleShowARVDetails(p)}
                         title="View ARV Details"
                       >
                         👁️
@@ -213,7 +203,9 @@ export default function ARVProtocol() {
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h3>{editData.protocolId ? 'Edit Protocol' : 'Add Protocol'}</h3>
+                <h3>
+                  {editData.protocolId ? "Edit Protocol" : "Add Protocol"}
+                </h3>
                 <button onClick={() => setShowEditModal(false)}>&times;</button>
               </div>
               <form onSubmit={handleSubmit}>
@@ -222,7 +214,9 @@ export default function ARVProtocol() {
                   <input
                     type="text"
                     value={editData.name}
-                    onChange={(e) => setEditData({...editData, name: e.target.value})}
+                    onChange={(e) =>
+                      setEditData({ ...editData, name: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -230,14 +224,18 @@ export default function ARVProtocol() {
                   <label>Description</label>
                   <textarea
                     value={editData.description}
-                    onChange={(e) => setEditData({...editData, description: e.target.value})}
+                    onChange={(e) =>
+                      setEditData({ ...editData, description: e.target.value })
+                    }
                   />
                 </div>
                 <div className="form-group">
                   <label>Status</label>
                   <select
                     value={editData.status}
-                    onChange={(e) => setEditData({...editData, status: e.target.value})}
+                    onChange={(e) =>
+                      setEditData({ ...editData, status: e.target.value })
+                    }
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
@@ -274,11 +272,11 @@ export default function ARVProtocol() {
                       </tr>
                     </thead>
                     <tbody>
-                      {arvDetails.map(detail => (
+                      {arvDetails.map((detail) => (
                         <tr key={detail.arvId}>
                           <td>{detail.arvId}</td>
                           <td>{detail.arvName}</td>
-                          <td>{detail.usageInstruction || '-'}</td>
+                          <td>{detail.usageInstruction || "-"}</td>
                         </tr>
                       ))}
                     </tbody>
