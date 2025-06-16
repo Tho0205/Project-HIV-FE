@@ -58,6 +58,7 @@ const Login = () => {
       localStorage.setItem("role", data.role);
       localStorage.setItem("account_id", data.accountid);
       localStorage.setItem("user_id", data.userid);
+      console.log("user_id", data.userid);
       localStorage.setItem("item", JSON.stringify(data.list));
       localStorage.setItem(
         "user_avatar",

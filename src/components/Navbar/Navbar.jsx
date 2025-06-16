@@ -40,6 +40,39 @@ const Header = () => {
           <Link to="/">Logo HIV</Link>
         </div>
 
+
+      <nav className="nav-links">
+        <Link to="/">Trang Chủ</Link>
+         <Link to="/appointment">Đặt Lịch Hẹn</Link> {/* Thay đổi từ <a> thành <Link> */}
+        <Link to="/blog">Blog</Link>
+        <a href="/Pages/ViewPage/ResourcesPage.html">Tài Liệu Giáo Dục</a>
+      </nav>
+
+      <div className="header-buttons">
+        <span className="lang-switch">🌐</span>
+
+        {/* Booking Now button - luôn hiển thị */}
+        <button 
+          className="btn-outline"
+          onClick={() => navigate("/appointment")} // Thêm onClick handler
+        >
+          Booking Now
+        </button>
+
+        {/* Conditional Buttons */}
+        {!role ? (
+          <button
+            className="btn-primary login"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </button>
+        ) : (
+          <>
+            <button className="btn-primary logout" onClick={Logout}>
+              Logout
+            </button>
+
         <nav className="nav-links">
           <Link to="/">Trang Chủ</Link>
           <a href="/Pages/ViewPage/BookingPage.html">Đặt Lịch Hẹn</a>
