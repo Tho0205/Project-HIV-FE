@@ -104,7 +104,7 @@ const HIVExaminationManagement = () => {
   const formatDate = (date) => date ? new Date(date).toLocaleDateString('vi-VN') : "";
 
   const logout = () => {
-    if (confirm("Bạn có chắc chắn muốn đăng xuất?")) {
+    if (window.confirm("Bạn có chắc chắn muốn đăng xuất?")) {
       localStorage.clear();
       sessionStorage.clear();
       navigate("/login");
