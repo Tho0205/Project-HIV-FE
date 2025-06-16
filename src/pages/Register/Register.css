@@ -1,52 +1,38 @@
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-body,
-html {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-}
-
-.container {
+.register-container {
   display: flex;
   height: 100vh;
 }
 
-.left-section {
+.register-left-section {
   width: 49%;
   position: relative;
   overflow: hidden;
 }
-
-.background-img {
+.register-background-img {
   width: 100%;
   height: 100%;
   max-height: 1000px;
 }
-
-.overlay {
-  position: absolute; /* Đặt chồng lên ảnh nền */
+.register-overlay {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 2; /* Ưu tiên hiển thị trên ảnh nền */
+  z-index: 2;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.doctors-img {
+.register-doctors-img {
   position: relative;
-  top: 235px;
+  top: 150px;
   max-width: 100%;
   height: auto;
 }
 
-.badge {
+.register-badge {
   position: absolute;
   top: 180px;
   left: 20px;
@@ -59,10 +45,10 @@ html {
   gap: 10px;
 }
 
-.appointment-card {
+.register-appointment-card {
   position: absolute;
   bottom: 60px;
-  right: 10px;
+  right: 5px;
   background-color: #444;
   color: #fff;
   padding: 12px 16px;
@@ -73,12 +59,12 @@ html {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.icon {
+.register-icon {
   font-size: 24px;
 }
 
-.right-section {
-  width: 50%;
+.register-right-section {
+  width: 60%;
   background-color: white;
   display: flex;
   justify-content: center;
@@ -97,12 +83,12 @@ html {
   margin-bottom: 5px;
 }
 
-.subtext {
+.register-subtext {
   color: gray;
   text-align: center;
   font-size: 18px;
 }
-.subtext a {
+.register-subtext a {
   color: #10c9b4;
   text-decoration: none;
   font-weight: bold;
@@ -125,23 +111,23 @@ html {
   margin-bottom: 10px;
 }
 
-.row {
+.register-row {
   display: flex;
   gap: 10px;
 }
 
-.column {
+.register-column {
   flex: 1;
 }
 
-.gender-options {
+.register-gender-options {
   display: flex;
   gap: 10px;
   align-items: center;
   margin-top: 8px;
 }
 
-.sign-up-btn {
+.register-sign-up-btn {
   background-color: #10c9b4;
   color: #fff;
   border: none;
@@ -152,18 +138,13 @@ html {
   margin: 10px 0;
 }
 
-.options {
-  font-size: 14px;
-  margin: 10px 0;
-}
-
-.divider {
+.register-divider {
   text-align: center;
   color: #888;
   margin: 15px 0;
 }
 
-.social-btn {
+.register-social-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,19 +159,19 @@ html {
   transition: 0.2s ease-in-out;
 }
 
-.social-btn:hover {
+.register-social-btn:hover {
   background-color: #afeee7;
   color: #fff;
 }
-.social-btn img {
+.register-social-btn img {
   width: 20px;
   height: 20px;
 }
 
-.google {
+.register-google {
   color: #db4437;
 }
 
-.facebook {
+.register-facebook {
   color: #3b5998;
 }

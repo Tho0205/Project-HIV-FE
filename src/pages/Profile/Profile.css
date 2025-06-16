@@ -60,11 +60,11 @@
   display: flex;
   margin: 30px auto;
   max-width: 1200px;
-  background: white;
   border-radius: 12px;
   padding: 20px;
   width: 80%;
   height: auto;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 h2 {
@@ -74,13 +74,14 @@ h2 {
 /* ===================================
    SIDEBAR
 =================================== */
-.sidebar {
+.sidebar-Profile {
   width: 200px;
   border-right: 1px solid #eee;
   padding-right: 20px;
+  justify-content: space-evenly;
 }
 
-.sidebar a {
+.sidebar-Profile a {
   display: block;
   padding: 10px;
   color: #333;
@@ -89,7 +90,7 @@ h2 {
   margin-bottom: 10px;
 }
 
-.sidebar a.active {
+.sidebar-Profile a.active {
   background: #eaf0fd;
   color: #1d4ed8;
 }

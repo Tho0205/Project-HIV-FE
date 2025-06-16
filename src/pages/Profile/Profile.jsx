@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
+import { toast } from "react-toastify";
 const backendBaseUrl = "https://localhost:7243";
 
 export default function Profile() {
@@ -29,7 +30,6 @@ export default function Profile() {
           name: data.full_name || "",
           dob: data.birthdate ? data.birthdate.slice(0, 10) : "",
           phone: data.phone || "",
-          email: data.email || "",
           gender: data.gender || "",
           address: data.address || "",
           role: data.role || "",
@@ -81,7 +81,6 @@ export default function Profile() {
         );
         if (res.ok) {
           const result = await res.json();
-
           avatarPath = result.path;
         } else {
           setEditError("Upload avatar failed");
@@ -103,7 +102,6 @@ export default function Profile() {
     }
 
     const data = {
-      email: editForm.email,
       full_name: editForm.name,
       gender: editForm.gender,
       phone: editForm.phone,
@@ -127,11 +125,12 @@ export default function Profile() {
               : "/assets/image/patient/patient.png"
           );
           setShowEdit(false);
+          toast.success("Edit Successfully", { autoClose: 1000 });
           window.location.reload();
         } else {
           const result = await response.json();
           if (result.errors) {
-            setEditError(
+            toast.error(
               Object.entries(result.errors)
                 .map(
                   ([field, errorArr]) =>
@@ -140,11 +139,11 @@ export default function Profile() {
                 .join("\n")
             );
           } else {
-            setEditError(result.title || "Update failed.");
+            toast.error(result.title || "Update failed.");
           }
         }
       })
-      .catch(() => setEditError("Something went wrong. Please try again."));
+      .catch(() => toast.error("Something went wrong. Please try again."));
   }
 
   // Đổi mật khẩu
@@ -155,7 +154,7 @@ export default function Profile() {
     const newPassword = form.newPassword.value.trim();
     const confirmPassword = form.confirmPassword.value.trim();
     if (newPassword !== confirmPassword) {
-      setPassError("New passwords do not match!");
+      toast.error("New passwords do not match!", { autoClose: 1500 });
       return;
     }
     fetch(`${backendBaseUrl}/api/Account/ChangePass/${accountID}`, {
@@ -165,13 +164,14 @@ export default function Profile() {
     }).then(async (response) => {
       if (response.status === 204) {
         setShowPass(false);
+        toast.success("Change Password Successfully", { autoClose: 1500 });
         window.location.reload();
       } else {
         const result = await response.json();
 
         const error1 = await result.errors.password_hash[0];
 
-        setPassError(error1 || "Password change failed.");
+        toast.error(error1 || "Password change failed.", { autoClose: 1500 });
       }
     });
   }
@@ -192,7 +192,7 @@ export default function Profile() {
   return (
     <div className="container">
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className="sidebar-Profile">
         <a href="#" className="active">
           General
         </a>
@@ -253,10 +253,6 @@ export default function Profile() {
             <div>
               <span>Phone Number</span>
               <p>{profile.phone}</p>
-            </div>
-            <div>
-              <span>Email Address</span>
-              <p>{profile.email}</p>
             </div>
             <div>
               <span>Gender</span>
@@ -337,8 +333,6 @@ export default function Profile() {
                   }
                   required
                 />
-                <label>Email</label>
-                <input type="email" value={editForm.email} readOnly />
                 <label>Gender</label>
                 <select
                   value={editForm.gender}
