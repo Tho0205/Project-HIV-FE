@@ -7,7 +7,6 @@ import Profile from "../pages/Profile/Profile";
 import ManagerPatient from "../pages/Staff/ManagerPatient";
 import Appointment from "../pages/Appointment/Appointment";
 import ARVPage from "../pages/ARV/ARVPage";
-import ARVProtocolPage from "../pages/ARVProtocol/ARVProtocolPage";
 
 export const routes = [
   { path: "/", element: <Home /> },
