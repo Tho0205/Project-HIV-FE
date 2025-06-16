@@ -8,6 +8,7 @@ import ManagerPatient from "../pages/Staff/ManagerPatient";
 import Appointment from "../pages/Appointment/Appointment";
 import ARV from "../pages/ARV/ARV";
 import ARVProtocol from "../pages/ARVProtocol/ARVProtocol";
+import HIVExaminationManagement from "../pages/Staff/HIVExaminationManagement";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -20,4 +21,5 @@ export const routes = [
   { path: "/appointment", element: <Appointment /> },
   { path: "/arv", element: <ARV /> },
   { path: "/arv-protocol", element: <ARVProtocol /> },
+  { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
 ];
