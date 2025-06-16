@@ -45,13 +45,9 @@ export default function Sidebar({ active }) {
           </li>
           <li className={active === "arv-protocol" ? "active" : ""}>
             <span className="icon">🧪</span>
-            <Link to="/ARVProtocol">
+            <Link to="/arv-protocol">
               <span>Quản Lí ARV Protocol</span>
             </Link>
-          </li>
-          <li className={active === "manager-arv-protocal" ? "active" : ""}>
-            <span className="icon">🧪</span>
-            <span>Quản Lí Custom ARV Protocol</span>
           </li>
         </ul>
       </div>
