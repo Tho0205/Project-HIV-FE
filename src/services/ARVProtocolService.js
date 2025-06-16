@@ -13,6 +13,18 @@ export const ARVProtocolService = {
     }
   },
 
+  // Lấy chi tiết ARV của protocol
+  getARVDetails: async (protocolId) => {
+    try {
+      const response = await fetch(`${API_BASE}/${protocolId}/arv-details`);
+      if (!response.ok) throw new Error("Failed to fetch ARV details");
+      return await response.json();
+    } catch (error) {
+      console.error("Failed to fetch ARV details:", error);
+      throw error;
+    }
+  },
+
   // Tạo mới protocol
   createProtocol: async (protocolData) => {
     try {
