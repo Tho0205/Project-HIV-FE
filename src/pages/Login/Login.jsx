@@ -2,12 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 import { loginApi } from "../../services/account";
+import LoadingOverlay from "../../components/Loading/Loading";
+import { toast } from "react-toastify";
 const backendBaseUrl = "https://localhost:7243";
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [result, setResult] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,8 +30,14 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Bật loading
 
     const response = await loginApi(email, password);
+
+    // Đảm bảo loading hiển thị ít nhất 1 giây (1000ms)
+    setTimeout(() => {
+      setLoading(false);
+    }, 800);
 
     if (remember) {
       document.cookie =
@@ -42,50 +52,63 @@ const Login = () => {
     }
 
     if (response.ok) {
+      toast.success("Login Successfully", { autoClose: 1000 });
       const data = await response.json();
       localStorage.setItem("username", data.fullName);
       localStorage.setItem("role", data.role);
       localStorage.setItem("account_id", data.accountid);
       localStorage.setItem("user_id", data.userid);
+      console.log("user_id", data.userid);
       localStorage.setItem("item", JSON.stringify(data.list));
       localStorage.setItem(
         "user_avatar",
         data.user_avatar
           ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
-          : "/assets/image/patient/patient.png"
+          : "./assets/image/patient/patient.png"
       );
-      if (data.role === "Patient") {
+
+      if (data.role === "Patient" || data.role === "Doctor") {
         navigate("/");
-      } else if (data.role === "staff") {
+      } else if (data.role === "Staff" || data.role === "Manager") {
         navigate("/Staff-ManagerPatient");
       }
     } else {
       const error = await response.json().catch(() => null);
       if (error?.errors?.password_hash) {
-        setResult(error.errors.password_hash[0]);
+        toast.error(error.errors.password_hash[0]);
       } else if (error?.title) {
-        setResult(error.title);
+        toast.error(error.title);
       } else {
-        setResult("Login failed");
+        toast.error("Login Fail");
       }
     }
   };
 
+  // Thêm hàm chuyển trang Register có loading
+  const handleRegister = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setTimeout(() => {
+      navigate("/register");
+      setLoading(false);
+    }, 400);
+  };
+
   return (
-    <div className="container">
-      <div className="left-section">
+    <div className="login-container">
+      <div className="login-left-section">
         <img
           src="/assets/image/Account/login2.png"
           alt="bg"
-          className="background-img"
+          className="login-background-img"
         />
-        <div className="overlay">
+        <div className="login-overlay">
           <img
             src="/assets/image/Account/login.png"
             alt="Doctors"
-            className="doctors-img"
+            className="login-doctors-img"
           />
-          <div className="badge">
+          <div className="login-badge">
             <div className="badge-icon">🔍</div>
             <div>
               <strong>Well qualified doctors</strong>
@@ -93,8 +116,8 @@ const Login = () => {
               <small>Treat with care</small>
             </div>
           </div>
-          <div className="appointment-card">
-            <div className="icon">📅</div>
+          <div className="login-appointment-card">
+            <div className="login-icon">📅</div>
             <div>
               <strong>Book an appointment</strong>
               <br />
@@ -103,11 +126,14 @@ const Login = () => {
           </div>
         </div>
       </div>
-      <div className="right-section">
+      <div className="login-right-section">
         <form id="loginForm" onSubmit={handleSubmit}>
           <h1 style={{ textAlign: "center", fontSize: 46 }}>Welcome back</h1>
-          <p className="register-link">
-            Don’t have an account? <Link to="/register">Register</Link>
+          <p className="login-register-link">
+            Don’t have an account?{" "}
+            <a href="/register" onClick={handleRegister}>
+              Register
+            </a>
           </p>
 
           <h4 style={{ color: "red", marginTop: 4 }}>{result}</h4>
@@ -138,7 +164,7 @@ const Login = () => {
             Log in
           </button>
 
-          <div className="options">
+          <div className="login-options">
             <label>
               <input
                 type="checkbox"
@@ -147,14 +173,14 @@ const Login = () => {
               />
               Remember me
             </label>
-            <Link to="/forgot-password" className="forgot">
+            <Link to="/forgot-password" className="login-forgot">
               Forgot password?
             </Link>
           </div>
 
-          <div className="divider">Or log in with</div>
+          <div className="login-divider">Or log in with</div>
 
-          <button type="button" className="social-btn google">
+          <button type="button" className="login-social-btn login-google">
             <img
               src="https://www.google.com/favicon.ico"
               alt="Google"
@@ -163,7 +189,7 @@ const Login = () => {
             <span>Login With Google</span>
           </button>
 
-          <button type="button" className="social-btn facebook">
+          <button type="button" className="login-social-btn login-facebook">
             <img
               src="https://www.facebook.com/favicon.ico"
               alt="Facebook"
@@ -173,6 +199,7 @@ const Login = () => {
           </button>
         </form>
       </div>
+      <LoadingOverlay isLoading={loading} />
     </div>
   );
 };

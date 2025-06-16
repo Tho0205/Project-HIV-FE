@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./ManagerPatient.css";
+import { toast } from "react-toastify";
+import Sidebar from "../../components/Sidebar/Sidebar";
+import Pagination from "../../components/Pagination/Pagination";
 
 const API_BASE = "https://localhost:7243";
 
@@ -79,19 +82,6 @@ export default function ManagerPatient() {
     setShowModal(true);
   }
 
-  // Handle avatar file change
-  function handleAvatarChange(e) {
-    const file = e.target.files[0];
-    setAvatarFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => setPreviewAvatar(ev.target.result);
-      reader.readAsDataURL(file);
-    } else {
-      setPreviewAvatar(editData?.avatarUrl || defaultAvatar);
-    }
-  }
-
   // Handle modal close
   function closeModal() {
     setShowModal(false);
@@ -118,7 +108,6 @@ export default function ManagerPatient() {
       birthdate: editData.dob,
       role: "Patient",
       address: editData.address,
-      // Không cập nhật user_avatar nữa
       status: editData.status,
     };
 
@@ -133,6 +122,7 @@ export default function ManagerPatient() {
       );
       if (res.status === 204) {
         closeModal();
+        toast.success("Edit Successfully", { autoClose: 2000 });
         fetchPatients(page, sort);
       } else {
         const result = await res.json();
@@ -154,58 +144,6 @@ export default function ManagerPatient() {
     }
   }
   const navigate = useNavigate();
-  // Logout
-  function logout() {
-    sessionStorage.clear();
-    localStorage.clear();
-    navigate("/login");
-  }
-
-  // Pagination render logic
-  function renderPagination() {
-    const totalPages = Math.ceil(total / PAGE_SIZE);
-    if (totalPages <= 1) return null;
-    const buttons = [];
-
-    // Trang Đầu
-    buttons.push(
-      <button
-        key="first"
-        disabled={page === 1}
-        onClick={() => setPage(1)}
-        style={{ fontWeight: 600 }}
-      >
-        Trang Đầu
-      </button>
-    );
-
-    // Các số trang
-    for (let i = 1; i <= totalPages; i++) {
-      buttons.push(
-        <button
-          key={i}
-          className={i === page ? "active" : ""}
-          onClick={() => setPage(i)}
-        >
-          {i}
-        </button>
-      );
-    }
-
-    // Trang Cuối
-    buttons.push(
-      <button
-        key="last"
-        disabled={page === totalPages}
-        onClick={() => setPage(totalPages)}
-        style={{ fontWeight: 600 }}
-      >
-        Trang Cuối
-      </button>
-    );
-
-    return <div className="pagination">{buttons}</div>;
-  }
 
   // Capitalize helper
   function capitalize(str) {
@@ -220,14 +158,13 @@ export default function ManagerPatient() {
     return d.toLocaleDateString("vi-VN");
   }
 
-  // Check role on mount
+  // Ktra Staff
   useEffect(() => {
     const role = localStorage.getItem("role");
-    if (role !== "staff") {
-      alert("You are not Staff");
-      window.location.href = "/Pages/ViewPage/login.html";
+    if (role !== "Staff" && role !== "Manager") {
+      toast.error("You are not Staff or Manager");
+      navigate("/");
     }
-    // eslint-disable-next-line
   }, []);
 
   return (
@@ -275,10 +212,11 @@ export default function ManagerPatient() {
         <div className="sidebar-bottom">
           <div className="help">❔ Help</div>
           <div className="logout">
-            <button onClick={logout}>🚪 Logout</button>
+            <button>🚪 Logout</button>
           </div>
         </div>
       </aside>
+
 
       {/* Main Content */}
       <main className="content">
@@ -375,7 +313,12 @@ export default function ManagerPatient() {
         </table>
 
         {/* Pagination */}
-        {renderPagination()}
+        <Pagination
+          page={page}
+          total={total}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
 
         {/* Edit Modal */}
         {showModal && (

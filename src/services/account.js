@@ -10,6 +10,7 @@ export const loginApi = async (email, password) => {
       password_hash: password,
     }),
   });
+  console.log("all", response);
   return response;
 };
 

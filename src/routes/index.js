@@ -8,6 +8,7 @@ import ManagerPatient from "../pages/Staff/ManagerPatient";
 import ARV from "../pages/ARV/ARV";
 import ARVProtocol from "../pages/ARVProtocol/ARVProtocol"; 
 
+
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
@@ -18,4 +19,5 @@ export const routes = [
   { path: "/Staff-ManagerPatient", element: <ManagerPatient /> },
   { path: "/arv", element: <ARV /> },
   { path:"/arv-protocol", element: <ARVProtocol />},
+
 ];
