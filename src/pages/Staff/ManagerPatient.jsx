@@ -170,7 +170,53 @@ export default function ManagerPatient() {
   return (
     <div className="wrapper">
       {/* Sidebar */}
-      <Sidebar active="patient" />
+      <aside className="sidebar">
+        <div className="sidebar-top">
+          <div className="logo">Logo HIV</div>
+          <div className="welcome">Welcome Staff</div>
+          <ul className="nav">
+            <li>
+              <span className="icon">📅</span>
+              <span>Quản Lí Lịch Đặt Khám</span>
+            </li>
+            <li className="active">
+              <span className="icon">👤</span>
+              <span>Quản Lí Thông Tin KH</span>
+            </li>
+            <li>
+              <span className="icon">📋</span>
+              <span>Quản Lí DS Tư Vấn Đã Đặt</span>
+            </li>
+            <li>
+              <span className="icon">🧪</span>
+              <span>Quản Lí Kết Quả Xét Nghiệm</span>
+            </li>
+            <li>             
+              <span className="icon">🧪</span>
+              <Link to="/arv">
+              <span>Quản Lí ARV</span>
+              </Link>
+            </li>
+            <li>
+                <span className="icon">🧪</span>
+                <Link to="/arv-protocol">
+                <span>Quản Lí ARV Protocol</span>
+              </Link>
+            </li>
+            <li>
+              <span className="icon">🧪</span>
+              <span>Quản Lí Custom ARV Protocol</span>
+            </li>
+          </ul>
+        </div>
+        <div className="sidebar-bottom">
+          <div className="help">❔ Help</div>
+          <div className="logout">
+            <button>🚪 Logout</button>
+          </div>
+        </div>
+      </aside>
+
 
       {/* Main Content */}
       <main className="content">
