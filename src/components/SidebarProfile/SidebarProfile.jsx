@@ -20,25 +20,25 @@ const SidebarProfile = () => {
         to="/Profile-Patient" 
         className={`sidebar-link ${activeItem === 'general' ? 'active' : ''}`}
       >
-        General
+        Thông tin chung
       </Link>
       <Link 
         to="#" 
         className={`sidebar-link ${activeItem === 'consultation' ? 'active' : ''}`}
       >
-        Consultation History
+        Lịch tư vấn
       </Link>
       <Link 
         to="#" 
         className={`sidebar-link ${activeItem === 'documents' ? 'active' : ''}`}
       >
-        Patient Documents
+        Tài liệu
       </Link>
       <Link 
         to="/Blog-Management" 
         className={`sidebar-link ${activeItem === 'blog' ? 'active' : ''}`}
       >
-        Blog Manager
+        Quản lý bài viết
       </Link>
     </aside>
   );

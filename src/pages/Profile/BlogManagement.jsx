@@ -137,26 +137,26 @@ const BlogManagement = () => {
       <SidebarProfile />
       
       <div className="blog-content">
-        <h2>Blog Manager</h2>
+        <h2>Quản lý bài viết</h2>
         
         <div className="blog-tabs">
           <button 
             className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setActiveTab('all')}
           >
-            All
+            Tất cả
           </button>
           <button 
             className={`tab-btn ${activeTab === 'approved' ? 'active' : ''}`}
             onClick={() => setActiveTab('approved')}
           >
-            Approved
+            Đã xác nhận
           </button>
           <button 
             className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
             onClick={() => setActiveTab('pending')}
           >
-            Pending
+            Chờ duyệt
           </button>
         </div>
 
@@ -164,7 +164,7 @@ const BlogManagement = () => {
           className="btn btn-green new-blog-btn"
           onClick={() => setShowModal(true)}
         >
-          New Blog
+          Thêm bài viết
         </button>
 
         {error && <div className="error-message">{error}</div>}
@@ -195,7 +195,7 @@ const BlogManagement = () => {
                         setShowModal(true);
                         }}
                     >
-                        Edit
+                        Chỉnh sửa
                     </button>
                     <button 
                         className="delete-btn"
@@ -205,7 +205,7 @@ const BlogManagement = () => {
                         }
                         }}
                     >
-                        Delete
+                        Xóa
                     </button>
                     </div>
                 </div>
