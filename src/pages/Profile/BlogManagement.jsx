@@ -45,7 +45,7 @@ const BlogManagement = () => {
   const filteredBlogs = blogs.filter(blog => {
     if (activeTab === 'all') return true;
     if (activeTab === 'approved') return blog.isApproved;
-    if (activeTab === 'declined') return !blog.isApproved;
+    if (activeTab === 'pending') return !blog.isApproved;
     return true;
   });
 
@@ -75,9 +75,11 @@ const BlogManagement = () => {
     e.preventDefault();
     try {
         let imageUrl = formData.imageUrl;
-        
+  
         if (selectedImage) {
-            imageUrl = await uploadBlogImage(selectedImage);
+          imageUrl = await uploadBlogImage(selectedImage);
+        } else if (currentBlog) {
+          imageUrl = currentBlog.imageUrl;
         }
 
         const blogData = {
@@ -120,6 +122,15 @@ const BlogManagement = () => {
             setImagePreview(URL.createObjectURL(file));
         }
     };
+    const getImageUrl = (imageUrl) => {
+      if (!imageUrl || imageUrl.trim() === "") {
+        return "/placeholder.svg?height=400&width=600";
+      }
+      if (imageUrl.startsWith("http")) {
+        return imageUrl;
+      }
+      return `https://localhost:7243${imageUrl}`;
+    };
 
   return (
     <div className="container blog-management-page">
@@ -142,10 +153,10 @@ const BlogManagement = () => {
             Approved
           </button>
           <button 
-            className={`tab-btn ${activeTab === 'declined' ? 'active' : ''}`}
-            onClick={() => setActiveTab('declined')}
+            className={`tab-btn ${activeTab === 'pending' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pending')}
           >
-            Declined
+            Pending
           </button>
         </div>
 
@@ -176,8 +187,11 @@ const BlogManagement = () => {
                         setCurrentBlog(blog);
                         setFormData({
                             title: blog.title,
-                            content: blog.content
+                            content: blog.content,
+                            imageUrl: blog.imageUrl || ''
                         });
+                        setImagePreview(blog.imageUrl || '');
+                        setSelectedImage(null);
                         setShowModal(true);
                         }}
                     >
@@ -207,11 +221,11 @@ const BlogManagement = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <div className="modal-overlay1">
+            <div className="modal-content1">
             <h3>{currentBlog ? 'Edit Blog' : 'New Blog'}</h3>
             <form onSubmit={handleSubmit}>
-                <div className="form-group">
+                <div className="form-group1">
                 <label>Tiêu đề</label>
                 <input
                     type="text"
@@ -221,7 +235,7 @@ const BlogManagement = () => {
                     required
                 />
                 </div>
-                <div className="form-group">
+                <div className="form-group1">
                 <label>Nội dung</label>
                 <textarea
                     name="content"
@@ -231,23 +245,27 @@ const BlogManagement = () => {
                     rows={8}
                 />
                 </div>
-                <div className="form-group">
-                    <label>Ảnh bài viết</label>
-                    <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                    />
-                    {imagePreview && (
-                        <div className="image-preview">
-                            <img src={imagePreview} alt="Preview" />
-                        </div>
-                    )}
+                <div className="form-group1">
+                  <label>Ảnh bài viết</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  {(imagePreview || formData.imageUrl) && (
+                    <div className="image-preview">
+                      <img 
+                        src={getImageUrl(imagePreview || formData.imageUrl)}
+                        alt="Preview" 
+                        style={{ maxWidth: '100%', maxHeight: '200px' }}
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="form-actions">
+                <div className="form-actions1">
                 <button 
                     type="button" 
-                    className="btn cancel-btn"
+                    className="btn cancel-btn1"
                     onClick={() => setShowModal(false)}
                 >
                     Hủy

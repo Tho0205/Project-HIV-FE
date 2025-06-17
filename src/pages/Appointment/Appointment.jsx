@@ -237,7 +237,7 @@ const Appointment = () => {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%)",
+        background: "linear-gradient(135deg, #dcd5d5)",
         minHeight: "100vh",
         padding: "2rem 1rem",
         fontFamily:

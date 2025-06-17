@@ -23,14 +23,14 @@ export default function Blog() {
   }, []);
 
   const getImageUrl = (imageUrl) => {
-  if (!imageUrl || imageUrl.trim() === "") {
-    return "/placeholder.svg?height=400&width=600";
-  }
-  if (imageUrl.startsWith("http")) {
-    return imageUrl;
-  }
-  return `https://localhost:7243${imageUrl}`;
-};
+    if (!imageUrl || imageUrl.trim() === "") {
+      return "/placeholder.svg?height=400&width=600";
+    }
+    if (imageUrl.startsWith("http")) {
+      return imageUrl;
+    }
+    return `https://localhost:7243${imageUrl}`;
+  };
 
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 4);
