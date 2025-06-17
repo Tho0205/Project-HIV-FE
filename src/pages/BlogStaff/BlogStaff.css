@@ -222,6 +222,19 @@ body {
   background-color: #c0392b;
 }
 
+.btn-detail {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-detail:hover {
+  background-color: #e67e22;
+}
+
 .btn-confirm {
   background-color: #28a745;
   color: white;
