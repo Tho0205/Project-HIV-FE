@@ -15,7 +15,7 @@ const BlogManagement = () => {
   const [formData, setFormData] = useState({
    title: '',
    content: '',
-   imageUrl: '' // Thêm trường imageUrl vào state
+   imageUrl: '' 
  });
 
   // Lấy thông tin user
