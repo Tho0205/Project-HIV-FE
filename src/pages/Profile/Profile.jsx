@@ -198,7 +198,7 @@ export default function Profile() {
 
       {/* Main Profile */}
       <section className="profile">
-        <h2>My Profile</h2>
+        <h2>Thông Tin cá nhân</h2>
         {/* Profile Header */}
         <div className="card profile-header">
           <div className="profile-photo">
@@ -223,18 +223,18 @@ export default function Profile() {
         {/* Personal Info */}
         <div className="card personal-info">
           <div className="info-header">
-            <strong>Personal Information</strong>
+            <strong>Thông tin cá nhân</strong>
             <button className="edit-btn" onClick={openEdit}>
-              Edit ✎
+              Chỉnh sửa ✎
             </button>
           </div>
           <div className="info-grid">
             <div>
-              <span>Name</span>
+              <span>Họ và tên</span>
               <p>{profile.full_name}</p>
             </div>
             <div>
-              <span>Date of Birth</span>
+              <span>Ngày sinh</span>
               <p>
                 {profile.birthdate
                   ? new Date(profile.birthdate).toLocaleDateString()
@@ -242,19 +242,19 @@ export default function Profile() {
               </p>
             </div>
             <div>
-              <span>Age</span>
+              <span>Tuổi</span>
               <p>{calculateAge(profile.birthdate)}</p>
             </div>
             <div>
-              <span>Phone Number</span>
+              <span>Số điện thoại</span>
               <p>{profile.phone}</p>
             </div>
             <div>
-              <span>Gender</span>
+              <span>Giới tính</span>
               <p>{profile.gender}</p>
             </div>
             <div>
-              <span>Created At</span>
+              <span>Ngày tạo</span>
               <p>
                 {profile.created_at
                   ? new Date(profile.created_at).toLocaleDateString()
@@ -262,11 +262,11 @@ export default function Profile() {
               </p>
             </div>
             <div>
-              <span>Bio</span>
+              <span>vai trò</span>
               <p>{profile.role}</p>
             </div>
             <div>
-              <span>Address</span>
+              <span>Địa chỉ</span>
               <p>{profile.address}</p>
             </div>
           </div>
@@ -276,12 +276,12 @@ export default function Profile() {
         {showEdit && (
           <div className="modal" style={{ display: "flex" }}>
             <div className="modal-content">
-              <h3>Edit Profile</h3>
+              <h3>Chỉnh sửa thông tin</h3>
               <h4 style={{ color: "red" }}>{editError}</h4>
               <form id="modalForm" onSubmit={handleEditSubmit}>
                 <div className="avatar-group">
                   <div>
-                    <label>Avatar</label>
+                    <label>Ảnh đại diện</label>
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/gif"
@@ -301,7 +301,7 @@ export default function Profile() {
                     />
                   )}
                 </div>
-                <label>Name</label>
+                <label>Họ và tên</label>
                 <input
                   type="text"
                   value={editForm.name}
@@ -310,7 +310,7 @@ export default function Profile() {
                   }
                   required
                 />
-                <label>Date of Birth</label>
+                <label>Ngày sinh</label>
                 <input
                   type="date"
                   value={editForm.dob}
@@ -319,7 +319,7 @@ export default function Profile() {
                   }
                   required
                 />
-                <label>Phone</label>
+                <label>Số điện thoại</label>
                 <input
                   type="text"
                   value={editForm.phone}
@@ -328,18 +328,18 @@ export default function Profile() {
                   }
                   required
                 />
-                <label>Gender</label>
+                <label>Giới tính</label>
                 <select
                   value={editForm.gender}
                   onChange={(e) =>
                     setEditForm({ ...editForm, gender: e.target.value })
                   }
                 >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
+                  <option value="Male">Nam</option>
+                  <option value="Female">Nữ</option>
+                  <option value="Other">Khác</option>
                 </select>
-                <label>Address</label>
+                <label>Địa chỉ</label>
                 <input
                   type="text"
                   value={editForm.address}
@@ -348,18 +348,18 @@ export default function Profile() {
                   }
                   required
                 />
-                <label>Bio</label>
+                <label>Vai trò</label>
                 <input type="text" value={editForm.role} readOnly />
                 <div className="modal-actions">
                   <button type="submit" className="btn-green">
-                    Save
+                    Lưu
                   </button>
                   <button
                     type="button"
                     className="btn-purple"
                     onClick={() => setShowEdit(false)}
                   >
-                    Cancel
+                    Hủy
                   </button>
                 </div>
               </form>
@@ -369,7 +369,7 @@ export default function Profile() {
 
         {/* Medical History */}
         <div className="card medical-history">
-          <strong>Medical history/Specitity and Qualification</strong>
+          <strong>Tiền sử bệnh án/Chuyên khoa và trình độ chuyên môn</strong>
           <div className="info-grid">
             <div>
               <span>Speech</span>
@@ -384,21 +384,21 @@ export default function Profile() {
 
         {/* General Settings */}
         <div className="card general-settings">
-          <strong>General</strong>
+          <strong>Chung</strong>
           <div className="settings">
             <div>
-              <span>Change Password</span>
+              <span>Đổi mật khẩu</span>
               <button className="btn change" onClick={() => setShowPass(true)}>
-                Change
+                Thay đổi
               </button>
             </div>
             <div className="toggle-row">
-              <span>Notifications</span>
+              <span>Thông báo</span>
               <label className="switch">
                 <input type="checkbox" defaultChecked />
                 <span className="slider"></span>
               </label>
-              <span className="label">Enable Notifications</span>
+              <span className="label">Bật thông báo</span>
             </div>
           </div>
         </div>
@@ -407,25 +407,25 @@ export default function Profile() {
         {showPass && (
           <div className="modal" style={{ display: "flex" }}>
             <div className="modal-content">
-              <h3>Change Password</h3>
+              <h3>Đổi mật khẩu</h3>
               <h4 style={{ color: "red" }}>{passError}</h4>
               <form id="passwordForm" onSubmit={handlePassSubmit}>
-                <label>Current Password</label>
+                <label>Mật khẩu hiện tại</label>
                 <input type="password" name="currentPassword" required />
-                <label>New Password</label>
+                <label>Mật khẩu mới</label>
                 <input type="password" name="newPassword" required />
-                <label>Confirm New Password</label>
+                <label>Xác nhận mật khẩu</label>
                 <input type="password" name="confirmPassword" required />
                 <div className="modal-actions">
                   <button type="submit" className="btn-green">
-                    Save
+                    Lưu
                   </button>
                   <button
                     type="button"
                     className="btn-purple"
                     onClick={() => setShowPass(false)}
                   >
-                    Cancel
+                    Hủy
                   </button>
                 </div>
               </form>
