@@ -112,14 +112,14 @@ export default function ARV() {
         <div className="arvpage-header">
           <input
             type="text"
-            placeholder="Search ARVs..."
+            placeholder="Tìm Kiếm ARVs..."
             className="arvpage-search-input" // Sửa lại
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <h1 className="arvpage-title">ARV Management</h1>
+        <h1 className="arvpage-title">Quản Lí ARV</h1>
 
         <div className="arvpage-action-bar">
           <button
@@ -133,7 +133,7 @@ export default function ARV() {
               setShowModal(true);
             }}
           >
-            ➕ Add New ARV
+            ➕ Thêm Mới ARV
           </button>
         </div>
         {error && <div className="error-message">⚠️ {error}</div>}
@@ -143,17 +143,17 @@ export default function ARV() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Tên</th>
+                <th>Mô Tả</th>
+                <th>Trạng Thái</th>
+                <th>Hành Động</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
                   <td colSpan={5} className="arvpage-loading-text">
-                    Loading ARV data...
+                    Đang Tải Dữ Liệu ARV...
                   </td>
                 </tr>
               ) : filteredArvs.length === 0 ? (
@@ -211,7 +211,7 @@ export default function ARV() {
           <div className="arvpage-modal">
             <div className="arvpage-modal-content">
               <div className="modal-header">
-                <h2>{editData?.arvId ? "Edit ARV" : "Add New ARV"}</h2>
+                <h2>{editData?.arvId ? "Cập Nhật ARV" : "Thêm Mới ARV"}</h2>
                 <button
                   className="close-button"
                   onClick={closeModal}
@@ -223,7 +223,7 @@ export default function ARV() {
 
               <form onSubmit={handleSubmit} className="arvpage-form">
                 <div className="form-group">
-                  <label htmlFor="arv-name">Name *</label>
+                  <label htmlFor="arv-name">Tên ARV *</label>
                   <input
                     id="arv-name"
                     type="text"
@@ -232,27 +232,27 @@ export default function ARV() {
                       setEditData({ ...editData, name: e.target.value })
                     }
                     required
-                    placeholder="Enter ARV name"
+                    placeholder="Nhập Tên Của ARV"
                     className="arvpage-form-input"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="arv-desc">Description</label>
+                  <label htmlFor="arv-desc">Mô Tả</label>
                   <textarea
                     id="arv-desc"
                     value={editData?.description || ""}
                     onChange={(e) =>
                       setEditData({ ...editData, description: e.target.value })
                     }
-                    placeholder="Enter description (optional)"
+                    placeholder="Nhập Phần Mô Tả (optional)"
                     rows={3}
                     className="arvpage-form-textarea"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="arv-status">Status</label>
+                  <label htmlFor="arv-status">Trạng Thái</label>
                   <select
                     id="arv-status"
                     value={editData?.status || "ACTIVE"}
@@ -269,14 +269,14 @@ export default function ARV() {
 
                 <div className="arvpage-modal-actions">
                   <button type="submit" className="arvpage-btn-submit">
-                    {editData?.arvId ? "Update" : "Create"} ARV
+                    {editData?.arvId ? "Cập Nhật" : "Tạo"} ARV
                   </button>
                   <button
                     type="button"
                     className="arvpage-btn-cancel"
                     onClick={closeModal}
                   >
-                    Cancel
+                    Hủy
                   </button>
                 </div>
               </form>
