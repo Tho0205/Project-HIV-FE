@@ -9,10 +9,12 @@ import Appointment from "../pages/Appointment/Appointment";
 import ARV from "../pages/ARV/ARV";
 import ARVProtocol from "../pages/ARVProtocol/ARVProtocol";
 import BlogManagement from "../pages/Profile/BlogManagement";
+import HIVEducation from "../pages/Education/HIVEducation";
 
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
+  { path: "/education", element: <HIVEducation /> },
   { path: "/blog/:id", element: <BlogDetail /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },

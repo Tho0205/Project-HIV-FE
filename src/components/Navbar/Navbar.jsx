@@ -44,7 +44,7 @@ const Header = () => {
           <Link to="/">Trang Chủ</Link>
           <Link to="/appointment">Đặt Lịch Hẹn</Link>
           <Link to="/blog">Blog</Link>
-          <a href="/Pages/ViewPage/ResourcesPage.html">Tài Liệu Giáo Dục</a>
+          <Link to="/education">Tài Liệu giáo dục</Link>
         </nav>
 
         <div className="header-buttons">
