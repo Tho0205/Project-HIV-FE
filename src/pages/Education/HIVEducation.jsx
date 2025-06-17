@@ -8,7 +8,7 @@ const HIVEducation = () => {
       {/* Main Content */}
       <div className="container">
         {/* Sidebar */}
-        <aside className="sidebar">
+        <aside className="sidebar-edu">
           <h3 className="sidebar-title">Hữu Ích</h3>
           <ul className="resource-list">
             <li><a href="https://vaac.gov.vn" target="_blank" rel="noopener noreferrer">Cục Phòng chống HIV/AIDS Việt Nam</a></li>
@@ -19,7 +19,7 @@ const HIVEducation = () => {
         </aside>
 
         {/* Main Content */}
-        <main className="main-content">
+        <main className="main-content1">
           {/* Basics Section */}
           <section id="basics" className="section">
             <h2>Kiến Thức Cơ Bản Về HIV</h2>

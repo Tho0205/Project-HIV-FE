@@ -10,6 +10,7 @@ import ARV from "../pages/ARV/ARV";
 import ARVProtocol from "../pages/ARVProtocol/ARVProtocol";
 import BlogManagement from "../pages/Profile/BlogManagement";
 import HIVEducation from "../pages/Education/HIVEducation";
+import BlogStaff from "../pages/BlogStaff/BlogStaff";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -21,6 +22,7 @@ export const routes = [
   { path: "/Profile-Patient", element: <Profile /> },
   { path: "/Blog-Management", element: <BlogManagement /> },
   { path: "/Staff-ManagerPatient", element: <ManagerPatient /> },
+  { path: "/Staff-Blog", element: <BlogStaff /> },
   { path: "/appointment", element: <Appointment /> },
   { path: "/arv", element: <ARV /> },
   { path: "/arv-protocol", element: <ARVProtocol /> },
