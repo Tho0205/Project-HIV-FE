@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
+import SidebarProfile from '../../components/SidebarProfile/SidebarProfile';
 import { toast } from "react-toastify";
 const backendBaseUrl = "https://localhost:7243";
 
@@ -192,14 +193,9 @@ export default function Profile() {
   return (
     <div className="container">
       {/* Sidebar */}
-      <aside className="sidebar-Profile">
-        <a href="#" className="active">
-          General
-        </a>
-        <a href="#">Consultation History</a>
-        <a href="#">Patient Documents</a>
-        <a href="#">Blog Manager</a>
-      </aside>
+      <div className="sidebar-Profile">
+        <SidebarProfile activeItem="general" />
+      </div>
 
       {/* Main Profile */}
       <section className="profile">

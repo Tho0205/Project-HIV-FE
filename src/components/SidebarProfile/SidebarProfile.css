@@ -1,0 +1,25 @@
+.sidebar-profile {
+  width: 200px;
+  border-right: 1px solid #eee;
+  padding-right: 20px;
+}
+
+.sidebar-link {
+  display: block;
+  padding: 10px;
+  color: #333;
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-link:hover {
+  background: #e0e7ff;
+  color: #1d4ed8;
+}
+
+.sidebar-link.active {
+  background: #eaf0fd;
+  color: #1d4ed8;
+}
