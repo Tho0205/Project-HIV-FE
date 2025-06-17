@@ -7,9 +7,10 @@
   width: 50%;
   position: relative;
   overflow: hidden;
+  background-color: white;
 }
 
-.login-overlay {
+.login-overlay-1 {
   position: absolute;
   top: 0;
   left: 0;
