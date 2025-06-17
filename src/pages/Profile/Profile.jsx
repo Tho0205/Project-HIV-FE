@@ -165,7 +165,6 @@ export default function Profile() {
       if (response.status === 204) {
         setShowPass(false);
         toast.success("Change Password Successfully", { autoClose: 1500 });
-        window.location.reload();
       } else {
         const result = await response.json();
 

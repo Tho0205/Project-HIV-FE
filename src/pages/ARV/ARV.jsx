@@ -104,26 +104,26 @@ export default function ARV() {
   }
 
   return (
-    <div className="wrapper">
+    <div className="arvpage-wrapper">
       {/* Sidebar */}
       <Sidebar active="arv" />
       {/* Main Content */}
-      <main className="content">
-        <div className="header">
+      <main className="arvpage-content">
+        <div className="arvpage-header">
           <input
             type="text"
             placeholder="Search ARVs..."
-            className="search"
+            className="arvpage-search-input" // Sửa lại
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <h1 className="title">ARV Management</h1>
+        <h1 className="arvpage-title">ARV Management</h1>
 
-        <div className="action-bar">
+        <div className="arvpage-action-bar">
           <button
-            className="btn-primary"
+            className="arvpage-add-btn"
             onClick={() => {
               setEditData({
                 name: "",
@@ -138,8 +138,8 @@ export default function ARV() {
         </div>
         {error && <div className="error-message">⚠️ {error}</div>}
 
-        <div className="table-container">
-          <table className="arv-table">
+        <div className="arvpage-table-container">
+          <table className="arvpage-table">
             <thead>
               <tr>
                 <th>ID</th>
@@ -152,13 +152,13 @@ export default function ARV() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="loading-text">
+                  <td colSpan={5} className="arvpage-loading-text">
                     Loading ARV data...
                   </td>
                 </tr>
               ) : filteredArvs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="no-data">
+                  <td colSpan={5} className="arvpage-no-data">
                     {arvs.length === 0
                       ? "No ARVs available"
                       : "No matching ARVs found"}
@@ -172,27 +172,27 @@ export default function ARV() {
                     <td>{arv.description || "-"}</td>
                     <td>
                       <span
-                        className={`status-badge ${
+                        className={`arvpage-status-badge ${
                           arv.status === "ACTIVE"
-                            ? "status-active"
+                            ? "arvpage-status-active"
                             : arv.status === "DELETED"
-                            ? "status-deleted"
-                            : "status-inactive"
+                            ? "arvpage-status-deleted"
+                            : "arvpage-status-inactive"
                         }`}
                       >
                         {arv.status}
                       </span>
                     </td>
-                    <td className="actions">
+                    <td className="arvpage-actions">
                       <button
-                        className="action-btn edit"
+                        className="arvpage-action-btn edit"
                         onClick={() => openEditModal(arv)}
                         title="Edit"
                       >
                         ✏️
                       </button>
                       <button
-                        className="action-btn delete"
+                        className="arvpage-action-btn delete"
                         onClick={() => handleDelete(arv.arvId)}
                         title="Delete"
                         disabled={arv.status === "DELETED"}
@@ -208,8 +208,8 @@ export default function ARV() {
         </div>
 
         {showModal && (
-          <div className="modal-overlay">
-            <div className="modal-container">
+          <div className="arvpage-modal">
+            <div className="arvpage-modal-content">
               <div className="modal-header">
                 <h2>{editData?.arvId ? "Edit ARV" : "Add New ARV"}</h2>
                 <button
@@ -221,7 +221,7 @@ export default function ARV() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="modal-form">
+              <form onSubmit={handleSubmit} className="arvpage-form">
                 <div className="form-group">
                   <label htmlFor="arv-name">Name *</label>
                   <input
@@ -233,7 +233,7 @@ export default function ARV() {
                     }
                     required
                     placeholder="Enter ARV name"
-                    className="form-input"
+                    className="arvpage-form-input"
                   />
                 </div>
 
@@ -247,7 +247,7 @@ export default function ARV() {
                     }
                     placeholder="Enter description (optional)"
                     rows={3}
-                    className="form-textarea"
+                    className="arvpage-form-textarea"
                   />
                 </div>
 
@@ -259,7 +259,7 @@ export default function ARV() {
                     onChange={(e) =>
                       setEditData({ ...editData, status: e.target.value })
                     }
-                    className="form-select"
+                    className="arvpage-form-select"
                   >
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
@@ -267,13 +267,13 @@ export default function ARV() {
                   </select>
                 </div>
 
-                <div className="form-actions">
-                  <button type="submit" className="btn-primary">
+                <div className="arvpage-modal-actions">
+                  <button type="submit" className="arvpage-btn-submit">
                     {editData?.arvId ? "Update" : "Create"} ARV
                   </button>
                   <button
                     type="button"
-                    className="btn-secondary"
+                    className="arvpage-btn-cancel"
                     onClick={closeModal}
                   >
                     Cancel

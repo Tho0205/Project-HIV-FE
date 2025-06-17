@@ -175,3 +175,102 @@
 .register-facebook {
   color: #3b5998;
 }
+
+/* Responsive for tablets and small laptops */
+@media (max-width: 1600px) {
+  .register-container {
+    flex-direction: row;
+    height: auto;
+  }
+  .register-left-section,
+  .register-right-section {
+    width: 100%;
+    min-width: 0;
+  }
+  .register-background-img {
+    height: 100%;
+    object-fit: cover;
+  }
+  .register-overlay {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
+  .register-doctors-img {
+    top: 185px;
+  }
+  .register-badge {
+    left: 10px;
+    padding: 15px 20px;
+    font-size: 15px;
+  }
+  .register-appointment-card {
+    padding: 15px 20px;
+    font-size: 15px;
+  }
+  .register-right-section {
+    padding: 20px 0;
+  }
+  .register-form {
+    max-width: 380px;
+    width: 92%;
+  }
+}
+
+/* Responsive for mobile */
+@media (max-width: 800px) {
+  .register-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .register-left-section {
+    width: 100%;
+    height: 120px;
+    min-height: 80px;
+  }
+  .register-background-img {
+    height: 100%;
+    max-height: 120px;
+    object-fit: cover;
+  }
+  .register-overlay {
+    min-height: 80px;
+  }
+  .register-doctors-img {
+    top: 20px;
+    max-width: 60%;
+  }
+  .register-badge,
+  .register-appointment-card {
+    font-size: 11px;
+    padding: 5px 7px;
+    border-radius: 5px;
+  }
+  .register-badge {
+    top: 10px;
+    left: 5px;
+  }
+  .register-appointment-card {
+    bottom: 5px;
+    right: 5px;
+  }
+  .register-form {
+    max-width: 98vw;
+    width: 98vw;
+    padding: 0 2vw;
+  }
+  .register-form h1 {
+    font-size: 26px;
+  }
+  .register-form label,
+  .register-form input,
+  .register-form select,
+  .register-form textarea {
+    font-size: 14px;
+  }
+  .register-sign-up-btn,
+  .register-social-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

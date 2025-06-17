@@ -4,7 +4,9 @@ export const ARVProtocolService = {
   // Lấy danh sách protocol với phân trang
   getProtocols: async (page = 1, pageSize = 8) => {
     try {
-      const response = await fetch(`${API_BASE}?page=${page}&pageSize=${pageSize}`);
+      const response = await fetch(
+        `${API_BASE}?page=${page}&pageSize=${pageSize}`
+      );
       if (!response.ok) throw new Error("Network response was not ok");
       return await response.json();
     } catch (error) {

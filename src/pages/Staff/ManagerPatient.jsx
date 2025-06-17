@@ -251,7 +251,7 @@ export default function ManagerPatient() {
                   <td className="gender">{p.gender}</td>
                   <td className="created">{formatDate(p.created_at)}</td>
                   <td className="status">{p.status}</td>
-                  <td>
+                  <td className="actions">
                     <button
                       className="edit-btn"
                       onClick={() => openEditModal(p)}
@@ -390,7 +390,7 @@ export default function ManagerPatient() {
                   <button
                     type="button"
                     id="cancelModal"
-                    className="btn-purple"
+                    className="btn-cancel"
                     onClick={closeModal}
                   >
                     Cancel

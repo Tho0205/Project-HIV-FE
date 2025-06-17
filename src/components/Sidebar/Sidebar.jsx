@@ -38,14 +38,14 @@ export default function Sidebar({ active }) {
             <span>Quản Lí Kết Quả Xét Nghiệm</span>
           </li>
           <li className={active === "arv" ? "active" : ""}>
-            <span className="icon">🧪</span>
             <Link to="/arv">
+              <span className="icon">🧪</span>
               <span>Quản Lí ARV</span>
             </Link>
           </li>
           <li className={active === "arv-protocol" ? "active" : ""}>
-            <span className="icon">🧪</span>
             <Link to="/arv-protocol">
+              <span className="icon">🧪</span>
               <span>Quản Lí ARV Protocol</span>
             </Link>
           </li>
