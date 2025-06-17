@@ -102,7 +102,7 @@ const Login = () => {
           alt="bg"
           className="login-background-img"
         />
-        <div className="login-overlay">
+        <div className="login-overlay-1">
           <img
             src="/assets/image/Account/login.png"
             alt="Doctors"
