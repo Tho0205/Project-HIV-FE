@@ -275,6 +275,7 @@ export default function ARVProtocol() {
                       <tr>
                         <th>ARV ID</th>
                         <th>Tên ARV</th>
+                        <th>Liều Dùng</th>
                         <th>Hướng Dẫn Sử Dụng</th>
                       </tr>
                     </thead>
@@ -283,6 +284,7 @@ export default function ARVProtocol() {
                         <tr key={detail.arvId}>
                           <td>{detail.arvId}</td>
                           <td>{detail.arvName}</td>
+                          <td>{detail.dosage || "-"}</td>
                           <td>{detail.usageInstruction || "-"}</td>
                         </tr>
                       ))}
