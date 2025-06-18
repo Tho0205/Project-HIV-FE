@@ -1,439 +1,485 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import HIVExamService from "../../services/HIVExaminationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./HIVExaminationManagement.css";
 
 const HIVExaminationManagement = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  
-  // State
-  const [data, setData] = useState({ patients: [], doctors: [], examinations: [] });
+
+  // States
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [modals, setModals] = useState({ add: false, history: false });
+  const [examinations, setExaminations] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteExamId, setDeleteExamId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", isError: false });
   const [formData, setFormData] = useState({
+    examId: null,
     patientId: "",
     doctorId: "",
-    examDate: new Date().toISOString().split('T')[0],
+    examDate: new Date().toISOString().split("T")[0],
     result: "",
-    cd4Range: "",
-    hivLoadRange: "",
-    currentCondition: ""
+    cd4Count: "",
+    hivLoad: "",
   });
 
-  // Effects
-  useEffect(() => {
-    const role = localStorage.getItem("role");
-    console.log("Current role:", role); // Debug log
-    
-    // Kiểm tra role case-insensitive
-    const allowedRoles = ["staff", "manager"];
-    const normalizedRole = role ? role.toLowerCase().trim() : "";
-    
-    if (!allowedRoles.includes(normalizedRole)) {
-      alert(`Bạn không có quyền truy cập trang này. Role hiện tại: ${role}`);
-      navigate("/");
-      return;
-    }
-    
-    loadData();
-  }, [navigate]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const patientId = params.get('patientId');
-    const patientName = params.get('patientName');
-    if (patientId && patientName) {
-      viewHistory(parseInt(patientId), decodeURIComponent(patientName));
-    }
-  }, [location.search]);
-
-  // Functions
-  const loadData = async () => {
-    setLoading(true);
-    try {
-      const [patients, doctors, exams] = await Promise.all([
-        HIVExamService.getPatients(),
-        HIVExamService.getDoctors(),
-        HIVExamService.getRecentExaminations()
-      ]);
-      
-      setData({
-        patients: patients.data || [],
-        doctors: doctors.data || [],
-        examinations: exams.data || []
-      });
-    } catch (error) {
-      showMessage("Không thể tải dữ liệu", true);
-    }
-    setLoading(false);
-  };
-
-  const viewHistory = async (patientId, patientName) => {
-    setLoading(true);
-    const result = await HIVExamService.getPatientHistory(patientId);
-    
-    if (result.success) {
-      setSelectedPatient({ id: patientId, name: patientName, examinations: result.data });
-      setModals({ ...modals, history: true });
-    } else {
-      showMessage(result.error, true);
-    }
-    setLoading(false);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    
-    const result = await HIVExamService.addExamination(formData);
-    
-    if (result.success) {
-      showMessage("Thêm kết quả xét nghiệm thành công!");
-      setModals({ ...modals, add: false });
-      setFormData({
-        patientId: "", doctorId: "", examDate: new Date().toISOString().split('T')[0],
-        result: "", cd4Range: "", hivLoadRange: "", currentCondition: ""
-      });
-      loadData();
-    } else {
-      showMessage(result.error, true);
-    }
-    setLoading(false);
-  };
-
+  // Utility functions
   const showMessage = (text, isError = false) => {
     setMessage({ text, isError });
     setTimeout(() => setMessage({ text: "", isError: false }), 5000);
   };
 
-  const formatDate = (date) => date ? new Date(date).toLocaleDateString('vi-VN') : "";
+  const formatDate = (date) => date ? new Date(date).toLocaleDateString("vi-VN") : "";
 
-  // Render
-  return (
-    <div className="wrapper">
-      {/* Sidebar */}
-      <Sidebar active="result" />
-      
-      {/* Main */}
-      <main className="content">
-        <div className="header">
-          <input type="text" placeholder="Tìm Kiếm..." className="search" />
-          <div className="user">
-            <span className="notification">🔔<span className="dot"></span></span>
-            <img src="https://i.pravatar.cc/40?img=5" className="avatar" alt="avatar" />
-          </div>
+  const getResultClass = (result) => {
+    if (!result) return "";
+    const lower = result.toLowerCase();
+    if (lower.includes("dương") || lower.includes("positive")) return "status-positive";
+    if (lower.includes("âm") || lower.includes("negative")) return "status-negative";
+    return "";
+  };
+
+  const getCD4Class = (cd4Count) => {
+    if (!cd4Count || cd4Count === "N/A") return "";
+    const count = parseInt(cd4Count);
+    return count >= 500 ? "cd4-high" : count < 200 ? "cd4-low" : "";
+  };
+
+  const getTimeAgo = (examDate, index) => {
+    if (index === 0) return "🔥 Mới nhất";
+    
+    const today = new Date();
+    const exam = new Date(examDate + "T00:00:00");
+    const diffDays = Math.floor((today.getTime() - exam.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Hôm nay";
+    if (diffDays === 1) return "Hôm qua";
+    if (diffDays < 7) return `${diffDays} ngày trước`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} tuần trước`;
+    if (diffDays < 365) return `${Math.floor(diffDays / 30)} tháng trước`;
+    return `${Math.floor(diffDays / 365)} năm trước`;
+  };
+
+  // API calls
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [patientsRes, doctorsRes] = await Promise.all([
+        HIVExamService.getPatientsWithExamCount(),
+        HIVExamService.getDoctors(),
+      ]);
+      if (patientsRes.success) setPatients(patientsRes.data);
+      if (doctorsRes.success) setDoctors(doctorsRes.data);
+    } catch (error) {
+      showMessage("Không thể tải dữ liệu", true);
+    }
+    setLoading(false);
+  }, []);
+
+  const viewHistory = async (patient) => {
+    setLoading(true);
+    try {
+      const result = await HIVExamService.getPatientHistory(patient.userId);
+      if (result.success) {
+        setSelectedPatient(patient);
+        setExaminations(result.data);
+        setShowHistory(true);
+      } else {
+        showMessage(result.message, true);
+      }
+    } catch (error) {
+      showMessage("Lỗi khi tải lịch sử", true);
+    }
+    setLoading(false);
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const result = await HIVExamService.saveExamination(formData);
+      if (result.success) {
+        showMessage(formData.examId ? "Cập nhật thành công" : "Thêm thành công");
+        setShowForm(false);
+        await Promise.all([viewHistory(selectedPatient), loadData()]);
+      } else {
+        showMessage(result.message, true);
+      }
+    } catch (error) {
+      showMessage("Lỗi khi lưu", true);
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      const result = await HIVExamService.deleteExamination(deleteExamId);
+      if (result.success) {
+        showMessage("Xóa thành công");
+        setShowDeleteConfirm(false);
+        await Promise.all([viewHistory(selectedPatient), loadData()]);
+      } else {
+        showMessage(result.message, true);
+      }
+    } catch (error) {
+      showMessage("Lỗi khi xóa", true);
+    }
+    setLoading(false);
+  };
+
+  // Form handlers
+  const openForm = (exam = null) => {
+    setFormData(exam ? {
+      examId: exam.examId,
+      patientId: selectedPatient.userId,
+      doctorId: exam.doctorId || "",
+      examDate: exam.examDate || "",
+      result: exam.result || "",
+      cd4Count: exam.cd4Count || "",
+      hivLoad: exam.hivLoad || "",
+    } : {
+      examId: null,
+      patientId: selectedPatient.userId,
+      doctorId: "",
+      examDate: new Date().toISOString().split("T")[0],
+      result: "",
+      cd4Count: "",
+      hivLoad: "",
+    });
+    setShowForm(true);
+  };
+
+  const closeModals = () => {
+    setShowHistory(false);
+    setShowForm(false);
+    setShowDeleteConfirm(false);
+    setSelectedPatient(null);
+  };
+
+  // Effects
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (!role || !["staff", "manager"].includes(role.toLowerCase())) {
+      alert("Bạn không có quyền truy cập trang này");
+      navigate("/");
+      return;
+    }
+    loadData();
+  }, [navigate, loadData]);
+
+  // Render components
+  const renderPatientTable = () => (
+    <div className="table-container">
+      <div className="table-header">
+        <h3>👥 Danh Sách Bệnh Nhân</h3>
+        <div className="table-stats">
+          <span>Tổng số: <strong>{patients.length}</strong> bệnh nhân</span>
         </div>
-        
-        <h1 className="title">Quản Lý Xét Nghiệm HIV</h1>
-        
-        {/* Messages */}
-        {message.text && (
-          <div className={`alert ${message.isError ? 'alert-error' : 'alert-success'}`}>
-            {message.isError ? '⚠️' : '✅'} {message.text}
+      </div>
+      <table className="examination-table">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Họ Tên</th>
+            <th>Email</th>
+            <th>SĐT</th>
+            <th>Ngày Sinh</th>
+            <th>Số Lần XN</th>
+            <th>XN Gần Nhất</th>
+            <th>Hành Động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {loading ? (
+            <tr><td colSpan="8" className="text-center">⏳ Đang tải dữ liệu...</td></tr>
+          ) : patients.length === 0 ? (
+            <tr><td colSpan="8" className="text-center">📝 Chưa có dữ liệu bệnh nhân</td></tr>
+          ) : (
+            patients.map((patient, index) => (
+              <tr key={patient.userId}>
+                <td className="text-center">{index + 1}</td>
+                <td><strong>{patient.fullName}</strong></td>
+                <td>{patient.email}</td>
+                <td>{patient.phone || "Chưa có"}</td>
+                <td>{formatDate(patient.birthdate)}</td>
+                <td className="text-center">
+                  <span className="examination-count">{patient.examCount}</span>
+                </td>
+                <td>{formatDate(patient.lastExamDate) || "Chưa có"}</td>
+                <td className="text-center">
+                  <button
+                    className="btn-action"
+                    onClick={() => viewHistory(patient)}
+                    disabled={loading}
+                    title="Xem lịch sử xét nghiệm"
+                  >
+                    📋
+                  </button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+
+  const renderHistoryModal = () => (
+    showHistory && selectedPatient && (
+      <div className="modal-overlay">
+        <div className="history-modal">
+          <div className="modal-header">
+            <div>
+              <h3>🩺 Lịch Sử Xét Nghiệm - {selectedPatient.fullName}</h3>
+              <small>
+                📧 {selectedPatient.email} | 📞 {selectedPatient.phone || "N/A"} | 
+                🎂 {formatDate(selectedPatient.birthdate)}
+              </small>
+            </div>
+            <button className="close-btn" onClick={closeModals} title="Đóng">✕</button>
           </div>
-        )}
-        
-        {/* Table */}
-        <div className="table-container">
-          <div className="table-header">
-            <h3>📋 Danh Sách Xét Nghiệm HIV</h3>
-            <div className="table-actions">
-              <select className="sort-select">
-                <option>Thời Gian</option>
-              </select>
-              <button 
-                className="btn-add"
-                onClick={() => setModals({ ...modals, add: true })}
+          <div className="history-content">
+            {examinations.length === 0 ? (
+              <div className="empty-history">
+                <p>Chưa có kết quả xét nghiệm nào</p>
+                <small>Nhấn nút bên dưới để thêm kết quả xét nghiệm đầu tiên</small>
+              </div>
+            ) : (
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>📅 Ngày XN</th>
+                    <th>👨‍⚕️ Bác Sĩ</th>
+                    <th>🔬 CD4 Count</th>
+                    <th>🧬 HIV Load</th>
+                    <th>📊 Kết Quả</th>
+                    <th>⚙️ Hành Động</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {examinations.map((exam, index) => (
+                    <tr key={exam.examId}>
+                      <td>
+                        <strong>{formatDate(exam.examDate)}</strong>
+                        <br />
+                        <small style={{ color: "#6b7280" }}>
+                          {getTimeAgo(exam.examDate, index)}
+                        </small>
+                      </td>
+                      <td><strong>{exam.doctorName}</strong></td>
+                      <td>
+                        <span className={getCD4Class(exam.cd4Count)}>
+                          {exam.cd4Count ? `${exam.cd4Count} cells/μL` : "N/A"}
+                        </span>
+                      </td>
+                      <td>{exam.hivLoad ? `${exam.hivLoad} copies/ml` : "N/A"}</td>
+                      <td>
+                        <span className={getResultClass(exam.result)}>
+                          {exam.result}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn-action"
+                          onClick={() => openForm(exam)}
+                          title="Chỉnh sửa kết quả"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="btn-action"
+                          onClick={() => {
+                            setDeleteExamId(exam.examId);
+                            setShowDeleteConfirm(true);
+                          }}
+                          title="Xóa kết quả"
+                        >
+                          🗑️
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <div className="fixed-add-button">
+              <button
+                className="btn-add-exam"
+                onClick={() => openForm()}
                 disabled={loading}
               >
-                Thêm Kết Quả Xét Nghiệm
+                ➕ Thêm kết quả xét nghiệm mới
               </button>
             </div>
           </div>
-
-          <table className="examination-table">
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th>Họ Và Tên</th>
-                <th>Email</th>
-                <th>SĐT</th>
-                <th>Ngày Sinh</th>
-                <th>CD4 (cells/μL)</th>
-                <th>Tải Lượng HIV</th>
-                <th>Chẩn Đoán</th>
-                <th>Hành Động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="9" className="loading-cell">⏳ Đang tải dữ liệu...</td></tr>
-              ) : data.patients.length === 0 ? (
-                <tr><td colSpan="9" className="empty-cell">📝 Chưa có dữ liệu bệnh nhân</td></tr>
-              ) : (
-                data.patients.map((patient, index) => (
-                  <tr key={patient.accountId}>
-                    <td className="text-center">{index + 1}</td>
-                    <td className="patient-info">
-                      <img
-                        src={HIVExamService.getAvatarUrl(patient.userAvatar)}
-                        className="avatar-sm"
-                        alt="Avatar"
-                      />
-                      <span className="patient-name">{patient.full_name}</span>
-                    </td>
-                    <td>{patient.email}</td>
-                    <td>{patient.phone || "N/A"}</td>
-                    <td>{formatDate(patient.birthdate)}</td>
-                    <td className="text-center">-</td>
-                    <td className="text-center">-</td>
-                    <td>-</td>
-                    <td className="text-center">
-                      <button
-                        className="btn-action"
-                        onClick={() => viewHistory(patient.accountId, patient.full_name)}
-                        disabled={loading}
-                        title="Xem lịch sử xét nghiệm"
-                      >
-                        📋
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
+      </div>
+    )
+  );
 
-        {/* Add Modal */}
-        {modals.add && (
-          <div className="modal-overlay">
-            <div className="add-form-container">
-              <div className="form-header">
-                <h2>🧪 Thêm Kết Quả Xét Nghiệm HIV</h2>
-                <button 
-                  className="close-btn"
-                  onClick={() => setModals({ ...modals, add: false })}
-                  title="Đóng"
-                >
-                  ✕
-                </button>
+  const renderFormModal = () => (
+    showForm && (
+      <div className="modal-overlay">
+        <div className="form-modal">
+          <div className="form-header">
+            <h2>
+              {formData.examId ? "✏️ Cập Nhật Kết Quả" : "🧪 Thêm Kết Quả Mới"}
+            </h2>
+            <button className="close-btn" onClick={closeModals}>✕</button>
+          </div>
+          <form onSubmit={handleSave} className="exam-form">
+            <div className="form-section">
+              <h3>👤 Thông tin bệnh nhân</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Họ và tên</label>
+                  <input type="text" value={selectedPatient?.fullName || ""} disabled />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input type="text" value={selectedPatient?.email || ""} disabled />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Số điện thoại</label>
+                  <input type="text" value={selectedPatient?.phone || "Chưa có"} disabled />
+                </div>
+                <div className="form-group">
+                  <label>Ngày sinh</label>
+                  <input type="text" value={formatDate(selectedPatient?.birthdate) || "N/A"} disabled />
+                </div>
+              </div>
+            </div>
+
+            <div className="form-section">
+              <h3>🏥 Thông tin xét nghiệm</h3>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Bác sĩ thực hiện <span style={{ color: "#ef4444" }}>*</span></label>
+                  <select
+                    value={formData.doctorId}
+                    onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                    required
+                  >
+                    <option value="">-- Chọn bác sĩ thực hiện --</option>
+                    {doctors.map((d) => (
+                      <option key={d.value} value={d.value}>{d.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Ngày xét nghiệm <span style={{ color: "#ef4444" }}>*</span></label>
+                  <input
+                    type="date"
+                    value={formData.examDate}
+                    onChange={(e) => setFormData({ ...formData, examDate: e.target.value })}
+                    required
+                    max={new Date().toISOString().split("T")[0]}
+                  />
+                </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="add-form">
-                {/* Patient Information Section */}
-                <div className="form-section">
-                  <h3 className="form-section-title">
-                    <span>👤</span> Thông tin bệnh nhân
-                  </h3>
-                  <div className="form-row">
-                    <div className="form-group full-width">
-                      <label>Họ và tên *</label>
-                      <select
-                        value={formData.patientId}
-                        onChange={(e) => setFormData({...formData, patientId: e.target.value})}
-                        required
-                        className="form-input"
-                      >
-                        <option value="">-- Chọn bệnh nhân --</option>
-                        {data.patients.map(p => (
-                          <option key={p.accountId} value={p.accountId}>
-                            {p.full_name} - {p.email}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Tuổi/Năm sinh</label>
-                      <input 
-                        type="text" 
-                        placeholder="Tự động điền" 
-                        className="form-input" 
-                        disabled 
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Giới tính</label>
-                      <input 
-                        type="text" 
-                        placeholder="Tự động điền" 
-                        className="form-input" 
-                        disabled 
-                      />
-                    </div>
-                  </div>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>CD4 Count <small>(cells/μL)</small></label>
+                  <input
+                    type="number"
+                    value={formData.cd4Count}
+                    onChange={(e) => setFormData({ ...formData, cd4Count: e.target.value })}
+                    min="0"
+                    max="2000"
+                    placeholder="VD: 350"
+                  />
+                  <small style={{ color: "#6b7280", fontSize: "12px" }}>
+                    Bình thường: ≥500 cells/μL
+                  </small>
                 </div>
-
-                {/* Medical Information Section */}
-                <div className="form-section">
-                  <h3 className="form-section-title">
-                    <span>🏥</span> Thông tin khám
-                  </h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Bác sĩ chỉ định *</label>
-                      <select
-                        value={formData.doctorId}
-                        onChange={(e) => setFormData({...formData, doctorId: e.target.value})}
-                        required
-                        className="form-input"
-                      >
-                        <option value="">-- Chọn bác sĩ --</option>
-                        {data.doctors.map(d => (
-                          <option key={d.userId} value={d.userId}>
-                            {d.displayName} {d.specialization && `(${d.specialization})`}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Ngày xét nghiệm *</label>
-                      <input
-                        type="date"
-                        value={formData.examDate}
-                        onChange={(e) => setFormData({...formData, examDate: e.target.value})}
-                        required
-                        className="form-input"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group full-width">
-                      <label>Tình trạng hiện tại</label>
-                      <textarea
-                        value={formData.currentCondition}
-                        onChange={(e) => setFormData({...formData, currentCondition: e.target.value})}
-                        className="form-textarea"
-                        rows="3"
-                        placeholder="Mô tả tình trạng sức khỏe hiện tại của bệnh nhân..."
-                      />
-                    </div>
-                  </div>
+                <div className="form-group">
+                  <label>HIV Load <small>(copies/ml)</small></label>
+                  <input
+                    type="number"
+                    value={formData.hivLoad}
+                    onChange={(e) => setFormData({ ...formData, hivLoad: e.target.value })}
+                    min="0"
+                    placeholder="VD: 50000"
+                  />
+                  <small style={{ color: "#6b7280", fontSize: "12px" }}>
+                    Không phát hiện: &lt;50 copies/ml
+                  </small>
                 </div>
+              </div>
 
-                {/* Test Results Section */}
-                <div className="form-section">
-                  <h3 className="form-section-title">
-                    <span>🔬</span> Kết quả xét nghiệm
-                  </h3>
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>Chỉ số CD4 (cells/μL)</label>
-                      <select
-                        value={formData.cd4Range}
-                        onChange={(e) => setFormData({...formData, cd4Range: e.target.value})}
-                        className="form-input"
-                      >
-                        <option value="">-- Chọn khoảng --</option>
-                        <option value="> 200">&gt; 200</option>
-                        <option value="100-200">100 - 200</option>
-                        <option value="< 100">&lt; 100</option>
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label>Tải lượng HIV</label>
-                      <select
-                        value={formData.hivLoadRange}
-                        onChange={(e) => setFormData({...formData, hivLoadRange: e.target.value})}
-                        className="form-input"
-                      >
-                        <option value="">-- Chọn khoảng --</option>
-                        <option value="Không phát hiện">Không phát hiện</option>
-                        <option value="< 50 copies/ml">&lt; 50 copies/ml</option>
-                        <option value="50-1000 copies/ml">50 - 1000 copies/ml</option>
-                        <option value="> 1000 copies/ml">&gt; 1000 copies/ml</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="form-row">
-                    <div className="form-group full-width">
-                      <label>Kết quả chi tiết *</label>
-                      <textarea
-                        value={formData.result}
-                        onChange={(e) => setFormData({...formData, result: e.target.value})}
-                        required
-                        className="form-textarea"
-                        rows="5"
-                        placeholder="Nhập kết quả xét nghiệm chi tiết, chẩn đoán và ghi chú..."
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="form-actions">
-                  <button type="submit" className="btn-submit" disabled={loading}>
-                    {loading ? "⏳ Đang xử lý..." : "💾 Lưu kết quả xét nghiệm"}
-                  </button>
-                </div>
-              </form>
+              <div className="form-group">
+                <label>Kết quả chi tiết <span style={{ color: "#ef4444" }}>*</span></label>
+                <textarea
+                  value={formData.result}
+                  onChange={(e) => setFormData({ ...formData, result: e.target.value })}
+                  required
+                  rows="4"
+                  placeholder="Nhập mô tả chi tiết kết quả xét nghiệm, chẩn đoán và khuyến nghị..."
+                />
+              </div>
             </div>
+
+            <div className="form-actions">
+              <button type="submit" className="btn-submit" disabled={loading}>
+                {loading ? "⏳ Đang xử lý..." : formData.examId ? "💾 Cập nhật" : "💾 Lưu kết quả"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  );
+
+  const renderDeleteModal = () => (
+    showDeleteConfirm && (
+      <div className="modal-overlay">
+        <div className="confirm-modal">
+          <div className="confirm-content">
+            <h3>⚠️ Xác nhận xóa</h3>
+            <p>Bạn có chắc chắn muốn xóa kết quả xét nghiệm này?</p>
+            <p>Hành động này không thể hoàn tác.</p>
+            <div className="warning-text">
+              ⚠️ Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống
+            </div>
+            <div className="confirm-actions">
+              <button className="btn-cancel" onClick={closeModals} disabled={loading}>
+                Hủy bỏ
+              </button>
+              <button className="btn-danger" onClick={handleDelete} disabled={loading}>
+                {loading ? "⏳ Đang xóa..." : "🗑️ Xóa"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  );
+
+  return (
+    <div className="wrapper">
+      <Sidebar active="result" />
+      <main className="content">
+        <h1 className="title">Quản Lý Xét Nghiệm HIV</h1>
+
+        {message.text && (
+          <div className={`alert ${message.isError ? "alert-error" : "alert-success"}`}>
+            {message.isError ? "⚠️" : "✅"} {message.text}
           </div>
         )}
 
-        {/* History Modal */}
-        {modals.history && selectedPatient && (
-          <div className="modal-overlay">
-            <div className="history-modal">
-              <div className="modal-header">
-                <h3>📋 Lịch Sử Xét Nghiệm - {selectedPatient.name}</h3>
-                <button 
-                  className="close-btn"
-                  onClick={() => {
-                    setModals({ ...modals, history: false });
-                    setSelectedPatient(null);
-                  }}
-                >
-                  ✕
-                </button>
-              </div>
-              
-              <div className="history-content">
-                {selectedPatient.examinations.length === 0 ? (
-                  <div className="empty-history">
-                    <p>📝 Chưa có kết quả xét nghiệm nào</p>
-                    <p>Bệnh nhân này chưa thực hiện xét nghiệm HIV lần nào.</p>
-                  </div>
-                ) : (
-                  <table className="history-table">
-                    <thead>
-                      <tr>
-                        <th>Ngày XN</th>
-                        <th>Bác Sĩ</th>
-                        <th>CD4 Count</th>
-                        <th>HIV Load</th>
-                        <th>Kết Quả</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedPatient.examinations.map((exam) => (
-                        <tr key={exam.examId}>
-                          <td>{formatDate(exam.examDate)}</td>
-                          <td>{exam.doctorName}</td>
-                          <td className={`cd4-${exam.cd4Count > 200 ? 'good' : exam.cd4Count < 100 ? 'bad' : 'medium'}`}>
-                            {exam.cd4Count || 'N/A'}
-                          </td>
-                          <td className={`hiv-${exam.hivLoad === 0 ? 'good' : exam.hivLoad > 1000 ? 'bad' : 'medium'}`}>
-                            {exam.hivLoad !== null ? exam.hivLoad : 'N/A'}
-                          </td>
-                          <td className="result-cell" title={exam.result}>{exam.result}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+        {renderPatientTable()}
+        {renderHistoryModal()}
+        {renderFormModal()}
+        {renderDeleteModal()}
       </main>
     </div>
   );
