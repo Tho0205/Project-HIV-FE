@@ -17,6 +17,12 @@ export default function Sidebar({ active }) {
         <div className="logo">Logo HIV</div>
         <div className="welcome">Welcome Staff</div>
         <ul className="nav">
+          <li className={active === "blog" ? "active" : ""}>
+            <Link to="/Staff-Blog">
+              <span className="icon">📝</span>
+              <span> Quản Lí Bài Viết</span>
+            </Link>
+          </li>
           <li className={active === "calendar" ? "active" : ""}>
             <Link to="#">
               <span className="icon">📅</span>
@@ -40,14 +46,14 @@ export default function Sidebar({ active }) {
             </Link>
           </li>
           <li className={active === "arv" ? "active" : ""}>
-            <span className="icon">🧪</span>
             <Link to="/arv">
+              <span className="icon">🧪</span>
               <span>Quản Lí ARV</span>
             </Link>
           </li>
           <li className={active === "arv-protocol" ? "active" : ""}>
-            <span className="icon">🧪</span>
             <Link to="/arv-protocol">
+              <span className="icon">🧪</span>
               <span>Quản Lí ARV Protocol</span>
             </Link>
           </li>

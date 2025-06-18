@@ -190,12 +190,12 @@ export default function ManagerPatient() {
         <h1 className="title">Quản Lí Thông Tin Khách Hàng</h1>
 
         <div className="sort-bar">
-          <label>Sort:</label>
+          <label>Xắp Xếp:</label>
           <select value={sort} onChange={handleSortChange}>
-            <option value="name_asc">Name: A - Z</option>
-            <option value="name_desc">Name: Z - A</option>
-            <option value="created_asc">Created At: Increase</option>
-            <option value="created_desc">Created At: Decrease</option>
+            <option value="name_asc">Theo Tên: A - Z</option>
+            <option value="name_desc">Theo Tên: Z - A</option>
+            <option value="created_asc">Theo Ngày Tạo: Increase</option>
+            <option value="created_desc">Theo Ngày Tạo: Decrease</option>
           </select>
         </div>
 
@@ -203,16 +203,16 @@ export default function ManagerPatient() {
           <thead>
             <tr>
               <th>STT</th>
-              <th>Avatar</th>
-              <th>Full Name</th>
+              <th>Ảnh Đại Diện</th>
+              <th>Họ Và Tên</th>
               <th>Email</th>
-              <th>Phone</th>
-              <th>BirthDate</th>
-              <th>Address</th>
-              <th>Gender</th>
-              <th>Created At</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th>Số Điện Thoại</th>
+              <th>Ngày Sinh</th>
+              <th>Địa Chỉ</th>
+              <th>Giới Tính</th>
+              <th>Ngày Tạo</th>
+              <th>Trạng Thái</th>
+              <th>Hành Động</th>
             </tr>
           </thead>
           <tbody>
@@ -251,7 +251,7 @@ export default function ManagerPatient() {
                   <td className="gender">{p.gender}</td>
                   <td className="created">{formatDate(p.created_at)}</td>
                   <td className="status">{p.status}</td>
-                  <td>
+                  <td className="actions">
                     <button
                       className="edit-btn"
                       onClick={() => openEditModal(p)}
@@ -281,7 +281,7 @@ export default function ManagerPatient() {
               <h4 style={{ marginBottom: 30, color: "red" }}>{error}</h4>
               <form id="modalForm" onSubmit={handleEditSubmit}>
                 <div className="avatar-group">
-                  <label>Avatar</label>
+                  <label>Ảnh Đại Diện</label>
                   <img
                     id="previewAvatar"
                     src={previewAvatar || defaultAvatar}
@@ -295,7 +295,7 @@ export default function ManagerPatient() {
                   />
                 </div>
 
-                <label>Name</label>
+                <label>Tên</label>
                 <input
                   type="text"
                   name="name"
@@ -306,7 +306,7 @@ export default function ManagerPatient() {
                   required
                 />
 
-                <label>Date of Birth</label>
+                <label>Ngày Sinh</label>
                 <input
                   type="date"
                   name="dob"
@@ -317,7 +317,7 @@ export default function ManagerPatient() {
                   required
                 />
 
-                <label>Phone</label>
+                <label>Số Điện Thoại</label>
                 <input
                   type="text"
                   name="phone"
@@ -339,7 +339,7 @@ export default function ManagerPatient() {
                   required
                 />
 
-                <label>Gender</label>
+                <label>Giới Tính</label>
                 <select
                   name="gender"
                   value={editData.gender}
@@ -354,7 +354,7 @@ export default function ManagerPatient() {
                   ))}
                 </select>
 
-                <label>Address</label>
+                <label>Địa Chỉ</label>
                 <input
                   type="text"
                   name="address"
@@ -365,10 +365,10 @@ export default function ManagerPatient() {
                   required
                 />
 
-                <label>Role</label>
+                <label>Giới Tính</label>
                 <input type="text" name="role" value="Patient" readOnly />
 
-                <label>Status</label>
+                <label>Trạng Thái</label>
                 <select
                   name="status"
                   value={editData.status}
@@ -385,15 +385,15 @@ export default function ManagerPatient() {
 
                 <div className="modal-actions">
                   <button type="submit" className="btn-green">
-                    Save
+                    Chỉnh Sửa
                   </button>
                   <button
                     type="button"
                     id="cancelModal"
-                    className="btn-purple"
+                    className="btn-cancel"
                     onClick={closeModal}
                   >
-                    Cancel
+                    Hủy
                   </button>
                 </div>
               </form>

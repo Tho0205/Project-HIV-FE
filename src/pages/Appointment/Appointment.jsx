@@ -9,6 +9,8 @@ import {
   CheckCircle,
   AlertTriangle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import {
   getDoctorsApi,
   getPatientInfoApi,
@@ -32,7 +34,9 @@ const Appointment = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   // Load doctors and patient info on component mount
+  const navigate = useNavigate();
   useEffect(() => {
+    const role = localStorage.getItem("role");
     console.log("Component mounted");
     console.log("All localStorage data:", {
       username: localStorage.getItem("username"),
@@ -42,6 +46,10 @@ const Appointment = () => {
     });
     loadDoctors();
     loadCurrentUserInfo();
+    if (role === null) {
+      toast.error("Please Login, If You Want To Booking");
+      navigate("/login");
+    }
   }, []);
 
   // Load current user's patient information from localStorage
@@ -237,7 +245,7 @@ const Appointment = () => {
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #eff6ff 0%, #ecfeff 100%)",
+        background: "linear-gradient(135deg, #dcd5d5)",
         minHeight: "100vh",
         padding: "2rem 1rem",
         fontFamily:

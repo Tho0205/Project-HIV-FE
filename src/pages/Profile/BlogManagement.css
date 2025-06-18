@@ -1,0 +1,298 @@
+Kế thừa các style chung từ file CSS chính .blog-management-page {
+  display: flex;
+  gap: 20px;
+}
+
+.blog-content {
+  flex: 1;
+}
+
+/* Header */
+.blog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.blog-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.filter-control {
+  position: relative;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  padding-right: 30px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: white;
+  appearance: none;
+  cursor: pointer;
+}
+
+.new-blog-btn {
+  background-color: #4439c7;
+  padding: 8px 8px;
+  margin-bottom: 18px;
+}
+
+/* Blog list */
+.blog-list {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.filter-indicator {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+/* Blog card */
+.blog-card {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.blog-card:last-child {
+  border-bottom: none;
+}
+
+.blog-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.blog-title {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.blog-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-icon {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.blog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.blog-date {
+  font-size: 13px;
+  color: #888;
+}
+
+.blog-status-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.status-btn {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .blog-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .blog-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+/* Loading và empty states */
+.loading,
+.empty-message {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.error-message {
+  padding: 10px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 4px;
+  margin-bottom: 15px;
+}
+
+/* Modal styles */
+.modal-overlay1 {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content1 {
+  background: white;
+  padding: 25px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.form-group1 {
+  margin-bottom: 15px;
+}
+
+.form-group1 label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group1 input,
+.form-group1 textarea,
+.form-group1 select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group1 textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.form-actions1 {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.cancel-btn1 {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Disabled buttons */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.blog-status {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Tab navigation */
+.blog-tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn.active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+}
+
+/* Blog card compact */
+.blog-card {
+  padding: 15px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.blog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.blog-title {
+  margin: 0;
+  font-size: 16px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #4caf50;
+  cursor: pointer;
+  font-weight: 500;
+}
+.edit-btn:hover {
+  background: #c1f9c2;
+}
+.delete-btn {
+  background: none;
+  color: #c62828;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.delete-btn:hover {
+  background: #ffcdd2;
+}
+
+.blog-date {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .blog-tabs {
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+
+  .tab-btn {
+    white-space: nowrap;
+  }
+}

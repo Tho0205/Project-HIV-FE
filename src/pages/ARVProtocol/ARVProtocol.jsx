@@ -123,42 +123,42 @@ export default function ARVProtocol() {
         <div className="header">
           <input
             type="text"
-            placeholder="Search protocols..."
+            placeholder="Tìm Kiếm Protocols..."
             className="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <h1 className="title">ARV Protocol Management</h1>
+        <h1 className="title">Quản Lí ARV Protocol</h1>
 
         <div className="action-bar">
-          <button className="btn-primary" onClick={handleCreate}>
-            ➕ Add Protocol
+          <button className="btn-add-protocol" onClick={handleCreate}>
+            ➕ Thêm Mới Protocol
           </button>
         </div>
 
         {error && <div className="error-message">⚠️ {error}</div>}
 
         <div className="table-container">
-          <table className="protocol-table">
+          <table className="arv-protocol-table">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Tên</th>
+                <th>Mô Tả</th>
+                <th>Trạng Thái</th>
+                <th>Hành Động</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>Loading...</td>
+                  <td colSpan={5}>Đang Tải...</td>
                 </tr>
               ) : filteredProtocols.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>No protocols found</td>
+                  <td colSpan={5}>Không Tìm Thấy Protocols</td>
                 </tr>
               ) : (
                 filteredProtocols.map((p) => (
@@ -173,20 +173,26 @@ export default function ARVProtocol() {
                         {p.status}
                       </span>
                     </td>
-                    <td className="actions">
-                      <button onClick={() => handleUpdate(p)} title="Edit">
+                    <td className="actions-arv-protocol">
+                      <button
+                        onClick={() => handleUpdate(p)}
+                        title="Edit"
+                        className="btn-edit-arv-protocol"
+                      >
                         ✏️
                       </button>
                       <button
                         onClick={() => handleDelete(p.protocolId)}
                         title="Delete"
                         disabled={p.status === "DELETED"}
+                        className="btn-delete-arv-protocol"
                       >
                         🗑️
                       </button>
                       <button
                         onClick={() => handleShowARVDetails(p)}
                         title="View ARV Details"
+                        className="btn-detail-arv-protocol"
                       >
                         👁️
                       </button>
@@ -200,51 +206,52 @@ export default function ARVProtocol() {
 
         {/* Edit Modal */}
         {showEditModal && (
-          <div className="modal-overlay">
-            <div className="modal-container">
-              <div className="modal-header">
-                <h3>
-                  {editData.protocolId ? "Edit Protocol" : "Add Protocol"}
-                </h3>
-                <button onClick={() => setShowEditModal(false)}>&times;</button>
-              </div>
-              <form onSubmit={handleSubmit}>
-                <div className="form-group">
-                  <label>Name *</label>
-                  <input
-                    type="text"
-                    value={editData.name}
-                    onChange={(e) =>
-                      setEditData({ ...editData, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Description</label>
-                  <textarea
-                    value={editData.description}
-                    onChange={(e) =>
-                      setEditData({ ...editData, description: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Status</label>
-                  <select
-                    value={editData.status}
-                    onChange={(e) =>
-                      setEditData({ ...editData, status: e.target.value })
-                    }
+          <div className="modal" style={{ display: "flex" }}>
+            <div className="modal-content">
+              <h3 style={{ marginBottom: 30 }}>
+                {editData.protocolId ? "Cập Nhật Protocol" : "Thêm Protocol"}
+              </h3>
+              <h4 style={{ marginBottom: 30, color: "red" }}>{error}</h4>
+              <form id="modalForm" onSubmit={handleSubmit}>
+                <label>Tên*</label>
+                <input
+                  type="text"
+                  value={editData.name}
+                  onChange={(e) =>
+                    setEditData({ ...editData, name: e.target.value })
+                  }
+                  required
+                />
+
+                <label>Mô Tả</label>
+                <textarea
+                  value={editData.description}
+                  onChange={(e) =>
+                    setEditData({ ...editData, description: e.target.value })
+                  }
+                />
+
+                <label>Trạng Thái</label>
+                <select
+                  value={editData.status}
+                  onChange={(e) =>
+                    setEditData({ ...editData, status: e.target.value })
+                  }
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="DELETED">Deleted</option>
+                </select>
+
+                <div className="modal-actions">
+                  <button type="submit" className="btn-green">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => setShowEditModal(false)}
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                    <option value="DELETED">Deleted</option>
-                  </select>
-                </div>
-                <div className="form-actions">
-                  <button type="submit">Save</button>
-                  <button type="button" onClick={() => setShowEditModal(false)}>
                     Cancel
                   </button>
                 </div>
@@ -258,7 +265,7 @@ export default function ARVProtocol() {
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h3>ARV Details: {selectedProtocol.name}</h3>
+                <h3>Mô Tả ARV: {selectedProtocol.name}</h3>
                 <button onClick={() => setShowARVModal(false)}>&times;</button>
               </div>
               <div className="modal-body">
@@ -267,8 +274,8 @@ export default function ARVProtocol() {
                     <thead>
                       <tr>
                         <th>ARV ID</th>
-                        <th>ARV Name</th>
-                        <th>Usage Instruction</th>
+                        <th>Tên ARV</th>
+                        <th>Hướng Dẫn Sử Dụng</th>
                       </tr>
                     </thead>
                     <tbody>

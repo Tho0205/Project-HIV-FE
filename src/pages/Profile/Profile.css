@@ -71,29 +71,7 @@ h2 {
   margin-bottom: 20px;
 }
 
-/* ===================================
-   SIDEBAR
-=================================== */
-.sidebar-Profile {
-  width: 200px;
-  border-right: 1px solid #eee;
-  padding-right: 20px;
-  justify-content: space-evenly;
-}
 
-.sidebar-Profile a {
-  display: block;
-  padding: 10px;
-  color: #333;
-  text-decoration: none;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-
-.sidebar-Profile a.active {
-  background: #eaf0fd;
-  color: #1d4ed8;
-}
 
 /* ===================================
    PROFILE CONTENT

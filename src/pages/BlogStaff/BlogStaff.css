@@ -1,0 +1,452 @@
+/* BlogStaff.css */
+
+/* Reset và font chung */
+* {
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background: #f5f7fa;
+}
+
+/* Layout chính */
+.blog-staff-container {
+  display: flex;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  max-width: 100%;
+}
+
+.blog-staff-container > div:last-child {
+  flex: 1;
+  padding: 30px;
+  background: #f5f7fa;
+}
+
+/* Tiêu đề trang */
+.title {
+  margin-top: 30px;
+  font-size: 30px;
+  color: #257df4;
+  font-weight: bold;
+  text-align: center;
+}
+
+.blog-staff-container h1 {
+  color: #257df4;
+  text-align: center;
+  margin-bottom: 30px;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+/* Phần danh sách bài viết */
+.blog-list-section {
+  background-color: transparent;
+  padding: 0;
+  box-shadow: none;
+  margin-bottom: 30px;
+}
+
+.blog-list-section h2 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+/* Bảng bài viết */
+.blog-table-container {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.blog-table {
+  width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+/* Header bảng */
+.blog-table th {
+  background-color: #f2f2f2;
+  padding: 12px 15px;
+  text-align: left;
+  font-weight: bold;
+  color: #34495e;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 14px;
+}
+
+/* Ô dữ liệu */
+.blog-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #f1f1f1;
+  vertical-align: middle;
+  font-size: 14px;
+  font-weight: 600;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+/* Cố định chiều rộng các cột */
+.blog-table th:nth-child(1),
+.blog-table td:nth-child(1) {
+  width: 8%;
+}
+
+.blog-table th:nth-child(2),
+.blog-table td:nth-child(2) {
+  width: 12%;
+}
+
+.blog-table th:nth-child(3),
+.blog-table td:nth-child(3) {
+  width: 20%;
+}
+
+.blog-table th:nth-child(4),
+.blog-table td:nth-child(4) {
+  width: 10%;
+}
+
+.blog-table th:nth-child(5),
+.blog-table td:nth-child(5) {
+  width: 10%;
+}
+
+.blog-table th:nth-child(6),
+.blog-table td:nth-child(6) {
+  width: 12%;
+}
+
+.blog-table th:nth-child(7),
+.blog-table td:nth-child(7) {
+  width: 12%;
+}
+
+.blog-table th:nth-child(8),
+.blog-table td:nth-child(8) {
+  width: 16%;
+}
+
+
+/* Ảnh thumbnail */
+.blog-image-thumbnail {
+  max-width: 100px;
+  max-height: 60px;
+  border-radius: 4px;
+}
+
+/* Badge trạng thái */
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+}
+
+.status-badge.draft {
+  background-color: #f39c12;
+}
+
+.status-badge.published {
+  background-color: #28a745;
+}
+
+/* Các nút thao tác */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.action-buttons button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-edit {
+  background-color: #257df4;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-edit:hover {
+  background-color: #1a5fd0;
+}
+
+.btn-approve {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-approve:hover {
+  background-color: #218838;
+}
+
+.btn-delete {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-delete:hover {
+  background-color: #c0392b;
+}
+
+.btn-detail {
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-detail:hover {
+  background-color: #e67e22;
+}
+
+.btn-confirm {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-confirm:hover {
+  background-color: #218838;
+}
+
+.status-confirmed {
+  color: #28a745;
+  font-weight: 600;
+  padding: 5px 10px;
+  background-color: #e8f5e9;
+  border-radius: 4px;
+}
+/* Loading */
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #7f8c8d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .blog-staff-container > div:last-child {
+    padding: 20px 15px;
+  }
+  
+  .blog-table th, 
+  .blog-table td {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-buttons button {
+    padding: 4px 8px;
+    font-size: 12px;
+    margin: 2px 0;
+  }
+}
+
+/* Modal chung */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 20px;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 5px;
+}
+
+.close-btn:hover {
+  color: #333;
+}
+
+/* Form group styling */
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #444;
+}
+
+.detail-value {
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  color: #333;
+}
+
+.detail-content {
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* Image preview */
+.image-preview {
+  margin-top: 10px;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+/* Status tags */
+.status-approved {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.status-pending {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+/* Form actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+}
+
+.btn {
+  padding: 8px 20px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.cancel-btn {
+  background: #f1f1f1;
+  color: #333;
+}
+
+.cancel-btn:hover {
+  background: #e0e0e0;
+}
+
+.btn-green {
+  background: #28a745;
+  color: white;
+}
+
+.btn-green:hover {
+  background: #218838;
+}
+
+/* Animation */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .form-actions {
+    justify-content: center;
+  }
+}
