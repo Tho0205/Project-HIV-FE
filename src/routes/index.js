@@ -12,6 +12,8 @@ import HIVExaminationManagement from "../pages/Staff/HIVExaminationManagement";
 import BlogManagement from "../pages/Profile/BlogManagement";
 import HIVEducation from "../pages/Education/HIVEducation";
 import BlogStaff from "../pages/BlogStaff/BlogStaff";
+import DoctorPatientManagement from "../pages/Profile/DoctorPatientManagement";
+
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -28,4 +30,5 @@ export const routes = [
   { path: "/arv", element: <ARV /> },
   { path: "/arv-protocol", element: <ARVProtocol /> },
   { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
+  { path: "/Doctor-Patient-Management", element: <DoctorPatientManagement /> },
 ];
