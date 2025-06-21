@@ -18,7 +18,10 @@ export default function Pagination({ page, total, pageSize, onPageChange }) {
           {idx + 1}
         </button>
       ))}
-      <button disabled={page === totalPages} onClick={() => onPageChange(page + 1)}>
+      <button
+        disabled={page === totalPages}
+        onClick={() => onPageChange(page + 1)}
+      >
         Next
       </button>
     </div>
