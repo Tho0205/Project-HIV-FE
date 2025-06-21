@@ -4,7 +4,7 @@ import * as signalR from "@microsoft/signalr";
 const userId = localStorage.getItem("user_id");
 
 export const connection = new signalR.HubConnectionBuilder()
-  .withUrl(`https://structural-posts-member-huntington.trycloudflare.com/chathub?userId=${userId}`, {
+  .withUrl(`https://localhost:7243/chathub?userId=${userId}`, {
     withCredentials: true
   })
   .withAutomaticReconnect()
