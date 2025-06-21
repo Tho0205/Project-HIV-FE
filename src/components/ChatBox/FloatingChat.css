@@ -66,3 +66,41 @@
   padding: 5px;
   border-radius: 5px;
 }
+
+
+.chat-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 12px;
+  height: 12px;
+  background-color: red;
+  border-radius: 50%;
+}
+
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.msg-from-me {
+  align-self: flex-end;
+  background-color: #dcf8c6;
+  padding: 8px 12px;
+  border-radius: 15px 15px 0 15px;
+  max-width: 70%;
+  text-align: right;
+}
+
+.msg-from-them {
+  align-self: flex-start;
+  background-color: #f1f0f0;
+  padding: 8px 12px;
+  border-radius: 15px 15px 15px 0;
+  max-width: 70%;
+  text-align: left;
+}

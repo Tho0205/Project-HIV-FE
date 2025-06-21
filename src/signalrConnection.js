@@ -1,13 +1,10 @@
+// signalrConnection.js
 import * as signalR from "@microsoft/signalr";
 
-// Lấy user_id từ localStorage
-const userId = localStorage.getItem("user_id");
-
-export const connection = new signalR.HubConnectionBuilder()
-  .withUrl(`https://localhost:7243/chathub?userId=${userId}`, {
-    withCredentials: true
-  })
-  .withAutomaticReconnect()
-  .build();
-
-export { userId };
+// Xuất ra hàm khởi tạo kết nối (tránh tạo sớm khi userId chưa có)
+export const createConnection = (userId) => {
+  return new signalR.HubConnectionBuilder()
+    .withUrl(`https://localhost:7243/chathub?userId=${userId}`)
+    .withAutomaticReconnect()
+    .build();
+};
