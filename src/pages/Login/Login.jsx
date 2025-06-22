@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import "./Login.css";
 import { loginApi } from "../../services/account";
 import LoadingOverlay from "../../components/Loading/Loading";
 import { toast } from "react-toastify";
+
 const backendBaseUrl = "https://localhost:7243";
 
 const Login = () => {
@@ -13,43 +14,116 @@ const Login = () => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
+    // Handle Google OAuth callback results
+    const success = searchParams.get("success");
+    const error = searchParams.get("error");
+    const message = searchParams.get("message");
+    const userEmail = searchParams.get("email");
+
+    if (success === "true") {
+      toast.success(`Google login successful! Welcome ${userEmail}`, {
+        autoClose: 2000,
+      });
+      checkUserStatusAndRedirect();
+    } else if (error) {
+      let errorMessage = "Google login failed";
+
+      switch (error) {
+        case "auth_failed":
+          errorMessage = "Google authentication failed. Please try again.";
+          break;
+        case "no_email":
+          errorMessage =
+            "Email not provided by Google. Please check your Google account settings.";
+          break;
+        case "server_error":
+          errorMessage = "Server error occurred. Please try again.";
+          break;
+        case "oauth_failed":
+          errorMessage = message
+            ? decodeURIComponent(message)
+            : "OAuth process failed. Please try again.";
+          break;
+        case "google_error":
+          errorMessage = message
+            ? decodeURIComponent(message)
+            : "Google returned an error.";
+          break;
+        default:
+          errorMessage = message
+            ? decodeURIComponent(message)
+            : "An unexpected error occurred";
+      }
+
+      toast.error(errorMessage, { autoClose: 5000 });
+
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // Handle remember me functionality
     const cookies = document.cookie.split("; ");
     const cookieObj = {};
     cookies.forEach((cookie) => {
       const [key, value] = cookie.split("=");
-      cookieObj[key] = value;
+      if (key && value) {
+        cookieObj[key] = value;
+      }
     });
 
     if (cookieObj.username) {
       setEmail(decodeURIComponent(cookieObj.username));
       setRemember(true);
     }
-  }, []);
+  }, [searchParams]);
+
+  const checkUserStatusAndRedirect = async () => {
+    try {
+      const response = await fetch(`${backendBaseUrl}/api/Account/status`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isAuthenticated) {
+          // Store user data in localStorage
+          localStorage.setItem("username", data.name || data.email);
+          localStorage.setItem("role", data.role || "Patient");
+          localStorage.setItem("email", data.email);
+
+          // Redirect based on role
+          if (data.role === "Patient" || data.role === "Doctor") {
+            navigate("/");
+          } else if (data.role === "Staff" || data.role === "Manager") {
+            navigate("/Staff-ManagerPatient");
+          } else {
+            navigate("/");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking user status:", error);
+      navigate("/");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Bật loading
+    setLoading(true);
 
-    const response = await loginApi(email, password);
+    try {
+      const response = await loginApi(email, password);
 
-    // Đảm bảo loading hiển thị ít nhất 1 giây (1000ms)
-    setTimeout(() => {
-      setLoading(false);
-    }, 800);
-
-    if (remember) {
-      document.cookie =
-        "username=" +
-        encodeURIComponent(email) +
-        "; expires=" +
-        new Date(Date.now() + 120000).toUTCString() +
-        "; path=/";
-    } else {
-      document.cookie =
-        "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    }
+      setTimeout(() => {
+        setLoading(false);
+      }, 800);
 
     if (response.ok) {
       toast.success("Login Successfully", { autoClose: 1000 });
@@ -73,20 +147,59 @@ const Login = () => {
         navigate("/Staff-ManagerPatient");
       } else if (data.role === "Admin") {
         navigate("/Admin-AccountManagement");
-      }
-    } else {
-      const error = await response.json().catch(() => null);
-      if (error?.errors?.password_hash) {
-        toast.error(error.errors.password_hash[0]);
-      } else if (error?.title) {
-        toast.error(error.title);
+      // Handle remember me cookie
+      if (remember) {
+        document.cookie =
+          "username=" +
+          encodeURIComponent(email) +
+          "; expires=" +
+          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() +
+          "; path=/; SameSite=Lax";
       } else {
-        toast.error("Login Fail");
+        document.cookie =
+          "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
       }
+
+      if (response.ok) {
+        toast.success("Login Successfully", { autoClose: 1000 });
+        const data = await response.json();
+
+        // Store user data
+        localStorage.setItem("username", data.fullName);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("account_id", data.accountid);
+        localStorage.setItem("user_id", data.userid);
+        localStorage.setItem("item", JSON.stringify(data.list));
+        localStorage.setItem(
+          "user_avatar",
+          data.user_avatar
+            ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
+            : "./assets/image/patient/patient.png"
+        );
+
+        // Navigate based on role
+        if (data.role === "Patient" || data.role === "Doctor") {
+          navigate("/");
+        } else if (data.role === "Staff" || data.role === "Manager") {
+          navigate("/Staff-ManagerPatient");
+        }
+      } else {
+        const error = await response.json().catch(() => null);
+        if (error?.errors?.password_hash) {
+          toast.error(error.errors.password_hash[0]);
+        } else if (error?.title) {
+          toast.error(error.title);
+        } else {
+          toast.error("Login Failed");
+        }
+      }
+    } catch (error) {
+      setLoading(false);
+      toast.error("Network error occurred");
+      console.error("Login error:", error);
     }
   };
 
-  // Thêm hàm chuyển trang Register có loading
   const handleRegister = (e) => {
     e.preventDefault();
     setLoading(true);
@@ -132,7 +245,7 @@ const Login = () => {
         <form id="loginForm" onSubmit={handleSubmit}>
           <h1 style={{ textAlign: "center", fontSize: 46 }}>Welcome back</h1>
           <p className="login-register-link">
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <a href="/register" onClick={handleRegister}>
               Register
             </a>
@@ -162,8 +275,8 @@ const Login = () => {
             maxLength="50"
           />
 
-          <button type="submit" className="login-btn">
-            Log in
+          <button type="submit" className="login-btn" disabled={loading}>
+            {loading ? "Logging in..." : "Log in"}
           </button>
 
           <div className="login-options">
@@ -182,7 +295,12 @@ const Login = () => {
 
           <div className="login-divider">Or log in with</div>
 
-          <button type="button" className="login-social-btn login-google">
+          <button
+            type="button"
+            className="login-social-btn login-google"
+            // onClick={handleGoogleLogin}
+            disabled={loading}
+          >
             <img
               src="https://www.google.com/favicon.ico"
               alt="Google"
@@ -191,13 +309,17 @@ const Login = () => {
             <span>Login With Google</span>
           </button>
 
-          <button type="button" className="login-social-btn login-facebook">
+          <button
+            type="button"
+            className="login-social-btn login-facebook"
+            disabled
+          >
             <img
               src="https://www.facebook.com/favicon.ico"
               alt="Facebook"
               width="30"
             />
-            <span>Login With Facebook</span>
+            <span>Login With Facebook (Coming Soon)</span>
           </button>
         </form>
       </div>

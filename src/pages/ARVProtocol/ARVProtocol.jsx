@@ -166,13 +166,7 @@ export default function ARVProtocol() {
                     <td>{p.protocolId}</td>
                     <td>{p.name}</td>
                     <td>{p.description || "-"}</td>
-                    <td>
-                      <span
-                        className={`status-badge ${p.status.toLowerCase()}`}
-                      >
-                        {p.status}
-                      </span>
-                    </td>
+                    <td>{p.status}</td>
                     <td className="actions-arv-protocol">
                       <button
                         onClick={() => handleUpdate(p)}

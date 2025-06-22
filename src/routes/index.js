@@ -14,6 +14,7 @@ import HIVEducation from "../pages/Education/HIVEducation";
 import BlogStaff from "../pages/BlogStaff/BlogStaff";
 import DoctorPatientManagement from "../pages/Profile/DoctorPatientManagement";
 import AdminManagementAccount from "../pages/Admin/AdminManagementAccount";
+import ChatBox from "../components/ChatBox/FloatingChat";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -32,4 +33,5 @@ export const routes = [
   { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
   { path: "/Doctor-Patient-Management", element: <DoctorPatientManagement /> },
   { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
+  { path: "/chat", element: <ChatBox /> } 
 ];

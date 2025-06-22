@@ -46,10 +46,6 @@ const Appointment = () => {
     });
     loadDoctors();
     loadCurrentUserInfo();
-    if (role === null) {
-      toast.error("Please Login, If You Want To Booking");
-      navigate("/login");
-    }
   }, []);
 
   // Load current user's patient information from localStorage
@@ -240,8 +236,8 @@ const Appointment = () => {
     return new Date(dateString) < new Date();
   };
 
-  const selectedDoctor = doctors.find((d) => d.userId == selectedDoctorId);
-
+  const selectedDoctor = doctors.find((d) => d.userId === selectedDoctorId);
+  console.warn(doctors);
   return (
     <div
       style={{
@@ -443,7 +439,8 @@ const Appointment = () => {
                       <option value="">Chọn Bác sĩ muốn khám</option>
                       {doctors.map((doctor) => (
                         <option key={doctor.userId} value={doctor.userId}>
-                          {doctor.fullName || `Bác sĩ ${doctor.userId}`}
+                          {`Bác sĩ ${doctor.fullName}` ||
+                            `Bác sĩ ${doctor.userId}`}
                         </option>
                       ))}
                     </select>
