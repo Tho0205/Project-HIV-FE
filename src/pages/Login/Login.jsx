@@ -125,6 +125,28 @@ const Login = () => {
         setLoading(false);
       }, 800);
 
+    if (response.ok) {
+      toast.success("Login Successfully", { autoClose: 1000 });
+      const data = await response.json();
+      localStorage.setItem("username", data.fullName);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("account_id", data.accountid);
+      localStorage.setItem("user_id", data.userid);
+      console.log("user_id", data.userid);
+      localStorage.setItem("item", JSON.stringify(data.list));
+      localStorage.setItem(
+        "user_avatar",
+        data.user_avatar
+          ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
+          : "./assets/image/patient/patient.png"
+      );
+
+      if (data.role === "Patient" || data.role === "Doctor") {
+        navigate("/");
+      } else if (data.role === "Staff" || data.role === "Manager") {
+        navigate("/Staff-ManagerPatient");
+      } else if (data.role === "Admin") {
+        navigate("/Admin-AccountManagement");
       // Handle remember me cookie
       if (remember) {
         document.cookie =
