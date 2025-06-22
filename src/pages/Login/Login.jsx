@@ -71,6 +71,8 @@ const Login = () => {
         navigate("/");
       } else if (data.role === "Staff" || data.role === "Manager") {
         navigate("/Staff-ManagerPatient");
+      } else if (data.role === "Admin") {
+        navigate("/Admin-AccountManagement");
       }
     } else {
       const error = await response.json().catch(() => null);
