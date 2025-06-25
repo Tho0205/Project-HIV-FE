@@ -4,6 +4,7 @@ import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARV.css";
 import { tokenManager } from "../../services/account";
+import { toast } from "react-toastify";
 
 export default function ARV() {
   const [arvs, setArvs] = useState([]);
@@ -93,8 +94,8 @@ export default function ARV() {
   useEffect(() => {
     const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
-      alert("You are not authorized to access this page");
-      navigate("/login");
+      toast.error("Bạn không có quyền truy cập");
+      navigate("/");
     }
   }, [navigate]);
 

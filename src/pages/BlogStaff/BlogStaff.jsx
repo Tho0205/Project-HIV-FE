@@ -27,8 +27,15 @@ const BlogStaff = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role !== "Staff") {
+      toast.error("Bạn không có quyền truy cập");
+      navigate("/");
+      return;
+    }
     fetchBlogs();
-  }, []);
+    // eslint-disable-next-line
+  }, [navigate, toast]);
 
   const fetchBlogs = async () => {
     setLoading(true);

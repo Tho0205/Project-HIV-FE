@@ -24,7 +24,7 @@ export default function Profile() {
 
   useEffect(() => {
     if (!accountID) {
-      toast.error("Please Login!!");
+      toast.error("Vui lòng đăng nhập");
       navigate("/login");
       return;
     }
