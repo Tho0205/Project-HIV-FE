@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Profile.css";
-import SidebarProfile from '../../components/SidebarProfile/SidebarProfile';
+import SidebarProfile from "../../components/SidebarProfile/SidebarProfile";
 import { toast } from "react-toastify";
+import { tokenManager, apiRequest } from "../../services/account";
+
 const backendBaseUrl = "https://localhost:7243";
 
 export default function Profile() {
@@ -15,15 +17,18 @@ export default function Profile() {
   const [editForm, setEditForm] = useState({});
   const [avatarFile, setAvatarFile] = useState(null);
 
-  const accountID = localStorage.getItem("account_id");
+  const accountID = tokenManager.getCurrentAccountId();
   const navigate = useNavigate();
+
+  console.log("AccountID:", accountID);
+
   useEffect(() => {
-    if (!accountID) {
-      alert("Please Login!!");
-      navigate("/login");
-      return;
-    }
-    fetch(`${backendBaseUrl}/api/Account/${accountID}`)
+    // if (!accountID) {
+    //   toast.error("Please Login!!");
+    //   navigate("/login");
+    //   return;
+    // }
+    apiRequest(`${backendBaseUrl}/api/Account/${accountID}`)
       .then((res) => res.json())
       .then((data) => {
         setProfile(data);
@@ -112,7 +117,7 @@ export default function Profile() {
       user_avatar: avatarPath,
     };
 
-    fetch(`${backendBaseUrl}/api/Account/Update/${accountID}`, {
+    apiRequest(`${backendBaseUrl}/api/Account/Update/${accountID}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -158,7 +163,7 @@ export default function Profile() {
       toast.error("New passwords do not match!", { autoClose: 1500 });
       return;
     }
-    fetch(`${backendBaseUrl}/api/Account/ChangePass/${accountID}`, {
+    apiRequest(`${backendBaseUrl}/api/Account/ChangePass/${accountID}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ password_hash: newPassword }),

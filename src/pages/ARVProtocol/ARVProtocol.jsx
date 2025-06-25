@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ARVProtocolService from "../../services/ARVProtocolService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARVProtocol.css";
+import { tokenManager } from "../../services/account";
 
 export default function ARVProtocol() {
   // State quản lý dữ liệu
@@ -37,7 +38,8 @@ export default function ARVProtocol() {
     fetchData();
 
     // Kiểm tra quyền truy cập
-    if (localStorage.getItem("role") !== "Staff") {
+    const role = tokenManager.getCurrentUserRole();
+    if (role !== "Staff") {
       alert("You are not authorized");
       navigate("/login");
     }

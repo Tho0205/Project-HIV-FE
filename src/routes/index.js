@@ -33,5 +33,5 @@ export const routes = [
   { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
   { path: "/Doctor-Patient-Management", element: <DoctorPatientManagement /> },
   { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
-  { path: "/chat", element: <ChatBox /> } 
+  { path: "/chat", element: <ChatBox /> },
 ];

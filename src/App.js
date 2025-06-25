@@ -1,8 +1,4 @@
-import {
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar/Navbar";
@@ -20,6 +16,7 @@ function App() {
     "/Staff-Blog",
     "/arv",
     "/arv-protocol",
+    "/HIV-ExaminationManagement",
   ].includes(location.pathname);
 
   return (
