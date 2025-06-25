@@ -23,11 +23,11 @@ export default function Profile() {
   console.log("AccountID:", accountID);
 
   useEffect(() => {
-    // if (!accountID) {
-    //   toast.error("Please Login!!");
-    //   navigate("/login");
-    //   return;
-    // }
+    if (!accountID) {
+      toast.error("Please Login!!");
+      navigate("/login");
+      return;
+    }
     apiRequest(`${backendBaseUrl}/api/Account/${accountID}`)
       .then((res) => res.json())
       .then((data) => {

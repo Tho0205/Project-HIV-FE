@@ -115,20 +115,20 @@ body:has(.admin-layout) nav {
 }
 
 /* ===== FILTERS ===== */
-.filters {
+.filters-admin {
   display: flex;
   gap: 16px;
   margin-bottom: 20px;
   align-items: center;
 }
 
-.search-box {
+.search-box-admin {
   position: relative;
   flex: 1;
   max-width: 400px;
 }
 
-.search-input {
+.search-input-admin {
   width: 100%;
   padding: 10px 40px 10px 12px;
   border: 1px solid #ddd;
@@ -138,11 +138,11 @@ body:has(.admin-layout) nav {
   transition: border-color 0.3s ease;
 }
 
-.search-input:focus {
+.search-input-admin:focus {
   border-color: #d32f2f;
 }
 
-.status-filter {
+.status-filter-admin {
   padding: 10px 12px;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -153,53 +153,53 @@ body:has(.admin-layout) nav {
 }
 
 /* ===== TABLE ===== */
-.accounts-table-container {
+.accounts-table-container-admin {
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
-.accounts-table {
+.accounts-table-admin {
   width: 100%;
   border-collapse: collapse;
   margin: 0;
 }
 
-.accounts-table thead {
+.accounts-table-admin thead {
   background-color: #f8f9fa;
 }
 
-.accounts-table th,
-.accounts-table td {
+.accounts-table-admin th,
+.accounts-table-admin td {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
   font-size: 14px;
 }
 
-.accounts-table th {
+.accounts-table-admin th {
   font-weight: 600;
   color: #333;
   white-space: nowrap;
 }
 
-.accounts-table tbody tr:hover {
+.accounts-table-admin tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-.username {
+.username-admin {
   font-weight: 600;
   color: #d32f2f;
 }
 
-.actions {
+.actions-admin {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.status-select {
+.status-select-admin {
   padding: 6px 8px;
   border: 1px solid #ddd;
   border-radius: 6px;
@@ -210,7 +210,7 @@ body:has(.admin-layout) nav {
 }
 
 /* ===== BADGES ===== */
-.status-badge {
+.status-badge-admin {
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 12px;
@@ -219,32 +219,32 @@ body:has(.admin-layout) nav {
   display: inline-block;
 }
 
-.status-active {
+.status-active-admin {
   background-color: #e8f5e8;
   color: #2e7d32;
 }
 
-.status-inactive {
+.status-inactive-admin {
   background-color: #fff3e0;
   color: #f57c00;
 }
 
-.status-deleted {
+.status-deleted-admin {
   background-color: #ffebee;
   color: #d32f2f;
 }
 
-.status-suspended {
+.status-suspended-admin {
   background-color: #f3e5f5;
   color: #7b1fa2;
 }
 
-.status-default {
+.status-default-admin {
   background-color: #f5f5f5;
   color: #666;
 }
 
-.role-badge {
+.role-badge-admin {
   padding: 4px 12px;
   border-radius: 12px;
   font-size: 12px;
@@ -252,45 +252,45 @@ body:has(.admin-layout) nav {
   display: inline-block;
 }
 
-.role-admin {
+.role-admin-admin {
   background-color: #ffebee;
   color: #d32f2f;
 }
 
-.role-doctor {
+.role-doctor-admin {
   background-color: #e3f2fd;
   color: #1976d2;
 }
 
-.role-patient {
+.role-patient-admin {
   background-color: #e8f5e8;
   color: #388e3c;
 }
 
-.role-staff {
+.role-staff-admin {
   background-color: #fff3e0;
   color: #f57c00;
 }
 
-.role-manager {
+.role-manager-admin {
   background-color: #f3e5f5;
   color: #7b1fa2;
 }
 
-.role-unknown {
+.role-unknown-admin {
   background-color: #f5f5f5;
   color: #666;
 }
 
 /* ===== STATES ===== */
-.no-data {
+.no-data-admin {
   text-align: center;
   padding: 40px 20px;
   color: #666;
   font-style: italic;
 }
 
-.loading {
+.loading-admin {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -300,7 +300,7 @@ body:has(.admin-layout) nav {
 }
 
 /* ===== MODAL STYLES ===== */
-.modal-backdrop {
+.modal-backdrop-admin {
   position: fixed;
   top: 0;
   left: 0;
@@ -315,7 +315,7 @@ body:has(.admin-layout) nav {
   box-sizing: border-box;
 }
 
-.modal-container {
+.modal-container-admin {
   background: white;
   border-radius: 12px;
   width: 100%;
@@ -327,7 +327,7 @@ body:has(.admin-layout) nav {
   animation: modalFadeIn 0.2s ease-out;
 }
 
-.modal-small {
+.modal-small-admin {
   max-width: 400px;
 }
 
@@ -342,7 +342,7 @@ body:has(.admin-layout) nav {
   }
 }
 
-.modal-header {
+.modal-header-admin {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -351,14 +351,14 @@ body:has(.admin-layout) nav {
   background: #f9fafb;
 }
 
-.modal-header h2 {
+.modal-header-admin h2 {
   margin: 0;
   color: #d32f2f;
   font-size: 18px;
   font-weight: 600;
 }
 
-.close-btn {
+.close-btn-admin {
   background: #f3f4f6;
   border: none;
   width: 32px;
@@ -373,31 +373,31 @@ body:has(.admin-layout) nav {
   transition: all 0.2s;
 }
 
-.close-btn:hover {
+.close-btn-admin:hover {
   background: #e5e7eb;
   color: #374151;
 }
 
-.modal-form {
+.modal-form-admin {
   padding: 24px;
 }
 
-.modal-body {
+.modal-body-admin {
   padding: 24px;
   text-align: center;
 }
 
-.modal-body p {
+.modal-body-admin p {
   margin: 12px 0;
   color: #374151;
   line-height: 1.5;
 }
 
-.form-group {
+.form-group-admin {
   margin-bottom: 16px;
 }
 
-.form-group label {
+.form-group-admin label {
   display: block;
   margin-bottom: 6px;
   font-weight: 500;
@@ -405,8 +405,8 @@ body:has(.admin-layout) nav {
   font-size: 14px;
 }
 
-.form-group input,
-.form-group select {
+.form-group-admin input,
+.form-group-admin select {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #d1d5db;
@@ -418,19 +418,19 @@ body:has(.admin-layout) nav {
   box-sizing: border-box;
 }
 
-.form-group input:focus,
-.form-group select:focus {
+.form-group-admin input:focus,
+.form-group-admin select:focus {
   border-color: #d32f2f;
   box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
 }
 
-.form-group input:disabled {
+.form-group-admin input:disabled {
   background-color: #f9fafb;
   cursor: not-allowed;
   opacity: 0.6;
 }
 
-.modal-actions {
+.modal-actions-admin {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
@@ -440,19 +440,19 @@ body:has(.admin-layout) nav {
 }
 
 /* ===== INFO MODAL SPECIFIC STYLES ===== */
-.modal-info-body {
+.modal-info-body-admin {
   padding: 24px;
 }
 
-.info-section {
+.info-section-admin {
   margin-bottom: 24px;
 }
 
-.info-section:last-child {
+.info-section-admin:last-child {
   margin-bottom: 0;
 }
 
-.info-section h3 {
+.info-section-admin h3 {
   font-size: 16px;
   font-weight: 600;
   color: #374151;
@@ -461,7 +461,7 @@ body:has(.admin-layout) nav {
   border-bottom: 1px solid #e5e7eb;
 }
 
-.info-row {
+.info-row-admin {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -469,26 +469,26 @@ body:has(.admin-layout) nav {
   border-bottom: 1px solid #f3f4f6;
 }
 
-.info-row:last-child {
+.info-row-admin:last-child {
   border-bottom: none;
 }
 
-.info-label {
+.info-label-admin {
   font-weight: 500;
   color: #6b7280;
   font-size: 14px;
   min-width: 140px;
 }
 
-.info-value {
+.info-value-admin {
   font-size: 14px;
   color: #374151;
   text-align: right;
   flex: 1;
 }
 
-.info-value .status-badge,
-.info-value .role-badge {
+.info-value-admin .status-badge-admin,
+.info-value-admin .role-badge-admin {
   margin-left: auto;
 }
 
@@ -498,57 +498,57 @@ body:has(.admin-layout) nav {
     flex-direction: column;
   }
 
-  .content-header {
+  .content-header-admin {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
 
-  .filters {
+  .filters-admin {
     flex-direction: column;
     gap: 12px;
   }
 
-  .search-box {
+  .search-box-admin {
     max-width: none;
   }
 
-  .accounts-table-container {
+  .accounts-table-container-admin {
     overflow-x: auto;
   }
 
-  .accounts-table {
+  .accounts-table-admin {
     min-width: 800px;
   }
 
-  .modal-backdrop {
+  .modal-backdrop-admin {
     padding: 10px;
   }
 
-  .modal-container {
+  .modal-container-admin {
     max-height: 95vh;
   }
 
-  .modal-actions {
+  .modal-actions-admin {
     flex-direction: column;
   }
 
-  .btn-cancel,
-  .btn-save {
+  .btn-cancel-admin,
+  .btn-save-admin {
     width: 100%;
   }
 
-  .info-row {
+  .info-row-admin {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
 
-  .info-label {
+  .info-label-admin {
     min-width: auto;
   }
 
-  .info-value {
+  .info-value-admin {
     text-align: left;
     width: 100%;
   }
