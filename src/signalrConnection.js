@@ -5,7 +5,7 @@ const userId = localStorage.getItem("user_id");
 
 export const connection = new signalR.HubConnectionBuilder()
   .withUrl(`https://localhost:7243/chathub?userId=${userId}`, {
-    withCredentials: true
+    withCredentials: true,
   })
   .withAutomaticReconnect()
   .build();

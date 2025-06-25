@@ -3,23 +3,26 @@ import { useNavigate, Link } from "react-router-dom";
 import "./nav-bar.css";
 import { toast } from "react-toastify";
 import LoadingOverlay from "../Loading/Loading";
+import { tokenManager } from "../../services/account";
 
+// const backendBaseUrl = "https://localhost:7243";
 const Header = () => {
   const navigate = useNavigate();
 
-  const [role, setRole] = useState(localStorage.getItem("role"));
+  const [role, setRole] = useState(tokenManager.getCurrentUserRole());
   const [avatarUrl, setAvatarUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const storedAvatar = localStorage.getItem("user_avatar");
+    const storedAvatar =
+      localStorage.getItem("user_avatar") || tokenManager.getUserAvatarUrl();
+    console.log(storedAvatar);
     if (storedAvatar) {
       setAvatarUrl(`${storedAvatar}?t=${new Date().getTime()}`);
     } else {
       setAvatarUrl("/assets/image/patient/patient.png");
     }
   }, []);
-
   const Logout = () => {
     setLoading(true);
     setTimeout(() => {

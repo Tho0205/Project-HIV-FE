@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
-import { loginApi } from "../../services/account";
+import { loginApi, tokenManager } from "../../services/account";
 import LoadingOverlay from "../../components/Loading/Loading";
 import { toast } from "react-toastify";
-
-const backendBaseUrl = "https://localhost:7243";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -14,105 +12,18 @@ const Login = () => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
 
+  // Check if user is already logged in
   useEffect(() => {
-    // Handle Google OAuth callback results
-    const success = searchParams.get("success");
-    const error = searchParams.get("error");
-    const message = searchParams.get("message");
-    const userEmail = searchParams.get("email");
-
-    if (success === "true") {
-      toast.success(`Google login successful! Welcome ${userEmail}`, {
-        autoClose: 2000,
-      });
-      checkUserStatusAndRedirect();
-    } else if (error) {
-      let errorMessage = "Google login failed";
-
-      switch (error) {
-        case "auth_failed":
-          errorMessage = "Google authentication failed. Please try again.";
-          break;
-        case "no_email":
-          errorMessage =
-            "Email not provided by Google. Please check your Google account settings.";
-          break;
-        case "server_error":
-          errorMessage = "Server error occurred. Please try again.";
-          break;
-        case "oauth_failed":
-          errorMessage = message
-            ? decodeURIComponent(message)
-            : "OAuth process failed. Please try again.";
-          break;
-        case "google_error":
-          errorMessage = message
-            ? decodeURIComponent(message)
-            : "Google returned an error.";
-          break;
-        default:
-          errorMessage = message
-            ? decodeURIComponent(message)
-            : "An unexpected error occurred";
+    if (tokenManager.isAuthenticated()) {
+      const role = tokenManager.getCurrentUserRole();
+      if (role === "Patient" || role === "Doctor") {
+        navigate("/");
+      } else if (role === "Staff" || role === "Manager") {
+        navigate("/Staff-ManagerPatient");
       }
-
-      toast.error(errorMessage, { autoClose: 5000 });
-
-      // Clear URL parameters
-      window.history.replaceState({}, document.title, window.location.pathname);
     }
-
-    // Handle remember me functionality
-    const cookies = document.cookie.split("; ");
-    const cookieObj = {};
-    cookies.forEach((cookie) => {
-      const [key, value] = cookie.split("=");
-      if (key && value) {
-        cookieObj[key] = value;
-      }
-    });
-
-    if (cookieObj.username) {
-      setEmail(decodeURIComponent(cookieObj.username));
-      setRemember(true);
-    }
-  }, [searchParams]);
-
-  const checkUserStatusAndRedirect = async () => {
-    try {
-      const response = await fetch(`${backendBaseUrl}/api/Account/status`, {
-        method: "GET",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.isAuthenticated) {
-          // Store user data in localStorage
-          localStorage.setItem("username", data.name || data.email);
-          localStorage.setItem("role", data.role || "Patient");
-          localStorage.setItem("email", data.email);
-
-          // Redirect based on role
-          if (data.role === "Patient" || data.role === "Doctor") {
-            navigate("/");
-          } else if (data.role === "Staff" || data.role === "Manager") {
-            navigate("/Staff-ManagerPatient");
-          } else {
-            navigate("/");
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error checking user status:", error);
-      navigate("/");
-    }
-  };
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -141,24 +52,12 @@ const Login = () => {
       if (response.ok) {
         toast.success("Login Successfully", { autoClose: 1000 });
         const data = await response.json();
+        tokenManager.setToken(data.token, 60);
 
-        // Store user data
-        localStorage.setItem("username", data.fullName);
-        localStorage.setItem("role", data.role);
-        localStorage.setItem("account_id", data.accountid);
-        localStorage.setItem("user_id", data.userid);
-        localStorage.setItem("item", JSON.stringify(data.list));
-        localStorage.setItem(
-          "user_avatar",
-          data.user_avatar
-            ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
-            : "./assets/image/patient/patient.png"
-        );
-
-        // Navigate based on role
-        if (data.role === "Patient" || data.role === "Doctor") {
+        const role = tokenManager.getCurrentUserRole();
+        if (role === "Patient" || role === "Doctor") {
           navigate("/");
-        } else if (data.role === "Staff" || data.role === "Manager") {
+        } else if (role === "Staff" || role === "Manager") {
           navigate("/Staff-ManagerPatient");
         }
       } else {
@@ -186,6 +85,30 @@ const Login = () => {
       setLoading(false);
     }, 400);
   };
+
+  // const handleGoogleLogin = async () => {
+  //   try {
+  //     setLoading(true);
+
+  //     // Clear any existing authentication data
+  //     tokenManager.removeToken();
+  //     document.cookie =
+  //       "HIV.Auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
+  //     document.cookie =
+  //       "Google.Correlation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
+
+  //     const currentUrl = window.location.origin + window.location.pathname;
+  //     const returnUrl = encodeURIComponent(currentUrl);
+  //     const googleAuthUrl = `${backendBaseUrl}/api/Account/login/google?returnUrl=${returnUrl}`;
+
+  //     console.log("Starting Google OAuth...", googleAuthUrl);
+  //     window.location.replace(googleAuthUrl);
+  //   } catch (error) {
+  //     console.error("Error starting Google login:", error);
+  //     toast.error("Failed to start Google login. Please try again.");
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="login-container">

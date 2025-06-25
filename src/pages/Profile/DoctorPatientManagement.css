@@ -178,7 +178,8 @@
   white-space: nowrap;
 }
 
-.loading-cell, .empty-cell {
+.loading-cell,
+.empty-cell {
   text-align: center;
   padding: 40px;
   color: #666;
@@ -222,7 +223,8 @@
   cursor: pointer;
 }
 
-.appointment-item, .exam-item {
+.appointment-item,
+.exam-item {
   background: #f5f5f5;
   padding: 12px;
   border-radius: 8px;
@@ -337,14 +339,14 @@
 }
 
 /* ===== Pagination (Override) ===== */
-.pagination {
+/* .pagination {
   display: flex;
   justify-content: center;
   gap: 5px;
   margin-top: 20px;
-}
+} */
 
-.pagination button {
+/* .pagination button {
   padding: 6px 12px;
   border: 1px solid #ddd;
   background: white;
@@ -367,7 +369,7 @@
 .pagination button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
+} */
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
@@ -375,29 +377,29 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-  
+
   .search-section {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .search-wrapper {
     width: 100%;
   }
-  
+
   .table-card {
     padding: 10px;
   }
-  
+
   .patients-table {
     font-size: 12px;
   }
-  
+
   .patients-table th,
   .patients-table td {
     padding: 8px 5px;
   }
-  
+
   /* Hide some columns on mobile */
   .patients-table th:nth-child(5),
   .patients-table td:nth-child(5),
@@ -411,7 +413,7 @@
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stat-card {
     padding: 12px;
   }

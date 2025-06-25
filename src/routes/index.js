@@ -15,7 +15,6 @@ import BlogStaff from "../pages/BlogStaff/BlogStaff";
 import DoctorPatientManagement from "../pages/Profile/DoctorPatientManagement";
 import ChatBox from "../components/ChatBox/FloatingChat";
 
-
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
@@ -32,5 +31,5 @@ export const routes = [
   { path: "/arv-protocol", element: <ARVProtocol /> },
   { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
   { path: "/Doctor-Patient-Management", element: <DoctorPatientManagement /> },
-  { path: "/chat", element: <ChatBox /> } 
+  { path: "/chat", element: <ChatBox /> },
 ];

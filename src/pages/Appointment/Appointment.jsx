@@ -17,6 +17,7 @@ import {
   getDoctorSchedulesApi,
   createAppointmentApi,
 } from "../../services/Appointment";
+import { tokenManager } from "../../services/account";
 
 const Appointment = () => {
   // State management
@@ -36,7 +37,7 @@ const Appointment = () => {
   // Load doctors and patient info on component mount
   const navigate = useNavigate();
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     console.log("Component mounted");
     console.log("All localStorage data:", {
       username: localStorage.getItem("username"),
@@ -50,7 +51,7 @@ const Appointment = () => {
 
   // Load current user's patient information from localStorage
   const loadCurrentUserInfo = async () => {
-    const userId = localStorage.getItem("user_id");
+    const userId = tokenManager.getCurrentUserId();
     console.log("User ID from localStorage:", userId); // Debug log
 
     if (!userId) {
@@ -66,9 +67,9 @@ const Appointment = () => {
         throw new Error("ID người dùng không hợp lệ");
       }
 
-      console.log("Calling API with userId:", numericUserId); // Debug log
+      // console.log("Calling API with userId:", numericUserId); // Debug log
       const patientData = await getPatientInfoApi(numericUserId);
-      console.log("Patient data received:", patientData); // Debug log
+      // console.log("Patient data received:", patientData); // Debug log
       setCurrentPatientInfo(patientData);
     } catch (error) {
       console.error("Error loading patient info:", error);
@@ -99,9 +100,13 @@ const Appointment = () => {
   // Load doctors
   const loadDoctors = async () => {
     try {
-      setLoading(true);
-      const doctorsData = await getDoctorsApi();
-      setDoctors(doctorsData);
+      const userId = tokenManager.getCurrentUserId();
+      if (userId === null) {
+      } else {
+        setLoading(true);
+        const doctorsData = await getDoctorsApi();
+        setDoctors(doctorsData);
+      }
     } catch (error) {
       console.error("Error:", error);
       showError("Không thể tải danh sách bác sĩ. Vui lòng thử lại sau.");
@@ -143,7 +148,7 @@ const Appointment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const userId = localStorage.getItem("user_id");
+    const userId = tokenManager.getCurrentUserId();
 
     if (!userId || !currentPatientInfo) {
       showError("Vui lòng đăng nhập để đặt lịch khám");
