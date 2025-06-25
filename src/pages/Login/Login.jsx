@@ -19,8 +19,10 @@ const Login = () => {
       const role = tokenManager.getCurrentUserRole();
       if (role === "Patient" || role === "Doctor") {
         navigate("/");
-      } else if (role === "Staff" || role === "Manager") {
+      } else if (role === "Staff") {
         navigate("/Staff-ManagerPatient");
+      } else if (role === "Manager") {
+        navigate("/Admin-AccountManagement");
       }
     }
   }, [navigate]);
@@ -57,8 +59,10 @@ const Login = () => {
         const role = tokenManager.getCurrentUserRole();
         if (role === "Patient" || role === "Doctor") {
           navigate("/");
-        } else if (role === "Staff" || role === "Manager") {
+        } else if (role === "Staff") {
           navigate("/Staff-ManagerPatient");
+        } else if (role === "Manager") {
+          navigate("/Admin-AccountManagement");
         }
       } else {
         const error = await response.json().catch(() => null);

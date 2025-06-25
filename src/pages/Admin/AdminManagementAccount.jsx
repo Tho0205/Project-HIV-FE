@@ -186,7 +186,9 @@ export default function AdminManagementAccount() {
     };
     return (
       <span
-        className={`status-badge ${statusClasses[status] || "status-default"}`}
+        className={`status-badge-admin ${
+          statusClasses[status] || "status-default-admin"
+        }`}
       >
         {statusLabels[status] || status}
       </span>
@@ -195,7 +197,10 @@ export default function AdminManagementAccount() {
 
   // Get role badge
   const getRoleBadge = (role) => {
-    if (!role) return <span className="role-badge role-unknown">Chưa có</span>;
+    if (!role)
+      return (
+        <span className="a role-badge-admin role-unknown-admin">Chưa có</span>
+      );
 
     const roleLabels = {
       Admin: "Quản trị viên",
@@ -206,7 +211,7 @@ export default function AdminManagementAccount() {
     };
 
     return (
-      <span className={`role-badge role-${role.toLowerCase()}`}>
+      <span className={`role-badge-admin role-${role.toLowerCase()}`}>
         {roleLabels[role] || role}
       </span>
     );
@@ -245,7 +250,7 @@ export default function AdminManagementAccount() {
   return (
     <div className="admin-layout">
       <SidebarAdmin active="account" />
-      <div className="main-content">
+      <div className="main-content-admin">
         {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Tài Khoản</h1>
@@ -259,21 +264,21 @@ export default function AdminManagementAccount() {
         </div>
 
         {/* Filters */}
-        <div className="filters">
-          <div className="search-box">
+        <div className="filters-admin">
+          <div className="search-box-admin">
             <input
               type="text"
               placeholder="Tìm kiếm theo tên đăng nhập, email, họ tên..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
+              className="search-input-admin"
             />
           </div>
 
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="status-filter"
+            className="status-filter-admin"
           >
             <option value="ALL">Tất cả trạng thái</option>
             <option value="ACTIVE">Hoạt động</option>
@@ -285,7 +290,7 @@ export default function AdminManagementAccount() {
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
-            className="status-filter"
+            className="status-filter-admin"
           >
             <option value="ALL">Tất cả vai trò</option>
             <option value="Admin">Quản trị viên</option>
@@ -297,8 +302,8 @@ export default function AdminManagementAccount() {
         </div>
 
         {/* Table */}
-        <div className="accounts-table-container">
-          <table className="accounts-table">
+        <div className="accounts-table-container-admin">
+          <table className="accounts-table-admin">
             <thead>
               <tr>
                 <th>ID</th>
@@ -322,13 +327,13 @@ export default function AdminManagementAccount() {
                 filteredAccounts.map((account) => (
                   <tr key={account.accountId}>
                     <td>{account.accountId}</td>
-                    <td className="username">{account.username}</td>
+                    <td className="username-admin">{account.username}</td>
                     <td>{account.email || "Chưa có"}</td>
                     <td>{account.user?.fullName || "Chưa cập nhật"}</td>
                     <td>{getRoleBadge(account.user?.role)}</td>
                     <td>{getStatusBadge(account.status)}</td>
                     <td>{formatDate(account.createdAt)}</td>
-                    <td className="actions">
+                    <td className="actions-admin">
                       <button
                         className="btn-edit-admin"
                         onClick={(e) => handleEdit(account, e)}
@@ -472,7 +477,7 @@ export default function AdminManagementAccount() {
                   </select>
                 </div>
 
-                <div className="modal-actions">
+                <div className="modal-actions-admin">
                   <button
                     type="button"
                     className="btn-cancel-admin"
@@ -491,15 +496,15 @@ export default function AdminManagementAccount() {
 
         {/* Info Modal */}
         {showInfoModal && selectedAccount && (
-          <div className="modal-backdrop" onClick={closeInfoModal}>
+          <div className="modal-backdrop-admin" onClick={closeInfoModal}>
             <div
-              className="modal-container"
+              className="modal-container-admin"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="modal-header">
+              <div className="modal-header-admin">
                 <h2>Thông Tin Tài Khoản</h2>
                 <button
-                  className="close-btn"
+                  className="close-btn-admin"
                   onClick={closeInfoModal}
                   type="button"
                 >
@@ -507,65 +512,67 @@ export default function AdminManagementAccount() {
                 </button>
               </div>
 
-              <div className="modal-info-body">
-                <div className="info-section">
+              <div className="modal-info-body-admin">
+                <div className="info-section-admin">
                   <h3>Thông tin cơ bản</h3>
-                  <div className="info-row">
-                    <span className="info-label">ID:</span>
-                    <span className="info-value">
+                  <div className="info-row-admin">
+                    <span className="info-label-admin">ID:</span>
+                    <span className="info-value-admin">
                       {selectedAccount.accountId}
                     </span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Tên đăng nhập:</span>
-                    <span className="info-value">
+                  <div className="info-row-admin">
+                    <span className="info-label-admin">Tên đăng nhập:</span>
+                    <span className="info-value-admin">
                       {selectedAccount.username}
                     </span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Email:</span>
-                    <span className="info-value">
+                  <div className="info-row-admin">
+                    <span className="info-label-admin">Email:</span>
+                    <span className="info-value-admin">
                       {selectedAccount.email || "Chưa có"}
                     </span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Trạng thái:</span>
-                    <span className="info-value">
+                  <div className="info-row-admin">
+                    <span className="info-label-admin">Trạng thái:</span>
+                    <span className="info-value-admin">
                       {getStatusBadge(selectedAccount.status)}
                     </span>
                   </div>
-                  <div className="info-row">
-                    <span className="info-label">Ngày tạo:</span>
-                    <span className="info-value">
+                  <div className="info-row-admin">
+                    <span className="info-label-admin">Ngày tạo:</span>
+                    <span className="info-value-admin">
                       {formatDate(selectedAccount.createdAt)}
                     </span>
                   </div>
                 </div>
 
                 {selectedAccount.user && (
-                  <div className="info-section">
+                  <div className="info-section-admin">
                     <h3>Thông tin người dùng</h3>
-                    <div className="info-row">
-                      <span className="info-label">Họ và tên:</span>
-                      <span className="info-value">
+                    <div className="info-row-admin">
+                      <span className="info-label-admin">Họ và tên:</span>
+                      <span className="info-value-admin">
                         {selectedAccount.user.fullName || "Chưa cập nhật"}
                       </span>
                     </div>
-                    <div className="info-row">
-                      <span className="info-label">Vai trò:</span>
-                      <span className="info-value">
+                    <div className="info-row-admin">
+                      <span className="info-label-admin">Vai trò:</span>
+                      <span className="info-value-admin">
                         {getRoleBadge(selectedAccount.user.role)}
                       </span>
                     </div>
-                    <div className="info-row">
-                      <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">
+                    <div className="info-row-admin">
+                      <span className="info-label-admin">Số điện thoại:</span>
+                      <span className="info-value-admin">
                         {selectedAccount.user.phone || "Chưa có"}
                       </span>
                     </div>
-                    <div className="info-row">
-                      <span className="info-label">Trạng thái người dùng:</span>
-                      <span className="info-value">
+                    <div className="info-row-admin">
+                      <span className="info-label-admin">
+                        Trạng thái người dùng:
+                      </span>
+                      <span className="info-value-admin">
                         {getStatusBadge(selectedAccount.user.status)}
                       </span>
                     </div>
@@ -573,7 +580,7 @@ export default function AdminManagementAccount() {
                 )}
               </div>
 
-              <div className="modal-actions">
+              <div className="modal-actions-admin">
                 <button
                   type="button"
                   className="btn-cancel-admin"
