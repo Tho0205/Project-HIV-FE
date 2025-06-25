@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import {tokenManager} from "../../services/account";
 import { createConnection } from "../../signalrConnection";
 import axios from "axios";
 import "./FloatingChat.css";
+
 
 const FloatingChat = () => {
   const [showChat, setShowChat] = useState(false);
@@ -14,8 +16,8 @@ const FloatingChat = () => {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const chatEndRef = useRef();
 
-  const username = localStorage.getItem("username");
-  const currentUserId = localStorage.getItem("user_id");
+  const username = tokenManager.getCurrentUserName() ;
+  const currentUserId = tokenManager.getCurrentUserId();
 
   const userMap = useMemo(() => {
     const map = {};
