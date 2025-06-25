@@ -23,6 +23,7 @@ const Header = () => {
       setAvatarUrl("/assets/image/patient/patient.png");
     }
   }, []);
+
   const Logout = () => {
     setLoading(true);
     setTimeout(() => {
