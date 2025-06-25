@@ -1,106 +1,110 @@
-import { useState, useEffect } from "react"
-import SidebarAdmin from "../../components/Sidebar/SidebarAdmin"
-import AdminAccountService from "../../services/AdminAccountService"
-import { toast } from "react-toastify"
-import "./AdminManagementAccount.css"
+import { useState, useEffect } from "react";
+import SidebarAdmin from "../../components/Sidebar/SidebarAdmin";
+import AdminAccountService from "../../services/AdminAccountService";
+import { toast } from "react-toastify";
+import "./AdminManagementAccount.css";
 
 export default function AdminManagementAccount() {
   // States
-  const [accounts, setAccounts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("ALL")
-  const [roleFilter, setRoleFilter] = useState("ALL")
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [showInfoModal, setShowInfoModal] = useState(false)
-  const [selectedAccount, setSelectedAccount] = useState(null)
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [roleFilter, setRoleFilter] = useState("ALL");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState(null);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     status: "ACTIVE",
     role: "Patient",
-  })
+  });
 
   // Load accounts on mount
   useEffect(() => {
-    loadAccounts()
-  }, [])
+    loadAccounts();
+  }, []);
 
   // Load all accounts
   const loadAccounts = async () => {
     try {
-      setLoading(true)
-      const data = await AdminAccountService.getAllAccounts()
-      setAccounts(data)
+      setLoading(true);
+      const data = await AdminAccountService.getAllAccounts();
+      setAccounts(data);
     } catch (error) {
-      toast.error("Không thể tải danh sách tài khoản")
-      console.error("Load accounts error:", error)
+      toast.error("Không thể tải danh sách tài khoản");
+      console.error("Load accounts error:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Filter accounts based on search and filters
   const filteredAccounts = accounts.filter((account) => {
     const matchesSearch =
       account.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (account.email && account.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (account.user?.fullName && account.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()))
+      (account.email &&
+        account.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (account.user?.fullName &&
+        account.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesStatus = statusFilter === "ALL" || account.status === statusFilter
-    const matchesRole = roleFilter === "ALL" || account.user?.role === roleFilter
+    const matchesStatus =
+      statusFilter === "ALL" || account.status === statusFilter;
+    const matchesRole =
+      roleFilter === "ALL" || account.user?.role === roleFilter;
 
-    return matchesSearch && matchesStatus && matchesRole
-  })
+    return matchesSearch && matchesStatus && matchesRole;
+  });
 
   // Open create modal
   const handleCreate = (e) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-    console.log("Opening create modal")
-    setSelectedAccount(null)
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log("Opening create modal");
+    setSelectedAccount(null);
     setFormData({
       username: "",
       email: "",
       password: "",
       status: "ACTIVE",
       role: "Patient",
-    })
-    setShowEditModal(true)
-    document.body.style.overflow = "hidden"
-  }
+    });
+    setShowEditModal(true);
+    document.body.style.overflow = "hidden";
+  };
 
   // Open edit modal
   const handleEdit = (account, e) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-    console.log("Opening edit modal for:", account)
-    setSelectedAccount(account)
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log("Opening edit modal for:", account);
+    setSelectedAccount(account);
     setFormData({
       username: account.username,
       email: account.email || "",
       password: "",
       status: account.status,
       role: account.user?.role || "Patient",
-    })
-    setShowEditModal(true)
-    document.body.style.overflow = "hidden"
-  }
+    });
+    setShowEditModal(true);
+    document.body.style.overflow = "hidden";
+  };
 
   // Open info modal
   const handleInfo = (account, e) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-    console.log("Opening info modal for:", account)
-    setSelectedAccount(account)
-    setShowInfoModal(true)
-    document.body.style.overflow = "hidden"
-  }
+    e?.preventDefault();
+    e?.stopPropagation();
+    console.log("Opening info modal for:", account);
+    setSelectedAccount(account);
+    setShowInfoModal(true);
+    document.body.style.overflow = "hidden";
+  };
 
   // Handle form submit
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       if (selectedAccount) {
@@ -111,15 +115,18 @@ export default function AdminManagementAccount() {
           email: formData.email,
           status: formData.status,
           role: formData.role,
-        }
+        };
 
         // Only include password if it's provided
         if (formData.password) {
-          updateData.password = formData.password
+          updateData.password = formData.password;
         }
 
-        await AdminAccountService.updateAccount(selectedAccount.accountId, updateData)
-        toast.success("Cập nhật tài khoản thành công")
+        await AdminAccountService.updateAccount(
+          selectedAccount.accountId,
+          updateData
+        );
+        toast.success("Cập nhật tài khoản thành công");
       } else {
         // Create new account
         await AdminAccountService.createAccount({
@@ -128,29 +135,29 @@ export default function AdminManagementAccount() {
           password: formData.password,
           status: formData.status,
           role: formData.role,
-        })
-        toast.success("Tạo tài khoản thành công")
+        });
+        toast.success("Tạo tài khoản thành công");
       }
 
-      closeEditModal()
-      loadAccounts()
+      closeEditModal();
+      loadAccounts();
     } catch (error) {
-      toast.error(error.message || "Có lỗi xảy ra")
-      console.error("Submit error:", error)
+      toast.error(error.message || "Có lỗi xảy ra");
+      console.error("Submit error:", error);
     }
-  }
+  };
 
   // Handle status change
   const handleStatusChange = async (accountId, newStatus) => {
     try {
-      await AdminAccountService.updateAccountStatus(accountId, newStatus)
-      toast.success("Cập nhật trạng thái thành công")
-      loadAccounts()
+      await AdminAccountService.updateAccountStatus(accountId, newStatus);
+      toast.success("Cập nhật trạng thái thành công");
+      loadAccounts();
     } catch (error) {
-      toast.error("Không thể cập nhật trạng thái")
-      console.error("Status change error:", error)
+      toast.error("Không thể cập nhật trạng thái");
+      console.error("Status change error:", error);
     }
-  }
+  };
 
   // Format date
   const formatDate = (dateString) => {
@@ -160,8 +167,8 @@ export default function AdminManagementAccount() {
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-    })
-  }
+    });
+  };
 
   // Get status badge
   const getStatusBadge = (status) => {
@@ -170,67 +177,69 @@ export default function AdminManagementAccount() {
       INACTIVE: "status-inactive",
       DELETED: "status-deleted",
       SUSPENDED: "status-suspended",
-    }
+    };
     const statusLabels = {
       ACTIVE: "Hoạt động",
       INACTIVE: "Không hoạt động",
       DELETED: "Đã xóa",
       SUSPENDED: "Tạm khóa",
-    }
+    };
     return (
-      <span className={`status-badge ${statusClasses[status] || "status-default"}`}>
+      <span
+        className={`status-badge ${statusClasses[status] || "status-default"}`}
+      >
         {statusLabels[status] || status}
       </span>
-    )
-  }
+    );
+  };
 
   // Get role badge
   const getRoleBadge = (role) => {
-    if (!role) return <span className="role-badge role-unknown">Chưa có</span>
-    
+    if (!role) return <span className="role-badge role-unknown">Chưa có</span>;
+
     const roleLabels = {
       Admin: "Quản trị viên",
       Doctor: "Bác sĩ",
       Patient: "Bệnh nhân",
       Staff: "Nhân viên",
       Manager: "Quản lý",
-    }
-    
+    };
+
     return (
       <span className={`role-badge role-${role.toLowerCase()}`}>
         {roleLabels[role] || role}
       </span>
-    )
-  }
+    );
+  };
 
   // Close modal handlers
   const closeEditModal = () => {
-    console.log("Closing edit modal")
-    setShowEditModal(false)
-    setSelectedAccount(null)
-    document.body.style.overflow = "unset"
-  }
+    console.log("Closing edit modal");
+    setShowEditModal(false);
+    setSelectedAccount(null);
+    document.body.style.overflow = "unset";
+  };
 
   const closeInfoModal = () => {
-    console.log("Closing info modal")
-    setShowInfoModal(false)
-    setSelectedAccount(null)
-    document.body.style.overflow = "unset"
-  }
+    console.log("Closing info modal");
+    setShowInfoModal(false);
+    setSelectedAccount(null);
+    document.body.style.overflow = "unset";
+  };
 
   // Debug logging
-  console.log("Modal states:", { showEditModal, showInfoModal })
+  console.log("Modal states:", { showEditModal, showInfoModal });
 
   // Loading state
   if (loading) {
     return (
       <div className="admin-layout">
         <SidebarAdmin active="account" />
-        <div className="main-content">
+        <div className="main-content-admin">
           <div className="loading">Đang tải dữ liệu...</div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -238,9 +247,13 @@ export default function AdminManagementAccount() {
       <SidebarAdmin active="account" />
       <div className="main-content">
         {/* Header */}
-        <div className="content-header">
+        <div className="content-header-admin">
           <h1>Quản Lý Tài Khoản</h1>
-          <button className="btn-primary" onClick={handleCreate} type="button">
+          <button
+            className="btn-primary-admin"
+            onClick={handleCreate}
+            type="button"
+          >
             <span>➕</span> Tạo tài khoản mới
           </button>
         </div>
@@ -257,7 +270,11 @@ export default function AdminManagementAccount() {
             />
           </div>
 
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="status-filter">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="status-filter"
+          >
             <option value="ALL">Tất cả trạng thái</option>
             <option value="ACTIVE">Hoạt động</option>
             <option value="INACTIVE">Không hoạt động</option>
@@ -265,7 +282,11 @@ export default function AdminManagementAccount() {
             <option value="DELETED">Đã xóa</option>
           </select>
 
-          <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className="status-filter">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="status-filter"
+          >
             <option value="ALL">Tất cả vai trò</option>
             <option value="Admin">Quản trị viên</option>
             <option value="Doctor">Bác sĩ</option>
@@ -309,7 +330,7 @@ export default function AdminManagementAccount() {
                     <td>{formatDate(account.createdAt)}</td>
                     <td className="actions">
                       <button
-                        className="btn-edit"
+                        className="btn-edit-admin"
                         onClick={(e) => handleEdit(account, e)}
                         title="Chỉnh sửa"
                         type="button"
@@ -319,7 +340,9 @@ export default function AdminManagementAccount() {
 
                       <select
                         value={account.status}
-                        onChange={(e) => handleStatusChange(account.accountId, e.target.value)}
+                        onChange={(e) =>
+                          handleStatusChange(account.accountId, e.target.value)
+                        }
                         className="status-select"
                         title="Thay đổi trạng thái"
                       >
@@ -329,7 +352,7 @@ export default function AdminManagementAccount() {
                       </select>
 
                       <button
-                        className="btn-info"
+                        className="btn-info-admin"
                         onClick={(e) => handleInfo(account, e)}
                         title="Xem thông tin"
                         type="button"
@@ -347,10 +370,21 @@ export default function AdminManagementAccount() {
         {/* Edit/Create Modal */}
         {showEditModal && (
           <div className="modal-backdrop" onClick={closeEditModal}>
-            <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="modal-header">
-                <h2>{selectedAccount ? "Chỉnh Sửa Tài Khoản" : "Tạo Tài Khoản Mới"}</h2>
-                <button className="close-btn" onClick={closeEditModal} type="button">
+                <h2>
+                  {selectedAccount
+                    ? "Chỉnh Sửa Tài Khoản"
+                    : "Tạo Tài Khoản Mới"}
+                </h2>
+                <button
+                  className="close-btn"
+                  onClick={closeEditModal}
+                  type="button"
+                >
                   ✕
                 </button>
               </div>
@@ -361,7 +395,9 @@ export default function AdminManagementAccount() {
                   <input
                     type="text"
                     value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, username: e.target.value })
+                    }
                     required
                     disabled={!!selectedAccount}
                     placeholder="Nhập tên đăng nhập"
@@ -374,21 +410,33 @@ export default function AdminManagementAccount() {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     placeholder="Nhập email"
                     autoComplete="email"
                   />
                 </div>
 
                 <div className="form-group">
-                  <label>{selectedAccount ? "Mật khẩu mới (để trống nếu không đổi)" : "Mật khẩu *"}</label>
+                  <label>
+                    {selectedAccount
+                      ? "Mật khẩu mới (để trống nếu không đổi)"
+                      : "Mật khẩu *"}
+                  </label>
                   <input
                     type="password"
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
                     required={!selectedAccount}
-                    placeholder={selectedAccount ? "Nhập mật khẩu mới" : "Nhập mật khẩu"}
-                    autoComplete={selectedAccount ? "new-password" : "current-password"}
+                    placeholder={
+                      selectedAccount ? "Nhập mật khẩu mới" : "Nhập mật khẩu"
+                    }
+                    autoComplete={
+                      selectedAccount ? "new-password" : "current-password"
+                    }
                   />
                 </div>
 
@@ -396,7 +444,9 @@ export default function AdminManagementAccount() {
                   <label>Vai trò *</label>
                   <select
                     value={formData.role}
-                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, role: e.target.value })
+                    }
                     required
                   >
                     <option value="">Chọn vai trò</option>
@@ -412,7 +462,9 @@ export default function AdminManagementAccount() {
                   <label>Trạng thái</label>
                   <select
                     value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
                   >
                     <option value="ACTIVE">Hoạt động</option>
                     <option value="INACTIVE">Không hoạt động</option>
@@ -421,10 +473,14 @@ export default function AdminManagementAccount() {
                 </div>
 
                 <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={closeEditModal}>
+                  <button
+                    type="button"
+                    className="btn-cancel-admin"
+                    onClick={closeEditModal}
+                  >
                     Hủy
                   </button>
-                  <button type="submit" className="btn-save">
+                  <button type="submit" className="btn-save-admin">
                     {selectedAccount ? "Cập nhật" : "Tạo mới"}
                   </button>
                 </div>
@@ -436,10 +492,17 @@ export default function AdminManagementAccount() {
         {/* Info Modal */}
         {showInfoModal && selectedAccount && (
           <div className="modal-backdrop" onClick={closeInfoModal}>
-            <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="modal-header">
                 <h2>Thông Tin Tài Khoản</h2>
-                <button className="close-btn" onClick={closeInfoModal} type="button">
+                <button
+                  className="close-btn"
+                  onClick={closeInfoModal}
+                  type="button"
+                >
                   ✕
                 </button>
               </div>
@@ -449,23 +512,33 @@ export default function AdminManagementAccount() {
                   <h3>Thông tin cơ bản</h3>
                   <div className="info-row">
                     <span className="info-label">ID:</span>
-                    <span className="info-value">{selectedAccount.accountId}</span>
+                    <span className="info-value">
+                      {selectedAccount.accountId}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Tên đăng nhập:</span>
-                    <span className="info-value">{selectedAccount.username}</span>
+                    <span className="info-value">
+                      {selectedAccount.username}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Email:</span>
-                    <span className="info-value">{selectedAccount.email || "Chưa có"}</span>
+                    <span className="info-value">
+                      {selectedAccount.email || "Chưa có"}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Trạng thái:</span>
-                    <span className="info-value">{getStatusBadge(selectedAccount.status)}</span>
+                    <span className="info-value">
+                      {getStatusBadge(selectedAccount.status)}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">Ngày tạo:</span>
-                    <span className="info-value">{formatDate(selectedAccount.createdAt)}</span>
+                    <span className="info-value">
+                      {formatDate(selectedAccount.createdAt)}
+                    </span>
                   </div>
                 </div>
 
@@ -474,26 +547,38 @@ export default function AdminManagementAccount() {
                     <h3>Thông tin người dùng</h3>
                     <div className="info-row">
                       <span className="info-label">Họ và tên:</span>
-                      <span className="info-value">{selectedAccount.user.fullName || "Chưa cập nhật"}</span>
+                      <span className="info-value">
+                        {selectedAccount.user.fullName || "Chưa cập nhật"}
+                      </span>
                     </div>
                     <div className="info-row">
                       <span className="info-label">Vai trò:</span>
-                      <span className="info-value">{getRoleBadge(selectedAccount.user.role)}</span>
+                      <span className="info-value">
+                        {getRoleBadge(selectedAccount.user.role)}
+                      </span>
                     </div>
                     <div className="info-row">
                       <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">{selectedAccount.user.phone || "Chưa có"}</span>
+                      <span className="info-value">
+                        {selectedAccount.user.phone || "Chưa có"}
+                      </span>
                     </div>
                     <div className="info-row">
                       <span className="info-label">Trạng thái người dùng:</span>
-                      <span className="info-value">{getStatusBadge(selectedAccount.user.status)}</span>
+                      <span className="info-value">
+                        {getStatusBadge(selectedAccount.user.status)}
+                      </span>
                     </div>
                   </div>
                 )}
               </div>
 
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={closeInfoModal}>
+                <button
+                  type="button"
+                  className="btn-cancel-admin"
+                  onClick={closeInfoModal}
+                >
                   Đóng
                 </button>
               </div>
@@ -502,5 +587,5 @@ export default function AdminManagementAccount() {
         )}
       </div>
     </div>
-  )
+  );
 }
