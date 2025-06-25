@@ -1,5 +1,5 @@
+// signalrConnection.js
 import * as signalR from "@microsoft/signalr";
-
 // Lấy user_id từ localStorage
 const userId = localStorage.getItem("user_id");
 

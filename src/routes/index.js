@@ -13,6 +13,7 @@ import BlogManagement from "../pages/Profile/BlogManagement";
 import HIVEducation from "../pages/Education/HIVEducation";
 import BlogStaff from "../pages/BlogStaff/BlogStaff";
 import DoctorPatientManagement from "../pages/Profile/DoctorPatientManagement";
+import AdminManagementAccount from "../pages/Admin/AdminManagementAccount";
 import ChatBox from "../components/ChatBox/FloatingChat";
 
 export const routes = [
@@ -31,5 +32,6 @@ export const routes = [
   { path: "/arv-protocol", element: <ARVProtocol /> },
   { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
   { path: "/Doctor-Patient-Management", element: <DoctorPatientManagement /> },
+  { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
   { path: "/chat", element: <ChatBox /> },
 ];

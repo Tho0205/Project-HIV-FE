@@ -1,40 +1,31 @@
-import React, { useEffect, useRef, useState } from "react";
-import { connection, userId } from "../../signalrConnection";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { createConnection } from "../../signalrConnection";
 import axios from "axios";
-import "./FloatingChat.css"; // Nhớ tạo file CSS
+import "./FloatingChat.css";
 
 const FloatingChat = () => {
   const [showChat, setShowChat] = useState(false);
   const [toUser, setToUser] = useState("");
   const [message, setMessage] = useState("");
-  const [chatLog, setChatLog] = useState([]);
+  const [chatLogs, setChatLogs] = useState({}); // 👈 Mỗi người một log
   const [isConnected, setIsConnected] = useState(false);
   const [availableStaff, setAvailableStaff] = useState([]);
+  const [connection, setConnection] = useState(null);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
   const chatEndRef = useRef();
 
   const username = localStorage.getItem("username");
-  const currentUserId = userId || localStorage.getItem("user_id");
+  const currentUserId = localStorage.getItem("user_id");
 
-  useEffect(() => {
-    connection
-      .start()
-      .then(() => {
-        console.log(" SignalR connected.");
-        setIsConnected(true);
-      })
-      .catch(console.error);
-
-    connection.on("ReceivePrivateMessage", (from, msg) => {
-      setChatLog((prev) => [...prev, `${from}: ${msg}`]);
+  const userMap = useMemo(() => {
+    const map = {};
+    availableStaff.forEach((s) => {
+      map[s.userId] = s.name;
     });
+    return map;
+  }, [availableStaff]);
 
-    connection.onclose(() => setIsConnected(false));
-    connection.onreconnected(() => setIsConnected(true));
-
-    return () => {
-      connection.off("ReceivePrivateMessage");
-    };
-  }, []);
+  const currentChatLog = chatLogs[toUser] || [];
 
   useEffect(() => {
     axios
@@ -44,12 +35,60 @@ const FloatingChat = () => {
   }, []);
 
   useEffect(() => {
+    if (!currentUserId) return;
+
+    const conn = createConnection(currentUserId);
+    setConnection(conn);
+
+    conn
+      .start()
+      .then(() => {
+        console.log("SignalR connected.");
+        setIsConnected(true);
+      })
+      .catch(console.error);
+
+    conn.on("ReceivePrivateMessage", (from, msg, to) => {
+      const isMe = from === currentUserId;
+      const otherUser = isMe ? to : from;
+      const senderName = isMe ? "Bạn" : userMap[from] || from;
+
+      if (!isMe && !showChat) {
+        setHasNewMessage(true);
+      }
+
+      setChatLogs((prev) => {
+        const updated = { ...prev };
+        const entry = { from: senderName, message: msg, isMe };
+        updated[otherUser] = [...(updated[otherUser] || []), entry];
+        return updated;
+      });
+    });
+
+    conn.onclose(() => setIsConnected(false));
+    conn.onreconnected(() => setIsConnected(true));
+
+    return () => {
+      conn.stop();
+    };
+  }, [currentUserId, userMap, showChat]);
+
+  useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatLog]);
+  }, [currentChatLog]);
+
+  useEffect(() => {
+    if (showChat) {
+      setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 0);
+    }
+  }, [showChat]);
 
   const sendMessage = async () => {
-    if (!isConnected) return alert(" Mất kết nối SignalR");
+    if (!isConnected) return alert("Mất kết nối SignalR");
     if (!toUser || !message) return;
+    if (toUser === currentUserId) return alert("Không thể gửi tin cho chính bạn");
     try {
       await connection.invoke("SendPrivateMessage", currentUserId, toUser, message);
       setMessage("");
@@ -60,12 +99,18 @@ const FloatingChat = () => {
 
   return (
     <>
-      {/* Nút tròn góc phải */}
-      <button className="chat-toggle-btn" onClick={() => setShowChat(!showChat)}>
+      <button
+        className="chat-toggle-btn"
+        onClick={() => {
+          const willShow = !showChat;
+          setShowChat(willShow);
+          if (willShow) setHasNewMessage(false);
+        }}
+      >
         💬
+        {hasNewMessage && <span className="chat-badge" />}
       </button>
 
-      {/* Popup khung chat */}
       {showChat && (
         <div className="chat-popup">
           <div className="chat-popup-header">
@@ -74,23 +119,28 @@ const FloatingChat = () => {
           </div>
 
           <div className="chat-popup-body">
-            <p>
-              <b>{username}</b> (ID: {currentUserId})
-            </p>
+            <p><b>{username}</b> (ID: {currentUserId})</p>
 
             <label>Người nhận:</label>
-            <select value={toUser} onChange={(e) => setToUser(e.target.value)}>
+            <select
+              value={toUser}
+              onChange={(e) => setToUser(e.target.value)}
+            >
               <option value="">-- Chọn --</option>
-              {availableStaff.map((s) => (
-                <option key={s.userId} value={s.userId}>
-                  {s.name} ({s.role})
-                </option>
-              ))}
+              {availableStaff
+                .filter((s) => s.userId !== currentUserId)
+                .map((s) => (
+                  <option key={s.userId} value={s.userId}>
+                    {s.name} ({s.role})
+                  </option>
+                ))}
             </select>
 
             <div className="chat-log">
-              {chatLog.map((msg, i) => (
-                <div key={i}>{msg}</div>
+              {currentChatLog.map((msg, i) => (
+                <div key={i} className={msg.isMe ? "msg-from-me" : "msg-from-them"}>
+                  <b>{msg.from}:</b> {msg.message}
+                </div>
               ))}
               <div ref={chatEndRef} />
             </div>
@@ -101,6 +151,8 @@ const FloatingChat = () => {
               placeholder="Nhập tin..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              onClick={() => setHasNewMessage(false)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
             <button onClick={sendMessage}>Gửi</button>
           </div>

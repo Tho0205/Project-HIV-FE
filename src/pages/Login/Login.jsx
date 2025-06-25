@@ -95,8 +95,8 @@ const Login = () => {
   //     document.cookie =
   //       "HIV.Auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
   //     document.cookie =
-  //       "Google.Correlation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
 
+  //       "Google.Correlation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
   //     const currentUrl = window.location.origin + window.location.pathname;
   //     const returnUrl = encodeURIComponent(currentUrl);
   //     const googleAuthUrl = `${backendBaseUrl}/api/Account/login/google?returnUrl=${returnUrl}`;
