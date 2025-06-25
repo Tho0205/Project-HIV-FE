@@ -163,7 +163,7 @@ export default function ManagerPatient() {
   useEffect(() => {
     const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff" && role !== "Manager") {
-      toast.error("You are not authorized to access this page");
+      toast.error("Bạn không có quyền truy cập trang này");
       navigate("/");
     }
   }, []);

@@ -4,6 +4,7 @@ import ARVProtocolService from "../../services/ARVProtocolService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARVProtocol.css";
 import { tokenManager } from "../../services/account";
+import { toast } from "react-toastify";
 
 export default function ARVProtocol() {
   // State quản lý dữ liệu
@@ -40,8 +41,8 @@ export default function ARVProtocol() {
     // Kiểm tra quyền truy cập
     const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
-      alert("You are not authorized");
-      navigate("/login");
+      toast.error("Bạn không có quyền truy cập");
+      navigate("/");
     }
   }, [navigate]);
 
