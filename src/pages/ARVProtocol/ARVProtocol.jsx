@@ -4,6 +4,8 @@ import ARVProtocolService from "../../services/ARVProtocolService";
 import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARVProtocol.css";
+import { tokenManager } from "../../services/account";
+import { toast } from "react-toastify";
 
 export default function ARVProtocol() {
   const [protocols, setProtocols] = useState([]);
@@ -43,13 +45,11 @@ export default function ARVProtocol() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchProtocols();
-    
-    if (localStorage.getItem("role") !== "Staff") {
-      alert("You are not authorized");
-      navigate("/login");
+    // Kiểm tra quyền truy cập
+    const role = tokenManager.getCurrentUserRole();
+    if (role !== "Staff") {
+      toast.error("Bạn không có quyền truy cập");
+      navigate("/");
     }
   }, [navigate]);
 
@@ -267,12 +267,14 @@ export default function ARVProtocol() {
                   <tr key={p.protocolId}>
                     <td>{p.protocolId}</td>
                     <td>{p.name}</td>
-                    <td>{p.description || "-"}</td>
+
                     <td>
                       <span className={`status-badge ${p.status.toLowerCase()}`}>
                         {p.status}
                       </span>
                     </td>
+                    <td>{p.status}</td>
+
                     <td className="actions-arv-protocol">
                       <button
                         onClick={() => handleUpdate(p)}

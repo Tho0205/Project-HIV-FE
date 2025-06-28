@@ -1,14 +1,10 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useLocation,
-} from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar/Navbar";
 import Footer from "./components/Footer/Footer";
 import { routes } from "./routes";
+import FloatingChat from "./components/ChatBox/FloatingChat";
 import "./App.css"; // <-- nếu bạn chưa import CSS
 
 function App() {
@@ -20,6 +16,8 @@ function App() {
     "/Staff-Blog",
     "/arv",
     "/arv-protocol",
+    "/HIV-ExaminationManagement",
+    "/Admin-AccountManagement",
   ].includes(location.pathname);
 
   return (
@@ -34,6 +32,7 @@ function App() {
       </main>
       {!hideHeaderFooter && <Footer />}
       <ToastContainer />
+      <FloatingChat />
     </div>
   );
 }

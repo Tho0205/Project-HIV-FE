@@ -4,6 +4,7 @@ import "./ManagerPatient.css";
 import { toast } from "react-toastify";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
+import { tokenManager } from "../../services/account";
 
 const API_BASE = "https://localhost:7243";
 
@@ -160,9 +161,9 @@ export default function ManagerPatient() {
 
   // Ktra Staff
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff" && role !== "Manager") {
-      toast.error("You are not Staff or Manager");
+      toast.error("Bạn không có quyền truy cập trang này");
       navigate("/");
     }
   }, []);

@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARV.css";
+import { tokenManager } from "../../services/account";
+import { toast } from "react-toastify";
 
 export default function ARV() {
   const [arvs, setArvs] = useState([]);
@@ -90,18 +92,12 @@ export default function ARV() {
 
   // Authorization check
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
-      alert("You are not authorized to access this page");
-      navigate("/login");
+      toast.error("Bạn không có quyền truy cập");
+      navigate("/");
     }
   }, [navigate]);
-
-  function handleLogout() {
-    localStorage.clear();
-    sessionStorage.clear();
-    navigate("/login");
-  }
 
   return (
     <div className="arvpage-wrapper">

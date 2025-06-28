@@ -41,7 +41,9 @@ export default function Sidebar({ active }) {
           </li>
           <li className={active === "result" ? "active" : ""}>
             <span className="icon">🧪</span>
-            <span>Quản Lí Kết Quả Xét Nghiệm</span>
+            <Link to="/HIV-ExaminationManagement">
+              <span>Quản Lí Kết Quả Xét Nghiệm</span>
+            </Link>
           </li>
           <li className={active === "arv" ? "active" : ""}>
             <Link to="/arv">
