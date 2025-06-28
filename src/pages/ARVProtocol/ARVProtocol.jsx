@@ -1,159 +1,151 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ARVProtocolService from "../../services/ARVProtocolService";
 import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import "./ARVProtocol.css";
 
 export default function ARVProtocol() {
-  // State quản lý dữ liệu
   const [protocols, setProtocols] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // State cho modal tạo mới
+  // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showARVModal, setShowARVModal] = useState(false);
+  
+  // Data states
   const [newProtocol, setNewProtocol] = useState({
     name: "",
     description: "",
     status: "ACTIVE",
-    details: [],
+    details: []
   });
-
-  // State cho modal chỉnh sửa
-  const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState(null);
-
-  // State cho modal xem chi tiết
-  const [showARVModal, setShowARVModal] = useState(false);
   const [arvDetails, setArvDetails] = useState([]);
   const [selectedProtocol, setSelectedProtocol] = useState(null);
-
-  // Danh sách ARV có sẵn
   const [availableARVs, setAvailableARVs] = useState([]);
 
   const navigate = useNavigate();
 
-  // Hàm fetch danh sách protocol
+  // Fetch all protocols
   const fetchProtocols = async () => {
     try {
       setLoading(true);
-      const data = await ARVProtocolService.getProtocols();
-      setProtocols(data || []);
+      const data = await ARVProtocolService.getAllProtocols();
+      setProtocols(data);
     } catch (err) {
-      setError("Failed to load protocols");
+      setError(err.message || "Failed to load protocols");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Load danh sách protocol khi component mount
   useEffect(() => {
     fetchProtocols();
-
-    // Kiểm tra quyền truy cập
+    
     if (localStorage.getItem("role") !== "Staff") {
       alert("You are not authorized");
       navigate("/login");
     }
   }, [navigate]);
 
-  // Hàm xử lý hiển thị chi tiết ARV
+  // View ARV details
   const handleShowARVDetails = async (protocol) => {
     setSelectedProtocol(protocol);
     try {
-      const details = await ARVProtocolService.getARVDetails(protocol.protocolId);
+      setLoading(true);
+      setError("");
+      
+      const details = await ARVProtocolService.getProtocolDetails(protocol.protocolId);
       setArvDetails(details);
       setShowARVModal(true);
     } catch (err) {
-      setError("Failed to load ARV details");
-      console.error(err);
-    }
-  };
-
-  // Hàm tạo mới protocol
-  const handleCreate = () => {
-    setNewProtocol({
-      name: "",
-      description: "",
-      status: "ACTIVE",
-      details: [],
-    });
-    setShowCreateModal(true);
-    setError("");
-    loadARVs();
-  };
-
-  // Hàm cập nhật protocol
-  const handleUpdate = async (protocol) => {
-    try {
-      setLoading(true);
-      const fullProtocol = await ARVProtocolService.getFullProtocol(protocol.protocolId);
-      
-      setEditData({
-        ...fullProtocol,
-        details: fullProtocol.arvDetails || []
-      });
-      
-      setShowEditModal(true);
-      loadARVs();
-    } catch (err) {
-      setError("Failed to load protocol details");
+      setError(err.message || "Failed to load ARV details");
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Hàm xóa protocol
+  // Create new protocol
+  const handleCreate = () => {
+    setNewProtocol({
+      name: "",
+      description: "",
+      status: "ACTIVE",
+      details: []
+    });
+    setShowCreateModal(true);
+    loadARVs();
+  };
+
+  // Edit protocol
+  const handleUpdate = async (protocol) => {
+    try {
+      setLoading(true);
+      setError("");
+      
+      const protocolData = await ARVProtocolService.getProtocolById(protocol.protocolId);
+      
+      if (!protocolData) {
+        throw new Error("Protocol not found");
+      }
+
+      setEditData({
+        ...protocolData,
+        details: protocolData.details || []
+      });
+      
+      setShowEditModal(true);
+      await loadARVs();
+    } catch (err) {
+      setError(err.message || "Failed to load protocol details");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete protocol
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure to delete this protocol?")) {
+    if (window.confirm("Are you sure you want to delete this protocol?")) {
       try {
         await ARVProtocolService.deleteProtocol(id);
         await fetchProtocols();
-        alert("Xóa protocol thành công!");
+        alert("Protocol deleted successfully!");
       } catch (err) {
-        setError("Failed to delete protocol");
+        setError(err.message || "Failed to delete protocol");
         console.error(err);
       }
     }
   };
 
-  // Load danh sách ARV
+  // Load available ARVs
   const loadARVs = async () => {
     try {
       const response = await ARVService.getAllARVs();
       setAvailableARVs(response || []);
     } catch (err) {
       console.error("Failed to load ARVs", err);
-      setError("Không thể tải danh sách ARV");
+      setError("Failed to load ARV list");
     }
   };
 
-  // Hàm tạo mới protocol với details
+  // Create protocol with details
   const handleCreateWithDetails = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError("");
 
-      const response = await ARVProtocolService.createWithDetailsAsync(newProtocol);
-
-      if (response.success) {
-        setShowCreateModal(false);
-        await fetchProtocols();
-        setNewProtocol({
-          name: "",
-          description: "",
-          status: "ACTIVE",
-          details: [],
-        });
-        alert("Tạo protocol thành công!");
-      } else {
-        setError(response.message);
-      }
+      await ARVProtocolService.createProtocolWithDetails(newProtocol);
+      setShowCreateModal(false);
+      await fetchProtocols();
+      alert("Protocol created successfully!");
     } catch (err) {
       setError(err.message || "Failed to create protocol");
       console.error(err);
@@ -162,37 +154,17 @@ export default function ARVProtocol() {
     }
   };
 
-  // Hàm submit form chỉnh sửa
+  // Update protocol
   const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError("");
 
-      // 1. Cập nhật thông tin chung protocol
-      await ARVProtocolService.updateProtocol(editData.protocolId, {
-        name: editData.name,
-        description: editData.description,
-        status: editData.status
-      });
-
-      // 2. Cập nhật từng detail
-      for (const detail of editData.details) {
-        await ARVProtocolService.updateProtocolDetail(
-          editData.protocolId,
-          detail.detailId,
-          {
-            arvId: detail.arvId,
-            dosage: detail.dosage,
-            usageInstruction: detail.usageInstruction,
-            status: detail.status
-          }
-        );
-      }
-
+      await ARVProtocolService.updateProtocol(editData.protocolId, editData);
       setShowEditModal(false);
       await fetchProtocols();
-      alert("Cập nhật protocol thành công!");
+      alert("Protocol updated successfully!");
     } catch (err) {
       setError(err.message || "Failed to update protocol");
       console.error(err);
@@ -201,68 +173,49 @@ export default function ARVProtocol() {
     }
   };
 
-  // Hàm thêm ARV vào form tạo mới
+  // Add ARV to create form
   const handleAddARVDetail = () => {
-    setNewProtocol((prev) => ({
+    setNewProtocol(prev => ({
       ...prev,
       details: [
         ...prev.details,
-        {
-          arvId: "",
-          dosage: "",
-          usageInstruction: "",
-          status: "ACTIVE",
-        },
-      ],
+        { arvId: "", dosage: "", usageInstruction: "", status: "ACTIVE" }
+      ]
     }));
   };
 
-  // Hàm xóa ARV khỏi form tạo mới
+  // Remove ARV from create form
   const handleRemoveARVDetail = (index) => {
-    setNewProtocol((prev) => ({
+    setNewProtocol(prev => ({
       ...prev,
-      details: prev.details.filter((_, i) => i !== index),
+      details: prev.details.filter((_, i) => i !== index)
     }));
   };
 
-  // Hàm cập nhật thông tin ARV detail trong form tạo mới
+  // Update ARV detail in create form
   const handleARVDetailChange = (index, field, value) => {
-    setNewProtocol((prev) => {
+    setNewProtocol(prev => {
       const newDetails = [...prev.details];
       newDetails[index] = { ...newDetails[index], [field]: value };
       return { ...prev, details: newDetails };
     });
   };
 
-  // Hàm thêm ARV vào form chỉnh sửa
+  // Add ARV to edit form
   const handleAddEditARVDetail = () => {
     setEditData(prev => ({
       ...prev,
       details: [
         ...prev.details,
-        {
-          arvId: "",
-          dosage: "",
-          usageInstruction: "",
-          status: "ACTIVE",
-          detailId: 0 // 0 cho detail mới
-        }
+        { arvId: "", dosage: "", usageInstruction: "", status: "ACTIVE" }
       ]
     }));
   };
 
-  // Hàm đăng xuất
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
-  // Lọc protocol theo search term
-  const filteredProtocols = protocols.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.description &&
-        p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  // Filter protocols
+  const filteredProtocols = protocols.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -272,18 +225,18 @@ export default function ARVProtocol() {
         <div className="header">
           <input
             type="text"
-            placeholder="Tìm Kiếm Protocols..."
+            placeholder="Search Protocols..."
             className="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <h1 className="title">Quản Lí ARV Protocol</h1>
+        <h1 className="title">ARV Protocol Management</h1>
 
         <div className="action-bar">
           <button className="btn-add-protocol" onClick={handleCreate}>
-            ➕ Thêm Mới Protocol
+            ➕ Add New Protocol
           </button>
         </div>
 
@@ -294,23 +247,23 @@ export default function ARVProtocol() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Tên</th>
-                <th>Mô Tả</th>
-                <th>Trạng Thái</th>
-                <th>Hành Động</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>Đang Tải...</td>
+                  <td colSpan={5}>Loading...</td>
                 </tr>
               ) : filteredProtocols.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>Không Tìm Thấy Protocols</td>
+                  <td colSpan={5}>No protocols found</td>
                 </tr>
               ) : (
-                filteredProtocols.map((p) => (
+                filteredProtocols.map(p => (
                   <tr key={p.protocolId}>
                     <td>{p.protocolId}</td>
                     <td>{p.name}</td>
@@ -323,25 +276,22 @@ export default function ARVProtocol() {
                     <td className="actions-arv-protocol">
                       <button
                         onClick={() => handleUpdate(p)}
-                        title="Edit"
                         className="btn-edit-arv-protocol"
                       >
-                        ✏️
+                        ✏️ Edit
                       </button>
                       <button
                         onClick={() => handleDelete(p.protocolId)}
-                        title="Delete"
                         disabled={p.status === "DELETED"}
                         className="btn-delete-arv-protocol"
                       >
-                        🗑️
+                        🗑️ Delete
                       </button>
                       <button
                         onClick={() => handleShowARVDetails(p)}
-                        title="View ARV Details"
                         className="btn-detail-arv-protocol"
                       >
-                        👁️
+                        👁️ View
                       </button>
                     </td>
                   </tr>
@@ -351,294 +301,269 @@ export default function ARVProtocol() {
           </table>
         </div>
 
-        {/* Create Modal */}
+        {/* Create Protocol Modal */}
         {showCreateModal && (
-          <div className="modal" style={{ display: "flex" }}>
-            <div className="modal-content" style={{ maxWidth: "800px" }}>
-              <h3 style={{ marginBottom: 20 }}>Thêm Protocol Mới</h3>
-              {error && (
-                <div className="error-message" style={{ marginBottom: 20 }}>
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleCreateWithDetails}>
-                <div className="form-group">
-                  <label>Tên Protocol*</label>
-                  <input
-                    type="text"
-                    value={newProtocol.name}
-                    onChange={(e) =>
-                      setNewProtocol({ ...newProtocol, name: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Mô Tả</label>
-                  <textarea
-                    value={newProtocol.description}
-                    onChange={(e) =>
-                      setNewProtocol({
-                        ...newProtocol,
-                        description: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Trạng Thái</label>
-                  <select
-                    value={newProtocol.status}
-                    onChange={(e) =>
-                      setNewProtocol({ ...newProtocol, status: e.target.value })
-                    }
-                  >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <div className="detail-header">
-                    <label>Danh Sách ARV*</label>
-                    <button
-                      type="button"
-                      className="btn-add-arv"
-                      onClick={handleAddARVDetail}
-                    >
-                      ➕ Thêm ARV
-                    </button>
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <div className="modal-header">
+                <h3>Create New Protocol</h3>
+                <button onClick={() => setShowCreateModal(false)}>&times;</button>
+              </div>
+              <div className="modal-body">
+                {error && <div className="error-message">{error}</div>}
+                
+                <form onSubmit={handleCreateWithDetails}>
+                  <div className="form-group">
+                    <label>Protocol Name*</label>
+                    <input
+                      type="text"
+                      value={newProtocol.name}
+                      onChange={(e) => setNewProtocol({...newProtocol, name: e.target.value})}
+                      required
+                    />
                   </div>
 
-                  {newProtocol.details.map((detail, index) => (
-                    <div key={index} className="arv-detail-item">
-                      <div className="arv-detail-row">
-                        <select
-                          value={detail.arvId}
-                          onChange={(e) =>
-                            handleARVDetailChange(
-                              index,
-                              "arvId",
-                              e.target.value
-                            )
-                          }
-                          required
-                        >
-                          <option value="">Chọn ARV</option>
-                          {availableARVs.map((arv) => (
-                            <option key={arv.arvId} value={arv.arvId}>
-                              {arv.name}
-                            </option>
-                          ))}
-                        </select>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea
+                      value={newProtocol.description}
+                      onChange={(e) => setNewProtocol({...newProtocol, description: e.target.value})}
+                    />
+                  </div>
 
-                        <input
-                          type="text"
-                          placeholder="Liều lượng*"
-                          value={detail.dosage}
-                          onChange={(e) =>
-                            handleARVDetailChange(
-                              index,
-                              "dosage",
-                              e.target.value
-                            )
-                          }
-                          required
-                        />
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      value={newProtocol.status}
+                      onChange={(e) => setNewProtocol({...newProtocol, status: e.target.value})}
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                    </select>
+                  </div>
 
-                        <input
-                          type="text"
-                          placeholder="Hướng dẫn sử dụng"
-                          value={detail.usageInstruction}
-                          onChange={(e) =>
-                            handleARVDetailChange(
-                              index,
-                              "usageInstruction",
-                              e.target.value
-                            )
-                          }
-                        />
-                      </div>
-
-                      <div className="arv-detail-actions">
-                        <button
-                          type="button"
-                          className="btn-remove-arv"
-                          onClick={() => handleRemoveARVDetail(index)}
-                        >
-                          🗑️ Xóa
-                        </button>
-                      </div>
+                  <div className="form-group">
+                    <div className="detail-header">
+                      <label>ARV Medications*</label>
+                      <button
+                        type="button"
+                        className="btn-add-arv"
+                        onClick={handleAddARVDetail}
+                      >
+                        ➕ Add ARV
+                      </button>
                     </div>
-                  ))}
-                </div>
 
-                <div className="modal-actions">
-                  <button
-                    type="submit"
-                    className="btn-green"
-                    disabled={loading}
-                  >
-                    {loading ? "Đang xử lý..." : "Lưu"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-cancel"
-                    onClick={() => setShowCreateModal(false)}
-                    disabled={loading}
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </form>
+                    {newProtocol.details.map((detail, index) => (
+                      <div key={index} className="arv-detail-item">
+                        <div className="arv-detail-row">
+                          <select
+                            value={detail.arvId}
+                            onChange={(e) => handleARVDetailChange(index, "arvId", e.target.value)}
+                            required
+                          >
+                            <option value="">Select ARV</option>
+                            {availableARVs.map(arv => (
+                              <option key={arv.arvId} value={arv.arvId}>
+                                {arv.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <input
+                            type="text"
+                            placeholder="Dosage*"
+                            value={detail.dosage}
+                            onChange={(e) => handleARVDetailChange(index, "dosage", e.target.value)}
+                            required
+                          />
+
+                          <input
+                            type="text"
+                            placeholder="Usage Instructions"
+                            value={detail.usageInstruction}
+                            onChange={(e) => handleARVDetailChange(index, "usageInstruction", e.target.value)}
+                          />
+                        </div>
+
+                        <div className="arv-detail-actions">
+                          <button
+                            type="button"
+                            className="btn-remove-arv"
+                            onClick={() => handleRemoveARVDetail(index)}
+                          >
+                            🗑️ Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="modal-actions">
+                    <button
+                      type="submit"
+                      className="btn-green"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => setShowCreateModal(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Edit Modal */}
+        {/* Edit Protocol Modal */}
         {showEditModal && editData && (
-          <div className="modal" style={{ display: "flex" }}>
-            <div className="modal-content" style={{ maxWidth: "800px" }}>
-              <h3 style={{ marginBottom: 20 }}>Chỉnh sửa Protocol</h3>
-              {error && (
-                <div className="error-message" style={{ marginBottom: 20 }}>
-                  {error}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmitEdit}>
-                <div className="form-group">
-                  <label>Tên Protocol*</label>
-                  <input
-                    type="text"
-                    value={editData.name}
-                    onChange={(e) => setEditData({...editData, name: e.target.value})}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Mô Tả</label>
-                  <textarea
-                    value={editData.description}
-                    onChange={(e) => setEditData({...editData, description: e.target.value})}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Trạng Thái</label>
-                  <select
-                    value={editData.status}
-                    onChange={(e) => setEditData({...editData, status: e.target.value})}
-                  >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <div className="detail-header">
-                    <label>Danh Sách ARV*</label>
-                    <button
-                      type="button"
-                      className="btn-add-arv"
-                      onClick={handleAddEditARVDetail}
-                    >
-                      ➕ Thêm ARV
-                    </button>
+          <div className="modal-overlay">
+            <div className="modal-container">
+              <div className="modal-header">
+                <h3>Edit Protocol</h3>
+                <button onClick={() => setShowEditModal(false)}>&times;</button>
+              </div>
+              <div className="modal-body">
+                {error && <div className="error-message">{error}</div>}
+                
+                <form onSubmit={handleSubmitEdit}>
+                  <div className="form-group">
+                    <label>Protocol Name*</label>
+                    <input
+                      type="text"
+                      value={editData.name}
+                      onChange={(e) => setEditData({...editData, name: e.target.value})}
+                      required
+                    />
                   </div>
 
-                  {editData.details.map((detail, index) => (
-                    <div key={index} className="arv-detail-item">
-                      <div className="arv-detail-row">
-                        <select
-                          value={detail.arvId}
-                          onChange={(e) => {
-                            const newDetails = [...editData.details];
-                            newDetails[index] = {...newDetails[index], arvId: e.target.value};
-                            setEditData({...editData, details: newDetails});
-                          }}
-                          required
-                        >
-                          <option value="">Chọn ARV</option>
-                          {availableARVs.map((arv) => (
-                            <option key={arv.arvId} value={arv.arvId}>
-                              {arv.name}
-                            </option>
-                          ))}
-                        </select>
+                  <div className="form-group">
+                    <label>Description</label>
+                    <textarea
+                      value={editData.description}
+                      onChange={(e) => setEditData({...editData, description: e.target.value})}
+                    />
+                  </div>
 
-                        <input
-                          type="text"
-                          placeholder="Liều lượng*"
-                          value={detail.dosage}
-                          onChange={(e) => {
-                            const newDetails = [...editData.details];
-                            newDetails[index] = {...newDetails[index], dosage: e.target.value};
-                            setEditData({...editData, details: newDetails});
-                          }}
-                          required
-                        />
+                  <div className="form-group">
+                    <label>Status</label>
+                    <select
+                      value={editData.status}
+                      onChange={(e) => setEditData({...editData, status: e.target.value})}
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                    </select>
+                  </div>
 
-                        <input
-                          type="text"
-                          placeholder="Hướng dẫn sử dụng"
-                          value={detail.usageInstruction}
-                          onChange={(e) => {
-                            const newDetails = [...editData.details];
-                            newDetails[index] = {...newDetails[index], usageInstruction: e.target.value};
-                            setEditData({...editData, details: newDetails});
-                          }}
-                        />
-                      </div>
-
-                      <div className="arv-detail-actions">
-                        <button
-                          type="button"
-                          className="btn-remove-arv"
-                          onClick={() => setEditData({
-                            ...editData,
-                            details: editData.details.filter((_, i) => i !== index)
-                          })}
-                        >
-                          🗑️ Xóa
-                        </button>
-                      </div>
+                  <div className="form-group">
+                    <div className="detail-header">
+                      <label>ARV Medications*</label>
+                      <button
+                        type="button"
+                        className="btn-add-arv"
+                        onClick={handleAddEditARVDetail}
+                      >
+                        ➕ Add ARV
+                      </button>
                     </div>
-                  ))}
-                </div>
 
-                <div className="modal-actions">
-                  <button
-                    type="submit"
-                    className="btn-green"
-                    disabled={loading}
-                  >
-                    {loading ? "Đang xử lý..." : "Lưu"}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-cancel"
-                    onClick={() => setShowEditModal(false)}
-                    disabled={loading}
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </form>
+                    {editData.details.map((detail, index) => (
+                      <div key={index} className="arv-detail-item">
+                        <div className="arv-detail-row">
+                          <select
+                            value={detail.arvId}
+                            onChange={(e) => {
+                              const newDetails = [...editData.details];
+                              newDetails[index] = {...newDetails[index], arvId: e.target.value};
+                              setEditData({...editData, details: newDetails});
+                            }}
+                            required
+                          >
+                            <option value="">Select ARV</option>
+                            {availableARVs.map(arv => (
+                              <option key={arv.arvId} value={arv.arvId}>
+                                {arv.name}
+                              </option>
+                            ))}
+                          </select>
+
+                          <input
+                            type="text"
+                            placeholder="Dosage*"
+                            value={detail.dosage}
+                            onChange={(e) => {
+                              const newDetails = [...editData.details];
+                              newDetails[index] = {...newDetails[index], dosage: e.target.value};
+                              setEditData({...editData, details: newDetails});
+                            }}
+                            required
+                          />
+
+                          <input
+                            type="text"
+                            placeholder="Usage Instructions"
+                            value={detail.usageInstruction}
+                            onChange={(e) => {
+                              const newDetails = [...editData.details];
+                              newDetails[index] = {...newDetails[index], usageInstruction: e.target.value};
+                              setEditData({...editData, details: newDetails});
+                            }}
+                          />
+                        </div>
+
+                        <div className="arv-detail-actions">
+                          <button
+                            type="button"
+                            className="btn-remove-arv"
+                            onClick={() => setEditData({
+                              ...editData,
+                              details: editData.details.filter((_, i) => i !== index)
+                            })}
+                          >
+                            🗑️ Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="modal-actions">
+                    <button
+                      type="submit"
+                      className="btn-green"
+                      disabled={loading}
+                    >
+                      {loading ? "Processing..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-cancel"
+                      onClick={() => setShowEditModal(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ARV Details Modal (View Only) */}
+        {/* View ARV Details Modal */}
         {showARVModal && (
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h3>Mô Tả ARV: {selectedProtocol.name}</h3>
+                <h3>ARV Details: {selectedProtocol?.name}</h3>
                 <button onClick={() => setShowARVModal(false)}>&times;</button>
               </div>
               <div className="modal-body">
@@ -647,14 +572,14 @@ export default function ARVProtocol() {
                     <thead>
                       <tr>
                         <th>ARV ID</th>
-                        <th>Tên ARV</th>
-                        <th>Liều Dùng</th>
-                        <th>Hướng Dẫn Sử Dụng</th>
+                        <th>ARV Name</th>
+                        <th>Dosage</th>
+                        <th>Usage Instructions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {arvDetails.map((detail) => (
-                        <tr key={`${detail.arvId}-${detail.detailId}`}>
+                      {arvDetails.map(detail => (
+                        <tr key={detail.detailId}>
                           <td>{detail.arvId}</td>
                           <td>{detail.arvName}</td>
                           <td>{detail.dosage || "-"}</td>
