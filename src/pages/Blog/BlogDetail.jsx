@@ -5,7 +5,8 @@ import { useParams } from "react-router-dom";
 import { getBlogById, getAllBlogs } from "../../services/blogservice";
 import { useNavigate } from "react-router-dom";
 import { getCommentsByBlogId, addComment } from "../../services/commentservice";
-import "./BlogDetail.css";  
+import { tokenManager } from "../../services/account";
+import "./BlogDetail.css";
 
 export default function BlogDetail() {
   const { id } = useParams();
@@ -18,15 +19,14 @@ export default function BlogDetail() {
   const [currentUser, setCurrentUser] = useState(null);
   const [visibleComments, setVisibleComments] = useState(4);
 
-
   useEffect(() => {
-    const accountId = localStorage.getItem("account_id");
-    const username = localStorage.getItem("username");
+    const accountId = tokenManager.getCurrentAccountId();
+    const username = tokenManager.getCurrentUserName();
 
     if (accountId && username) {
       setCurrentUser({
         userId: parseInt(accountId),
-        username: username
+        username: username,
       });
     }
   }, []);
@@ -46,7 +46,7 @@ export default function BlogDetail() {
       content: newComment.trim(),
       userId: currentUser.userId,
     };
-    
+
     try {
       const added = await addComment(commentDto);
       setComments((prev) => [...prev, added]);
@@ -81,14 +81,14 @@ export default function BlogDetail() {
   }
 
   const getImageUrl = (imageUrl) => {
-  if (!imageUrl || imageUrl.trim() === "") {
-    return "/placeholder.svg?height=400&width=600";
-  }
-  if (imageUrl.startsWith("http")) {
-    return imageUrl;
-  }
-  return `https://localhost:7243${imageUrl}`;
-};
+    if (!imageUrl || imageUrl.trim() === "") {
+      return "/placeholder.svg?height=400&width=600";
+    }
+    if (imageUrl.startsWith("http")) {
+      return imageUrl;
+    }
+    return `https://localhost:7243${imageUrl}`;
+  };
 
   const handleShowMore = () => {
     setVisibleCount((prev) => prev + 4);
@@ -125,10 +125,14 @@ export default function BlogDetail() {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
             />
-            <button onClick={handleAddComment} className="btn">Gửi</button>
+            <button onClick={handleAddComment} className="btn">
+              Gửi
+            </button>
           </div>
         ) : (
-          <p>Vui lòng <a href="/login">đăng nhập</a> để bình luận.</p>
+          <p>
+            Vui lòng <a href="/login">đăng nhập</a> để bình luận.
+          </p>
         )}
 
         <div className="comments-list">
@@ -139,7 +143,9 @@ export default function BlogDetail() {
               <div key={i} className="comment-item">
                 <div className="comment-meta">
                   <strong>{c.user}</strong> -{" "}
-                  <small>{new Date(c.createdAt).toLocaleDateString("vi-VN")}</small>
+                  <small>
+                    {new Date(c.createdAt).toLocaleDateString("vi-VN")}
+                  </small>
                 </div>
                 <p>{c.content}</p>
               </div>
@@ -148,15 +154,15 @@ export default function BlogDetail() {
         </div>
         {visibleComments < comments.length && (
           <div className="load-more">
-            <button className="btn" onClick={() => setVisibleComments(prev => prev + 4)}>
+            <button
+              className="btn"
+              onClick={() => setVisibleComments((prev) => prev + 4)}
+            >
               Xem thêm
             </button>
           </div>
         )}
       </section>
-
-
-
 
       {/* Danh sách các bài viết mới nhất */}
       <aside className="related">
@@ -169,10 +175,14 @@ export default function BlogDetail() {
               <div
                 key={a.blogId}
                 className="related-item"
-                onClick={() => window.location.href = `/blog/${a.blogId}`} 
+                onClick={() => (window.location.href = `/blog/${a.blogId}`)}
                 style={{ cursor: "pointer" }}
               >
-              <img className="related-img" src={getImageUrl(a.imageUrl)} alt={a.title} />
+                <img
+                  className="related-img"
+                  src={getImageUrl(a.imageUrl)}
+                  alt={a.title}
+                />
                 <div>
                   <div className="meta">
                     <span>{a.author} |</span>

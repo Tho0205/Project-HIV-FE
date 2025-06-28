@@ -1,34 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  getAllBlogs, 
-  approveBlog, 
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { tokenManager } from "../../services/account";
+import Pagination from "../../components/Pagination/Pagination";
+import {
+  getAllBlogs,
+  approveBlog,
   deleteBlog,
-} from '../../services/blogservice';
+} from "../../services/blogservice";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import { toast } from 'react-toastify';
 import './BlogStaff.css';
+import { toast } from "react-toastify";
+
+
+const PAGE_SIZE = 12;
+
+
 
 const BlogStaff = () => {
+  const [activeTab, setActiveTab] = useState("all");
   const [blogs, setBlogs] = useState([]);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentBlog, setCurrentBlog] = useState(null);
   const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    imageUrl: '',
-    status: 'Draft'
+    title: "",
+    content: "",
+    imageUrl: "",
+    status: "Draft",
   });
   const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imagePreview, setImagePreview] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const role = tokenManager.getCurrentUserRole();
+    if (role !== "Staff") {
+      toast.error("Bạn không có quyền truy cập");
+      navigate("/");
+      return;
+    }
     fetchBlogs();
-  }, []);
+    // eslint-disable-next-line
+  }, [navigate, toast]);
+
+  // Khi đổi tab thì reset lại trang 1
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab]);
+
+  const filteredBlogs = blogs.filter((blog) => {
+    if (activeTab === "all") return true;
+    if (activeTab === "approved") return blog.isApproved;
+    if (activeTab === "pending") return !blog.isApproved;
+    return true;
+  });
+
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const pagedBlogs = filteredBlogs.slice(startIndex, endIndex);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -36,51 +68,52 @@ const BlogStaff = () => {
       const data = await getAllBlogs();
       setBlogs(data);
     } catch (error) {
-      toast.error('Lỗi khi tải danh sách bài viết');
-      console.error('Error:', error);
+      toast.error("Lỗi khi tải danh sách bài viết");
+      console.error("Error:", error);
     } finally {
       setLoading(false);
     }
   };
-
 
   const handleEdit = (blog) => {
     setCurrentBlog(blog);
     setFormData({
       title: blog.title,
       content: blog.content,
-      imageUrl: blog.imageUrl || '',
-      status: blog.status || 'Draft'
+      imageUrl: blog.imageUrl || "",
+      status: blog.status || "Draft",
     });
-    setImagePreview(blog.imageUrl || '');
+    setImagePreview(blog.imageUrl || "");
     setIsEditing(true);
   };
 
-    const handleApprove = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn duyệt bài viết này không?')) {
-        try {
+  const handleApprove = async (id) => {
+    if (window.confirm("Bạn có chắc chắn muốn duyệt bài viết này không?")) {
+      try {
         await approveBlog(id);
-        toast.success('Duyệt bài viết thành công');
+        toast.success("Duyệt bài viết thành công");
         // Cập nhật ngay lập tức mà không cần load lại toàn bộ
-        setBlogs(blogs.map(blog => 
+        setBlogs(
+          blogs.map((blog) =>
             blog.blogId === id ? { ...blog, isApproved: true } : blog
-        ));
-        } catch (error) {
-        toast.error('Lỗi khi duyệt bài viết');
-        console.error('Error:', error);
-        }
+          )
+        );
+      } catch (error) {
+        toast.error("Lỗi khi duyệt bài viết");
+        console.error("Error:", error);
+      }
     }
-    };
+  };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc chắn muốn xóa bài viết này?')) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
       try {
         await deleteBlog(id);
-        toast.success('Xóa bài viết thành công');
+        toast.success("Xóa bài viết thành công");
         fetchBlogs();
       } catch (error) {
-        toast.error('Lỗi khi xóa bài viết');
-        console.error('Error:', error);
+        toast.error("Lỗi khi xóa bài viết");
+        console.error("Error:", error);
       }
     }
   };
@@ -127,34 +160,37 @@ const BlogStaff = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {blogs.map(blog => (
+                  {pagedBlogs.map((blog) => (
                     <tr key={blog.blogId}>
                       <td>{blog.blogId}</td>
-                      <td>{blog.author || 'Chưa xác định'}</td>
+                      <td>{blog.author || "Chưa xác định"}</td>
                       <td>{blog.title}</td>
                       <td>{new Date(blog.createdAt).toLocaleDateString()}</td>
                       <td>
-                        <button 
+                        <button
                           className="btn-detail"
                           onClick={() => handleViewDetails(blog)}
                         >
                           Xem chi tiết
                         </button>
                       </td>
-                        <td>
+                      <td>
                         {!blog.isApproved ? (
-                            <button 
+                          <button
                             className="btn-confirm"
                             onClick={() => handleApprove(blog.blogId)}
-                            >
+                          >
                             Chờ xác nhận
-                            </button>
+                          </button>
                         ) : (
-                            <span className="status-confirmed">Đã duyệt</span>
+                          <span className="status-confirmed">Đã duyệt</span>
                         )}
-                        </td>
+                      </td>
                       <td className="action-buttons">
-                        <button className="btn-delete" onClick={() => handleDelete(blog.blogId)}>
+                        <button
+                          className="btn-delete"
+                          onClick={() => handleDelete(blog.blogId)}
+                        >
                           Xóa
                         </button>
                       </td>
@@ -165,59 +201,65 @@ const BlogStaff = () => {
             </div>
           )}
         </div>
+        {/* Pagination */}
+        {filteredBlogs.length > PAGE_SIZE && (
+          <Pagination
+            page={page}
+            total={filteredBlogs.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        )}
       </div>
 
       {/* Blog Detail Modal */}
-        {/* Blog Detail Modal */}
-        {showModal && selectedBlog && (
+      {/* Blog Detail Modal */}
+      {showModal && selectedBlog && (
         <div className="modal-overlay">
-            <div className="modal-content">
+          <div className="modal-content">
             <div className="modal-header">
-                <h3>CHI TIẾT BÀI VIẾT</h3>
-                <button 
-                className="close-btn" 
-                onClick={() => setShowModal(false)}
-                >
+              <h3>CHI TIẾT BÀI VIẾT</h3>
+              <button className="close-btn" onClick={() => setShowModal(false)}>
                 &times;
-                </button>
+              </button>
             </div>
-            
+
             <div className="blog-detail-container">
-                
-                <div className="form-group">
+              <div className="form-group">
                 <label>Tiêu đề</label>
                 <div className="detail-value">{selectedBlog.title}</div>
-                </div>     
-                
-                <div className="form-group">
+              </div>
+
+              <div className="form-group">
                 <label>Nội dung</label>
-                <div className="detail-content">
-                    {selectedBlog.content}
-                </div>
-                </div>
-                
-                {selectedBlog.imageUrl && (
+                <div className="detail-content">{selectedBlog.content}</div>
+              </div>
+
+              {selectedBlog.imageUrl && (
                 <div className="form-group">
-                    <label>Ảnh bài viết</label>
-                    <div className="image-preview">
-                    <img src={getImageUrl(selectedBlog.imageUrl)} alt="Blog cover" />
-                    </div>
+                  <label>Ảnh bài viết</label>
+                  <div className="image-preview">
+                    <img
+                      src={getImageUrl(selectedBlog.imageUrl)}
+                      alt="Blog cover"
+                    />
+                  </div>
                 </div>
-                )}
+              )}
             </div>
-            
+
             <div className="form-actions">
-                <button 
-                type="button" 
+              <button
+                type="button"
                 className="btn cancel-btn"
                 onClick={() => setShowModal(false)}
-                >
+              >
                 Đóng
-                </button>
+              </button>
             </div>
-            </div>
+          </div>
         </div>
-        )}
+      )}
     </div>
   );
 };

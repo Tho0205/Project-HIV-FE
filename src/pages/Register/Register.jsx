@@ -78,56 +78,40 @@ const RegisterForm = () => {
             alt="Doctors"
             className="register-doctors-img"
           />
-          <div className="register-badge">
-            <div className="badge-icon">🔍</div>
-            <div>
-              <strong>Well qualified doctors</strong>
-              <br />
-              <small>Treat with care</small>
-            </div>
-          </div>
-          <div className="register-appointment-card">
-            <div className="register-icon">📅</div>
-            <div>
-              <strong>Book an appointment</strong>
-              <br />
-              <small>Online appointment</small>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Right Section */}
       <div className="register-right-section">
         <form className="register-form" onSubmit={handleSubmit}>
-          <h1 style={{ textAlign: "center", fontSize: "38px" }}>Register</h1>
+          <h1 style={{ textAlign: "center", fontSize: "38px" }}>Đăng ký</h1>
           <p className="register-subtext">
-            Do you have account ?{" "}
+            Bạn đã có tài khoản ?{" "}
             <a href="/login" onClick={handleGoToLogin}>
-              Log in
+              Đăng nhập ngay
             </a>
           </p>
 
           {/* Form Inputs */}
-          <label>FullName</label>
+          <label>Họ và tên</label>
           <input
             type="text"
             name="fullName"
-            placeholder="Steve Madden"
+            placeholder="Nguyễn Văn A"
             value={formData.fullName}
             onChange={handleChange}
           />
 
-          <label>Username</label>
+          <label>Tên tài khoản</label>
           <input
             type="text"
             name="username"
-            placeholder="steve.madden"
+            placeholder="ANguyen"
             value={formData.username}
             onChange={handleChange}
           />
 
-          <label>Phone Number</label>
+          <label>Số điện thoại</label>
           <input
             type="text"
             name="phone"
@@ -136,16 +120,16 @@ const RegisterForm = () => {
             onChange={handleChange}
           />
 
-          <label>Email address</label>
+          <label>Địa chỉ Email</label>
           <input
             type="email"
             name="email"
-            placeholder="stevemadden@abc.com"
+            placeholder="ANguyenVan@abc.com"
             value={formData.email}
             onChange={handleChange}
           />
 
-          <label>Address</label>
+          <label>Đại chỉ</label>
           <input
             type="text"
             name="address"
@@ -154,7 +138,7 @@ const RegisterForm = () => {
             onChange={handleChange}
           />
 
-          <label>Birth Date</label>
+          <label>Ngày sinh</label>
           <input
             type="date"
             name="birthdate"
@@ -172,7 +156,7 @@ const RegisterForm = () => {
 
           {/* Gender */}
           <div className="register-gender-options">
-            <label>Gender:</label>
+            <label>Giới tính:</label>
             <label>
               <input
                 type="radio"
@@ -206,12 +190,12 @@ const RegisterForm = () => {
           </div>
 
           <button type="submit" className="register-sign-up-btn">
-            Sign Up
+            Đăng ký
           </button>
 
           <button type="button" className="register-social-btn register-google">
             <img src="https://www.google.com/favicon.ico" alt="Google" />
-            <span>Register With Google</span>
+            <span>Đăng ký bằng Google</span>
           </button>
 
           <button
@@ -219,7 +203,7 @@ const RegisterForm = () => {
             className="register-social-btn register-facebook"
           >
             <img src="https://www.facebook.com/favicon.ico" alt="Facebook" />
-            <span>Register With Facebook</span>
+            <span>Đăng ký bằng Facebook</span>
           </button>
         </form>
       </div>

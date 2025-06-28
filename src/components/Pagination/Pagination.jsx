@@ -1,4 +1,5 @@
 import React from "react";
+import "./Pagination.css";
 
 export default function Pagination({ page, total, pageSize, onPageChange }) {
   const totalPages = Math.ceil(total / pageSize);
@@ -18,7 +19,10 @@ export default function Pagination({ page, total, pageSize, onPageChange }) {
           {idx + 1}
         </button>
       ))}
-      <button disabled={page === totalPages} onClick={() => onPageChange(page + 1)}>
+      <button
+        disabled={page === totalPages}
+        onClick={() => onPageChange(page + 1)}
+      >
         Next
       </button>
     </div>

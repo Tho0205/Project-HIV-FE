@@ -47,12 +47,15 @@ export default function Blog() {
             blogs.slice(0, visibleCount).map((blog) => (
               <div
                 key={blog.blogId}
-                className="card"
+                className="card-blog"
                 onClick={() => navigate(`/blog/${blog.blogId}`)}
                 style={{ cursor: "pointer" }}
               >
-
-              <img className="img" src={getImageUrl(blog.imageUrl)} alt={blog.title} />
+                <img
+                  className="img"
+                  src={getImageUrl(blog.imageUrl)}
+                  alt={blog.title}
+                />
 
                 <div className="info">
                   <span className="date">

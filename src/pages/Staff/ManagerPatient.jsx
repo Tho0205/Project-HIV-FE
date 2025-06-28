@@ -4,6 +4,8 @@ import "./ManagerPatient.css";
 import { toast } from "react-toastify";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
+import { tokenManager } from "../../services/account";
+import { apiRequest } from "../../services/account";
 
 const API_BASE = "https://localhost:7243";
 
@@ -46,7 +48,7 @@ export default function ManagerPatient() {
       url += `&sortBy=${sortBy}&order=${order}`;
     }
     try {
-      const res = await fetch(url);
+      const res = await apiRequest(url);
       const result = await res.json();
       setPatients(result.data || []);
       setTotal(result.total || 0);
@@ -95,7 +97,7 @@ export default function ManagerPatient() {
   // Handle edit form submit
   async function handleEditSubmit(e) {
     e.preventDefault();
-    setError("");
+setError("");
     // Không xử lý upload avatar nữa
     // let avatarPath = editData.userAvatar || "";
 
@@ -112,7 +114,7 @@ export default function ManagerPatient() {
     };
 
     try {
-      const res = await fetch(
+      const res = await apiRequest(
         `${API_BASE}/api/Staff/Staff-Update/${editData.accountId}`,
         {
           method: "PUT",
@@ -122,7 +124,7 @@ export default function ManagerPatient() {
       );
       if (res.status === 204) {
         closeModal();
-        toast.success("Edit Successfully", { autoClose: 2000 });
+        toast.success("Cập Nhật Thành Công", { autoClose: 1000 });
         fetchPatients(page, sort);
       } else {
         const result = await res.json();
@@ -136,11 +138,11 @@ export default function ManagerPatient() {
               .join("\n")
           );
         } else {
-          setError(result.title || "Update failed.");
+          setError(result.title || "Cập Nhật Thất Bại");
         }
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError("Có Một Số Lỗi, Vui Lòng Thử Lại!!");
     }
   }
   const navigate = useNavigate();
@@ -160,9 +162,9 @@ export default function ManagerPatient() {
 
   // Ktra Staff
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff" && role !== "Manager") {
-      toast.error("You are not Staff or Manager");
+      toast.error("Bạn không có quyền truy cập trang này", { autoClose: 1000 });
       navigate("/");
     }
   }, []);
@@ -195,7 +197,7 @@ export default function ManagerPatient() {
             <option value="name_asc">Theo Tên: A - Z</option>
             <option value="name_desc">Theo Tên: Z - A</option>
             <option value="created_asc">Theo Ngày Tạo: Increase</option>
-            <option value="created_desc">Theo Ngày Tạo: Decrease</option>
+<option value="created_desc">Theo Ngày Tạo: Decrease</option>
           </select>
         </div>
 
@@ -281,7 +283,7 @@ export default function ManagerPatient() {
               <h4 style={{ marginBottom: 30, color: "red" }}>{error}</h4>
               <form id="modalForm" onSubmit={handleEditSubmit}>
                 <div className="avatar-group">
-                  <label>Ảnh Đại Diện</label>
+<label>Ảnh Đại Diện</label>
                   <img
                     id="previewAvatar"
                     src={previewAvatar || defaultAvatar}
@@ -373,7 +375,7 @@ export default function ManagerPatient() {
                   name="status"
                   value={editData.status}
                   onChange={(e) =>
-                    setEditData({ ...editData, status: e.target.value })
+setEditData({ ...editData, status: e.target.value })
                   }
                 >
                   {statusOptions.map((s) => (

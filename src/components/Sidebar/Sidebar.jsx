@@ -10,14 +10,14 @@ export default function Sidebar({ active }) {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
-    toast.success("Logout Successfully", { autoClose: 1000 });
+    toast.success("Đăng xuấ thành công", { autoClose: 1000 });
   }
   
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
         <div className="logo">Logo HIV</div>
-        <div className="welcome">Welcome Staff</div>
+        <div className="welcome">Chào Mừng Nhân Viên</div>
         <ul className="nav">
           <li className={active === "blog" ? "active" : ""}>
             <Link to="/Staff-Blog">
@@ -68,9 +68,9 @@ export default function Sidebar({ active }) {
         </ul>
       </div>
       <div className="sidebar-bottom">
-        <div className="help">❔ Help</div>
+        <div className="help">❔ Hỗ trợ</div>
         <div className="logout">
-          <button onClick={logout}>🚪 Logout</button>
+          <button onClick={logout}>🚪 Đăng xuất</button>
         </div>
       </div>
     </aside>

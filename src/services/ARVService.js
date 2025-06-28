@@ -1,79 +1,98 @@
-const API_BASE = "https://localhost:7243/api/arv";
 
-export const ARVService = {
-  // Lấy danh sách ARV với phân trang
+import { toast } from "react-toastify";
+import { apiRequest } from "./account";
+
+const API_BASE = "https://localhost:7243/api/arv";
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.message || "Request failed";
+    throw new Error(errorMessage);
+  }
+  return response.json();
+};
+
+const ARVService = {
   getARVs: async (page = 1, pageSize = 8) => {
     try {
-      const response = await fetch(`${API_BASE}?page=${page}&pageSize=${pageSize}`);
-      if (!response.ok) throw new Error("Network response was not ok");
-      return await response.json();
+      const response = await apiRequest(`${API_BASE}?page=${page}&pageSize=${pageSize}`);
+      return await handleResponse(response);
     } catch (error) {
-      console.error("Failed to fetch ARVs:", error);
+      console.error("[getARVs] Error:", error);
       throw error;
     }
   },
 
-  // Lấy chi tiết ARV theo ID
   getARVById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`);
-      if (!response.ok) throw new Error("Network response was not ok");
-      return await response.json();
+      const response = await apiRequest(`${API_BASE}/${id}`);
+      return await handleResponse(response);
     } catch (error) {
-      console.error("Failed to fetch ARV details:", error);
+      console.error("[getARVById] Error:", error);
       throw error;
     }
   },
 
-  // Tạo mới ARV
   createARV: async (arvData) => {
     try {
-      const response = await fetch(API_BASE, {
+      const response = await apiRequest(API_BASE, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(arvData),
       });
-      if (!response.ok) throw new Error("Failed to create ARV");
-      return await response.json();
+      return await handleResponse(response);
     } catch (error) {
-      console.error("Create ARV error:", error);
+      console.error("[createARV] Error:", error);
       throw error;
     }
   },
 
-  // Cập nhật ARV
   updateARV: async (id, arvData) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(arvData),
       });
-      if (!response.ok) throw new Error("Failed to update ARV");
-      return await response.json();
+      return await handleResponse(response);
     } catch (error) {
-      console.error("Update ARV error:", error);
+      console.error("[updateARV] Error:", error);
       throw error;
     }
   },
 
-  // Xóa ARV
   deleteARV: async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "DELETE",
       });
-      if (!response.ok) throw new Error("Failed to delete ARV");
+      await handleResponse(response);
       return true;
     } catch (error) {
-      console.error("Delete ARV error:", error);
+      console.error("[deleteARV] Error:", error);
       throw error;
     }
   },
+
+  getAllARVs: async () => {
+    try {
+      const response = await apiRequest(`${API_BASE}`);
+      const data = await handleResponse(response);
+      console.log("ARV Data received:", data);
+      return data;
+    } catch (error) {
+      console.error("[getAllARVs] Error:", error);
+      throw error;
+    }
+  },
+
+  searchARVs: async (searchTerm) => {
+    try {
+      const response = await apiRequest(`${API_BASE}/search?term=${encodeURIComponent(searchTerm)}`);
+      return await handleResponse(response);
+    } catch (error) {
+      console.error("[searchARVs] Error:", error);
+      throw error;
+    }
+  }
 };
 
 export default ARVService;
