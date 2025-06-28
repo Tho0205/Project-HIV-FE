@@ -351,3 +351,90 @@
   cursor: pointer;
   font-weight: 600;
 }
+/* ARV Detail Item Styles */
+.arv-detail-item {
+  background: #f8f9fa;
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.arv-detail-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.arv-detail-row select,
+.arv-detail-row input {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.arv-detail-actions {
+  text-align: right;
+}
+
+.btn-add-arv {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-remove-arv {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Modal Buttons */
+.btn-green {
+  background: #28a745;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: #6c757d;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .arv-detail-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-arv-protocol {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .btn-edit-arv-protocol,
+  .btn-delete-arv-protocol,
+  .btn-detail-arv-protocol {
+    width: 100%;
+  }
+}
