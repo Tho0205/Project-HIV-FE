@@ -1,57 +1,72 @@
-import axios from "axios";
-
+import { apiRequest } from "./account";
 const API_BASE = "https://localhost:7243/api/blog";
 
 export const getAllBlogs = async () => {
-  const response = await axios.get(`${API_BASE}/list`);
-  return response.data;
+  const response = await apiRequest(`${API_BASE}/list`);
+  if (response.status === 204) {
+    return null;
+  }
+
+  const data = await response.json().catch(() => null); // Tránh lỗi JSON
+  return data;
 };
 
 export const getBlogById = async (id) => {
-  const response = await axios.get(`${API_BASE}/${id}`);
-  return response.data;
+  const response = await apiRequest(`${API_BASE}/${id}`);
+  if (response.status === 204) {
+    return null;
+  }
+
+  const data = await response.json().catch(() => null); // Tránh lỗi JSON
+  return data;
 };
 
 export const createBlog = async (blogData) => {
-  const responce = await axios.post(`${API_BASE}/create`, blogData)
-  return responce.data;
-}
+  const response = await apiRequest(`${API_BASE}/create`, {
+    method: "POST",
+    body: JSON.stringify(blogData),
+  });
+  return await response.json();
+};
+
 export const updateBlog = async (id, blogData) => {
-  const response = await axios.put(`${API_BASE}/update?id=${id}`, blogData);
-  return response.data;
+  const response = await apiRequest(`${API_BASE}/update?id=${id}`, {
+    method: "PUT",
+    body: JSON.stringify(blogData),
+  });
+  return await response.json();
 };
 
 export const approveBlog = async (id) => {
-  const response = await axios.put(`${API_BASE}/approve/${id}`);
-  return response.data;
+  const response = await apiRequest(`${API_BASE}/approve/${id}`, {
+    method: "PUT",
+  });
+  return await response.json();
 };
 
 export const deleteBlog = async (id) => {
-  const response = await axios.delete(`${API_BASE}/delete/${id}`);
-  return response.data;
+  const response = await apiRequest(`${API_BASE}/delete/${id}`, {
+    method: "DELETE",
+  });
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  const data = await response.json().catch(() => null); // Tránh lỗi JSON
+  return data;
 };
+
 export const uploadBlogImage = async (file) => {
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append("file", file);
 
-  try {
-    const response = await axios.post(`${API_BASE}/upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-    });
-    
-    if (!response.data.imageUrl) {
-      throw new Error('Server không trả về đường dẫn ảnh');
-    }
-    
-    return response.data.imageUrl;
-  } catch (error) {
-    console.error('Chi tiết lỗi upload:', {
-      config: error.config,
-      response: error.response?.data
-    });
-    throw error;
-  }
+  const response = await apiRequest(`${API_BASE}/upload`, {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await response.json();
+  if (!data.imageUrl) throw new Error("Server không trả về đường dẫn ảnh");
+  return data.imageUrl;
 };

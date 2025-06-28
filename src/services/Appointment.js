@@ -1,3 +1,4 @@
+// import { apiRequest } from "./account";
 const API_BASE_URL = "https://localhost:7243/api";
 
 // Get patient information by ID

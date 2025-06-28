@@ -4,9 +4,12 @@ import { useNavigate } from "react-router-dom";
 import ARVProtocolService from "../../services/ARVProtocolService";
 import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import Pagination from "../../components/Pagination/Pagination";
 import "./ARVProtocol.css";
 
+const PAGE_SIZE = 10;
 export default function ARVProtocol() {
+
   const [protocols, setProtocols] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,7 +33,6 @@ export default function ARVProtocol() {
   const [availableARVs, setAvailableARVs] = useState([]);
 
   const navigate = useNavigate();
-
   // Fetch all protocols
   const fetchProtocols = async () => {
     try {
@@ -55,6 +57,7 @@ export default function ARVProtocol() {
   }, [navigate]);
 
   // View ARV details
+
   const handleShowARVDetails = async (protocol) => {
     setSelectedProtocol(protocol);
     try {
@@ -113,6 +116,7 @@ export default function ARVProtocol() {
   };
 
   // Delete protocol
+
   const handleDelete = async (id) => {
 
     if (window.confirm("Bạn có chắc chắn muốn xóa protocol này?")) {
@@ -128,6 +132,7 @@ export default function ARVProtocol() {
       }
     }
   };
+
 
   // Load available ARVs
   const loadARVs = async () => {
@@ -223,6 +228,7 @@ export default function ARVProtocol() {
     (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+
   return (
     <div className="wrapper">
       <Sidebar active="arv-protocol" />
@@ -263,7 +269,7 @@ export default function ARVProtocol() {
                 <tr>
                   <td colSpan={5}>Loading...</td>
                 </tr>
-              ) : filteredProtocols.length === 0 ? (
+              ) : pagedProtocols.length === 0 ? (
                 <tr>
                   <td colSpan={5}>No protocols found</td>
                 </tr>
@@ -305,6 +311,70 @@ export default function ARVProtocol() {
             </tbody>
           </table>
         </div>
+
+
+        {/* Pagination */}
+        {filteredProtocols.length > PAGE_SIZE && (
+          <Pagination
+            page={page}
+            total={filteredProtocols.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        )}
+
+        {/* Edit Modal */}
+        {showEditModal && (
+          <div className="modal" style={{ display: "flex" }}>
+            <div className="modal-content">
+              <h3 style={{ marginBottom: 30 }}>
+                {editData.protocolId ? "Cập Nhật Protocol" : "Thêm Protocol"}
+              </h3>
+              <h4 style={{ marginBottom: 30, color: "red" }}>{error}</h4>
+              <form id="modalForm" onSubmit={handleSubmit}>
+                <label>Tên*</label>
+                <input
+                  type="text"
+                  value={editData.name}
+                  onChange={(e) =>
+                    setEditData({ ...editData, name: e.target.value })
+                  }
+                  required
+                />
+
+                <label>Mô Tả</label>
+                <textarea
+                  value={editData.description}
+                  onChange={(e) =>
+                    setEditData({ ...editData, description: e.target.value })
+                  }
+                />
+
+                <label>Trạng Thái</label>
+                <select
+                  value={editData.status}
+                  onChange={(e) =>
+                    setEditData({ ...editData, status: e.target.value })
+                  }
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="DELETED">Deleted</option>
+                </select>
+
+                <div className="modal-actions">
+                  <button type="submit" className="btn-green">
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={() => setShowEditModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
 
         {/* Create Protocol Modal */}
         {showCreateModal && (
@@ -559,6 +629,7 @@ export default function ARVProtocol() {
                   </div>
                 </form>
               </div>
+
             </div>
           </div>
         )}

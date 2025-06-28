@@ -21,9 +21,19 @@ const Login = () => {
         navigate("/");
       } else if (role === "Staff") {
         navigate("/Staff-ManagerPatient");
-      } else if (role === "Manager") {
+      } else if (role === "Admin" || role === "Manager") {
         navigate("/Admin-AccountManagement");
       }
+    }
+    const cookies = document.cookie.split(";");
+    const usernameCookie = cookies.find((c) =>
+      c.trim().startsWith("username=")
+    );
+
+    if (usernameCookie) {
+      const usernameValue = decodeURIComponent(usernameCookie.split("=")[1]);
+      setEmail(usernameValue);
+      setRemember(true); // Tự động tích vào checkbox nếu có cookie
     }
   }, [navigate]);
 
@@ -40,12 +50,12 @@ const Login = () => {
 
       // Handle remember me cookie
       if (remember) {
-        document.cookie =
-          "username=" +
-          encodeURIComponent(email) +
-          "; expires=" +
-          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() +
-          "; path=/; SameSite=Lax";
+        const expires = new Date(
+          Date.now() + 7 * 24 * 60 * 60 * 1000
+        ).toUTCString();
+        document.cookie = `username=${encodeURIComponent(
+          email
+        )}; expires=${expires}; path=/; SameSite=Lax`;
       } else {
         document.cookie =
           "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
@@ -61,7 +71,7 @@ const Login = () => {
           navigate("/");
         } else if (role === "Staff") {
           navigate("/Staff-ManagerPatient");
-        } else if (role === "Manager") {
+        } else if (role === "Admin" || role === "Manager") {
           navigate("/Admin-AccountManagement");
         }
       } else {
