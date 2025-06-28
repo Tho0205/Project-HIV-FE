@@ -6,7 +6,6 @@ import Pagination from "../../components/Pagination/Pagination";
 import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
-import { tokenManager } from "../../services/account";
 
 const PAGE_SIZE = 8;
 
