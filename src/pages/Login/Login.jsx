@@ -138,31 +138,15 @@ const Login = () => {
             alt="Doctors"
             className="login-doctors-img"
           />
-          <div className="login-badge">
-            <div className="badge-icon">🔍</div>
-            <div>
-              <strong>Well qualified doctors</strong>
-              <br />
-              <small>Treat with care</small>
-            </div>
-          </div>
-          <div className="login-appointment-card">
-            <div className="login-icon">📅</div>
-            <div>
-              <strong>Book an appointment</strong>
-              <br />
-              <small>Online appointment</small>
-            </div>
-          </div>
         </div>
       </div>
       <div className="login-right-section">
         <form id="loginForm" onSubmit={handleSubmit}>
-          <h1 style={{ textAlign: "center", fontSize: 46 }}>Welcome back</h1>
+          <h1 style={{ textAlign: "center", fontSize: 46 }}> Chào Mừng</h1>
           <p className="login-register-link">
-            Don't have an account?{" "}
+            Bạn không có tài khoản ?{" "}
             <a href="/register" onClick={handleRegister}>
-              Register
+              Đăng ký ngay
             </a>
           </p>
 
@@ -172,17 +156,17 @@ const Login = () => {
           <input
             type="text"
             id="email"
-            placeholder="Input Username..."
+            placeholder="Nhập tên người dùng..."
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
 
-          <label htmlFor="password">Your password</label>
+          <label htmlFor="password">Mật khẩu</label>
           <input
             type="password"
             id="password"
-            placeholder="Input Password..."
+            placeholder="Nhập mật khẩu..."
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -191,7 +175,7 @@ const Login = () => {
           />
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? "Logging in..." : "Đăng Nhập"}
           </button>
 
           <div className="login-options">
@@ -201,14 +185,14 @@ const Login = () => {
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
               />
-              Remember me
+              Ghi nhớ đăng nhập
             </label>
             <Link to="/forgot-password" className="login-forgot">
-              Forgot password?
+              Quên mật khẩu?
             </Link>
           </div>
 
-          <div className="login-divider">Or log in with</div>
+          <div className="login-divider">Đăng nhập bằng</div>
 
           <button
             type="button"
@@ -221,7 +205,7 @@ const Login = () => {
               alt="Google"
               width="30px"
             />
-            <span>Login With Google</span>
+            <span>Đăng nhập bằng Google</span>
           </button>
 
           <button
@@ -234,7 +218,7 @@ const Login = () => {
               alt="Facebook"
               width="30"
             />
-            <span>Login With Facebook (Coming Soon)</span>
+            <span>Đăng nhập bằng Facebook (Coming Soon)</span>
           </button>
         </form>
       </div>

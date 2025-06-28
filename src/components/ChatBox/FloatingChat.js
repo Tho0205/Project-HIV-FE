@@ -1,21 +1,23 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import {tokenManager} from "../../services/account";
 import { createConnection } from "../../signalrConnection";
 import { tokenManager } from "../../services/account";
 import axios from "axios";
 import "./FloatingChat.css";
 
+
 const FloatingChat = () => {
   const [showChat, setShowChat] = useState(false);
   const [toUser, setToUser] = useState("");
   const [message, setMessage] = useState("");
-  const [chatLogs, setChatLogs] = useState({}); // 👈 Mỗi người một log
+  const [chatLogs, setChatLogs] = useState({}); 
   const [isConnected, setIsConnected] = useState(false);
   const [availableStaff, setAvailableStaff] = useState([]);
   const [connection, setConnection] = useState(null);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const chatEndRef = useRef();
 
-  const username = tokenManager.getCurrentUserName();
+  const username = tokenManager.getCurrentUserName() ;
   const currentUserId = tokenManager.getCurrentUserId();
 
   const userMap = useMemo(() => {
@@ -44,7 +46,7 @@ const FloatingChat = () => {
     conn
       .start()
       .then(() => {
-        console.log("SignalR connected.");
+        console.log("SignalR đã kết nối.");
         setIsConnected(true);
       })
       .catch(console.error);

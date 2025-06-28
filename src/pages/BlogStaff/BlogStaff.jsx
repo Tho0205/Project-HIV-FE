@@ -8,10 +8,13 @@ import {
   deleteBlog,
 } from "../../services/blogservice";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import './BlogStaff.css';
 import { toast } from "react-toastify";
-import "./BlogStaff.css";
+
 
 const PAGE_SIZE = 12;
+
+
 
 const BlogStaff = () => {
   const [activeTab, setActiveTab] = useState("all");

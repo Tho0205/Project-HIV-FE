@@ -65,7 +65,7 @@ export default function AdminManagementAccount() {
       setAccounts(data);
     } catch (error) {
       toast.error("Không thể tải danh sách tài khoản");
-      console.error("Load accounts error:", error);
+      console.error("Lỗi tải thông tin tài khoản:", error);
     } finally {
       setLoading(false);
     }

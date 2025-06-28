@@ -97,7 +97,7 @@ export default function ManagerPatient() {
   // Handle edit form submit
   async function handleEditSubmit(e) {
     e.preventDefault();
-    setError("");
+setError("");
     // Không xử lý upload avatar nữa
     // let avatarPath = editData.userAvatar || "";
 
@@ -197,7 +197,7 @@ export default function ManagerPatient() {
             <option value="name_asc">Theo Tên: A - Z</option>
             <option value="name_desc">Theo Tên: Z - A</option>
             <option value="created_asc">Theo Ngày Tạo: Increase</option>
-            <option value="created_desc">Theo Ngày Tạo: Decrease</option>
+<option value="created_desc">Theo Ngày Tạo: Decrease</option>
           </select>
         </div>
 
@@ -283,7 +283,7 @@ export default function ManagerPatient() {
               <h4 style={{ marginBottom: 30, color: "red" }}>{error}</h4>
               <form id="modalForm" onSubmit={handleEditSubmit}>
                 <div className="avatar-group">
-                  <label>Ảnh Đại Diện</label>
+<label>Ảnh Đại Diện</label>
                   <img
                     id="previewAvatar"
                     src={previewAvatar || defaultAvatar}
@@ -375,7 +375,7 @@ export default function ManagerPatient() {
                   name="status"
                   value={editData.status}
                   onChange={(e) =>
-                    setEditData({ ...editData, status: e.target.value })
+setEditData({ ...editData, status: e.target.value })
                   }
                 >
                   {statusOptions.map((s) => (
