@@ -9,7 +9,7 @@ const FloatingChat = () => {
   const [showChat, setShowChat] = useState(false);
   const [toUser, setToUser] = useState("");
   const [message, setMessage] = useState("");
-  const [chatLogs, setChatLogs] = useState({}); // 👈 Mỗi người một log
+  const [chatLogs, setChatLogs] = useState({}); 
   const [isConnected, setIsConnected] = useState(false);
   const [availableStaff, setAvailableStaff] = useState([]);
   const [connection, setConnection] = useState(null);
@@ -45,7 +45,7 @@ const FloatingChat = () => {
     conn
       .start()
       .then(() => {
-        console.log("SignalR connected.");
+        console.log("SignalR đã kết nối.");
         setIsConnected(true);
       })
       .catch(console.error);
