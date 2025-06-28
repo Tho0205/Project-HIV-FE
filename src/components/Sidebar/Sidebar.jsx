@@ -15,7 +15,7 @@ export default function Sidebar({ active }) {
     <aside className="sidebar">
       <div className="sidebar-top">
         <div className="logo">Logo HIV</div>
-        <div className="welcome">Welcome Staff</div>
+        <div className="welcome">Chào Mừng Nhân Viên</div>
         <ul className="nav">
           <li className={active === "blog" ? "active" : ""}>
             <Link to="/Staff-Blog">
@@ -60,9 +60,9 @@ export default function Sidebar({ active }) {
         </ul>
       </div>
       <div className="sidebar-bottom">
-        <div className="help">❔ Help</div>
+        <div className="help">❔ Trợ Giúp</div>
         <div className="logout">
-          <button onClick={logout}>🚪 Logout</button>
+          <button onClick={logout}>🚪 Đăng Xuất</button>
         </div>
       </div>
     </aside>

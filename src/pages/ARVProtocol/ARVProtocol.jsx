@@ -2,18 +2,19 @@ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ARVProtocolService from "../../services/ARVProtocolService";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import Pagination from "../../components/Pagination/Pagination";
 import "./ARVProtocol.css";
 import { tokenManager } from "../../services/account";
 import { toast } from "react-toastify";
 
+const PAGE_SIZE = 10;
 export default function ARVProtocol() {
-  // State quản lý dữ liệu
+  const [page, setPage] = useState(1);
   const [protocols, setProtocols] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
-  // State quản lý modal
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState(null);
   const [showARVModal, setShowARVModal] = useState(false);
@@ -22,7 +23,6 @@ export default function ARVProtocol() {
 
   const navigate = useNavigate();
 
-  // Load danh sách protocol khi component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,7 +38,6 @@ export default function ARVProtocol() {
 
     fetchData();
 
-    // Kiểm tra quyền truy cập
     const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
       toast.error("Bạn không có quyền truy cập");
@@ -46,7 +45,21 @@ export default function ARVProtocol() {
     }
   }, [navigate]);
 
-  // Hàm xử lý hiển thị chi tiết ARV
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm]);
+
+  const filteredProtocols = protocols.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const pagedProtocols = filteredProtocols.slice(startIndex, endIndex);
+
   const handleShowARVDetails = async (protocol) => {
     setSelectedProtocol(protocol);
     try {
@@ -61,19 +74,16 @@ export default function ARVProtocol() {
     }
   };
 
-  // Hàm tạo mới protocol
-  const handleCreate = async () => {
+  const handleCreate = () => {
     setEditData({ name: "", description: "", status: "ACTIVE" });
     setShowEditModal(true);
   };
 
-  // Hàm cập nhật protocol
-  const handleUpdate = async (protocol) => {
+  const handleUpdate = (protocol) => {
     setEditData(protocol);
     setShowEditModal(true);
   };
 
-  // Hàm xóa protocol
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure to delete this protocol?")) {
       try {
@@ -86,7 +96,6 @@ export default function ARVProtocol() {
     }
   };
 
-  // Hàm submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -104,24 +113,9 @@ export default function ARVProtocol() {
     }
   };
 
-  // Hàm đăng xuất
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
-  // Lọc protocol theo search term
-  const filteredProtocols = protocols.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (p.description &&
-        p.description.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
   return (
     <div className="wrapper">
       <Sidebar active="arv-protocol" />
-      {/* Main Content */}
       <main className="content">
         <div className="header">
           <input
@@ -159,12 +153,12 @@ export default function ARVProtocol() {
                 <tr>
                   <td colSpan={5}>Đang Tải...</td>
                 </tr>
-              ) : filteredProtocols.length === 0 ? (
+              ) : pagedProtocols.length === 0 ? (
                 <tr>
                   <td colSpan={5}>Không Tìm Thấy Protocols</td>
                 </tr>
               ) : (
-                filteredProtocols.map((p) => (
+                pagedProtocols.map((p) => (
                   <tr key={p.protocolId}>
                     <td>{p.protocolId}</td>
                     <td>{p.name}</td>
@@ -200,6 +194,16 @@ export default function ARVProtocol() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {filteredProtocols.length > PAGE_SIZE && (
+          <Pagination
+            page={page}
+            total={filteredProtocols.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        )}
 
         {/* Edit Modal */}
         {showEditModal && (

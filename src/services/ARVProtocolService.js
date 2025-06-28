@@ -1,3 +1,4 @@
+import { toast } from "react-toastify";
 const API_BASE = "https://localhost:7243/api/arvprotocol";
 
 export const ARVProtocolService = {
@@ -38,6 +39,7 @@ export const ARVProtocolService = {
         body: JSON.stringify(protocolData),
       });
       if (!response.ok) throw new Error("Failed to create protocol");
+      toast.success("Tạo Mới ARVProtocol Thành Công", { autoClose: 1000 });
       return await response.json();
     } catch (error) {
       console.error("Create protocol error:", error);
@@ -56,6 +58,12 @@ export const ARVProtocolService = {
         body: JSON.stringify(protocolData),
       });
       if (!response.ok) throw new Error("Failed to update protocol");
+
+      const contentLength = response.headers.get("content-length");
+      if (!contentLength || parseInt(contentLength) === 0) {
+        toast.success("Cập Nhật ARVProtocol Thành Công", { autoClose: 1000 });
+        return null;
+      }
       return await response.json();
     } catch (error) {
       console.error("Update protocol error:", error);

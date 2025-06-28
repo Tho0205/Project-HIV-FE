@@ -1,10 +1,14 @@
+import { toast } from "react-toastify";
+
 const API_BASE = "https://localhost:7243/api/arv";
 
 export const ARVService = {
   // Lấy danh sách ARV với phân trang
   getARVs: async (page = 1, pageSize = 8) => {
     try {
-      const response = await fetch(`${API_BASE}?page=${page}&pageSize=${pageSize}`);
+      const response = await fetch(
+        `${API_BASE}?page=${page}&pageSize=${pageSize}`
+      );
       if (!response.ok) throw new Error("Network response was not ok");
       return await response.json();
     } catch (error) {
@@ -36,6 +40,7 @@ export const ARVService = {
         body: JSON.stringify(arvData),
       });
       if (!response.ok) throw new Error("Failed to create ARV");
+      toast.success("Tạo Mới ARV Thành Công", { autoClose: 1000 });
       return await response.json();
     } catch (error) {
       console.error("Create ARV error:", error);
@@ -53,7 +58,15 @@ export const ARVService = {
         },
         body: JSON.stringify(arvData),
       });
+
       if (!response.ok) throw new Error("Failed to update ARV");
+
+      const contentLength = response.headers.get("content-length");
+      if (!contentLength || parseInt(contentLength) === 0) {
+        toast.success("Cập Nhật ARV Thành Công", { autoClose: 1000 });
+        return null;
+      }
+
       return await response.json();
     } catch (error) {
       console.error("Update ARV error:", error);

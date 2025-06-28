@@ -1,10 +1,17 @@
 import { useState, useEffect } from "react";
 import SidebarAdmin from "../../components/Sidebar/SidebarAdmin";
 import AdminAccountService from "../../services/AdminAccountService";
+import Pagination from "../../components/Pagination/Pagination";
 import { toast } from "react-toastify";
 import "./AdminManagementAccount.css";
 
+const PAGE_SIZE = 10;
 export default function AdminManagementAccount() {
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [protocols, setProtocols] = useState([]);
+  const [filteredAccounts, setFilteredAccounts] = useState([]);
+  const [pagedAccounts, setPagedAccounts] = useState([]);
   // States
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +34,29 @@ export default function AdminManagementAccount() {
     loadAccounts();
   }, []);
 
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, statusFilter, roleFilter]);
+
+  useEffect(() => {
+    const filtered = accounts.filter((acc) => {
+      const matchesSearch =
+        acc.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        acc.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        acc.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "ALL" || acc.status === statusFilter;
+      const matchesRole = roleFilter === "ALL" || acc.user?.role === roleFilter;
+      return matchesSearch && matchesStatus && matchesRole;
+    });
+
+    setFilteredAccounts(filtered);
+    setTotalCount(filtered.length);
+
+    const startIndex = (page - 1) * PAGE_SIZE;
+    const paged = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+    setPagedAccounts(paged);
+  }, [accounts, searchTerm, statusFilter, roleFilter, page]);
   // Load all accounts
   const loadAccounts = async () => {
     try {
@@ -40,23 +70,6 @@ export default function AdminManagementAccount() {
       setLoading(false);
     }
   };
-
-  // Filter accounts based on search and filters
-  const filteredAccounts = accounts.filter((account) => {
-    const matchesSearch =
-      account.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (account.email &&
-        account.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (account.user?.fullName &&
-        account.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    const matchesStatus =
-      statusFilter === "ALL" || account.status === statusFilter;
-    const matchesRole =
-      roleFilter === "ALL" || account.user?.role === roleFilter;
-
-    return matchesSearch && matchesStatus && matchesRole;
-  });
 
   // Open create modal
   const handleCreate = (e) => {
@@ -317,14 +330,14 @@ export default function AdminManagementAccount() {
               </tr>
             </thead>
             <tbody>
-              {filteredAccounts.length === 0 ? (
+              {pagedAccounts.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="no-data">
                     Không tìm thấy tài khoản nào
                   </td>
                 </tr>
               ) : (
-                filteredAccounts.map((account) => (
+                pagedAccounts.map((account) => (
                   <tr key={account.accountId}>
                     <td>{account.accountId}</td>
                     <td className="username-admin">{account.username}</td>
@@ -372,14 +385,23 @@ export default function AdminManagementAccount() {
           </table>
         </div>
 
+        {totalCount > PAGE_SIZE && (
+          <Pagination
+            page={page}
+            total={totalCount}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        )}
+
         {/* Edit/Create Modal */}
         {showEditModal && (
-          <div className="modal-backdrop" onClick={closeEditModal}>
+          <div className="modal-backdrop-admin" onClick={closeEditModal}>
             <div
-              className="modal-container"
+              className="modal-container-admin"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="modal-header">
+              <div className="modal-header-admin">
                 <h2>
                   {selectedAccount
                     ? "Chỉnh Sửa Tài Khoản"

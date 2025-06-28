@@ -1,18 +1,18 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./SidebarAdmin.css";
+import "./Sidebar.css";
 import { toast } from "react-toastify";
 
 export default function SidebarAdmin({ active }) {
   const navigate = useNavigate();
-  
+
   function logout() {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
     toast.success("Đăng xuất thành công", { autoClose: 1000 });
   }
-  
+
   return (
     <aside className="sidebar">
       <div className="sidebar-top">

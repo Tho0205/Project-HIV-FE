@@ -6,7 +6,7 @@ class DoctorPatientService {
     try {
       const response = await fetch(`${API_BASE}${url}`, {
         headers: { "Content-Type": "application/json" },
-        ...options
+        ...options,
       });
 
       if (!response.ok) {
@@ -28,24 +28,31 @@ class DoctorPatientService {
       return { success: true, data };
     } catch (error) {
       // Check if it's a network error
-      if (error.message === 'Failed to fetch') {
+      if (error.message === "Failed to fetch") {
         console.error("Network Error: Cannot connect to API server");
-        return { 
-          success: false, 
-          message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và đảm bảo server đang chạy." 
+        return {
+          success: false,
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và đảm bảo server đang chạy.",
         };
       }
-      
+
       console.error("API Error:", error);
-      return { 
-        success: false, 
-        message: error.message || "Lỗi kết nối server" 
+      return {
+        success: false,
+        message: error.message || "Lỗi kết nối server",
       };
     }
   }
 
   // Get doctor's patients list
-  async getDoctorPatients(doctorId, page = 1, pageSize = 8, sortBy = "full_name", order = "asc") {
+  async getDoctorPatients(
+    doctorId,
+    page = 1,
+    pageSize = 8,
+    sortBy = "full_name",
+    order = "asc"
+  ) {
     return this.apiCall(
       `/api/Doctor/Patients?doctorId=${doctorId}&page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&order=${order}`
     );
@@ -55,7 +62,7 @@ class DoctorPatientService {
   async updatePatientInfo(accountId, patientData) {
     return this.apiCall(`/api/Doctor/UpdatePatient/${accountId}`, {
       method: "PUT",
-      body: JSON.stringify(patientData)
+      body: JSON.stringify(patientData),
     });
   }
 
@@ -66,33 +73,37 @@ class DoctorPatientService {
 
   // Get patient history
   async getPatientHistory(patientId, doctorId) {
-    return this.apiCall(`/api/Doctor/PatientHistory/${patientId}?doctorId=${doctorId}`);
+    return this.apiCall(
+      `/api/Doctor/PatientHistory/${patientId}?doctorId=${doctorId}`
+    );
   }
 
   // Get patient detail
   async getPatientDetail(patientId, doctorId) {
-    return this.apiCall(`/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`);
+    return this.apiCall(
+      `/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`
+    );
   }
 
   // Create or update examination
   async saveExamination(examData) {
     return this.apiCall("/api/HIVExamination/save", {
       method: "POST",
-      body: JSON.stringify(examData)
+      body: JSON.stringify(examData),
     });
   }
 
   // Delete examination (soft delete - set status to INACTIVE)
   async deleteExamination(examId) {
     return this.apiCall(`/api/HIVExamination/${examId}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
   }
 
   // Helper method for avatar URL
   getAvatarUrl(avatarPath) {
-    return avatarPath 
-      ? `${API_BASE}/api/Account/avatar/${avatarPath}` 
+    return avatarPath
+      ? `${API_BASE}/api/Account/avatar/${avatarPath}`
       : "/assets/image/patient/patient.png";
   }
 }

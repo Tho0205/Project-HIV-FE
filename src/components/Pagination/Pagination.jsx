@@ -1,4 +1,5 @@
 import React from "react";
+import "./Pagination.css";
 
 export default function Pagination({ page, total, pageSize, onPageChange }) {
   const totalPages = Math.ceil(total / pageSize);

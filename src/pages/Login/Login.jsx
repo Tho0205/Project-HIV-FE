@@ -21,7 +21,7 @@ const Login = () => {
         navigate("/");
       } else if (role === "Staff") {
         navigate("/Staff-ManagerPatient");
-      } else if (role === "Manager") {
+      } else if (role === "Admin" || role === "Manager") {
         navigate("/Admin-AccountManagement");
       }
     }
@@ -71,7 +71,7 @@ const Login = () => {
           navigate("/");
         } else if (role === "Staff") {
           navigate("/Staff-ManagerPatient");
-        } else if (role === "Manager") {
+        } else if (role === "Admin" || role === "Manager") {
           navigate("/Admin-AccountManagement");
         }
       } else {
