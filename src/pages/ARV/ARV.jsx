@@ -79,7 +79,7 @@ export default function ARV() {
   }
 
   async function handleDelete(id) {
-    if (window.confirm("Are you sure you want to delete this ARV?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa ARV này?")) {
       try {
         await ARVService.deleteARV(id);
         await fetchArvs();

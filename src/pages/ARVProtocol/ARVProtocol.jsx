@@ -70,7 +70,7 @@ export default function ARVProtocol() {
       setArvDetails(details);
       setShowARVModal(true);
     } catch (err) {
-      setError("Failed to load ARV details");
+      setError("Lỗi khi lấy ARV");
       console.error(err);
     }
   };
@@ -95,12 +95,12 @@ export default function ARVProtocol() {
 
   // Hàm xóa protocol
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure to delete this protocol?")) {
+    if (window.confirm("Bạn có chắc chắn muốn xóa protocol này?")) {
       try {
         await ARVProtocolService.deleteProtocol(id);
         setProtocols(protocols.filter((p) => p.protocolId !== id));
       } catch (err) {
-        setError("Failed to delete protocol");
+        setError("Lỗi khi xóa protocol");
         console.error(err);
       }
     }
