@@ -1,22 +1,21 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import {tokenManager} from "../../services/account";
+import { tokenManager } from "../../services/account";
 import { createConnection } from "../../signalrConnection";
 import axios from "axios";
 import "./FloatingChat.css";
-
 
 const FloatingChat = () => {
   const [showChat, setShowChat] = useState(false);
   const [toUser, setToUser] = useState("");
   const [message, setMessage] = useState("");
-  const [chatLogs, setChatLogs] = useState({}); 
+  const [chatLogs, setChatLogs] = useState({});
   const [isConnected, setIsConnected] = useState(false);
   const [availableStaff, setAvailableStaff] = useState([]);
   const [connection, setConnection] = useState(null);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const chatEndRef = useRef();
 
-  const username = tokenManager.getCurrentUserName() ;
+  const username = tokenManager.getCurrentUserName();
   const currentUserId = tokenManager.getCurrentUserId();
 
   const userMap = useMemo(() => {
@@ -90,9 +89,15 @@ const FloatingChat = () => {
   const sendMessage = async () => {
     if (!isConnected) return alert("Mất kết nối SignalR");
     if (!toUser || !message) return;
-    if (toUser === currentUserId) return alert("Không thể gửi tin cho chính bạn");
+    if (toUser === currentUserId)
+      return alert("Không thể gửi tin cho chính bạn");
     try {
-      await connection.invoke("SendPrivateMessage", currentUserId, toUser, message);
+      await connection.invoke(
+        "SendPrivateMessage",
+        currentUserId,
+        toUser,
+        message
+      );
       setMessage("");
     } catch (err) {
       console.error("Lỗi gửi tin:", err);
@@ -117,17 +122,18 @@ const FloatingChat = () => {
         <div className="chat-popup">
           <div className="chat-popup-header">
             <span>💬 Chat trực tiếp</span>
-            <button className="close-btn" onClick={() => setShowChat(false)}>✖</button>
+            <button className="close-btn" onClick={() => setShowChat(false)}>
+              ✖
+            </button>
           </div>
 
           <div className="chat-popup-body">
-            <p><b>{username}</b> (ID: {currentUserId})</p>
+            <p>
+              <b>{username}</b> (ID: {currentUserId})
+            </p>
 
             <label>Người nhận:</label>
-            <select
-              value={toUser}
-              onChange={(e) => setToUser(e.target.value)}
-            >
+            <select value={toUser} onChange={(e) => setToUser(e.target.value)}>
               <option value="">-- Chọn --</option>
               {availableStaff
                 .filter((s) => s.userId !== currentUserId)
@@ -140,7 +146,10 @@ const FloatingChat = () => {
 
             <div className="chat-log">
               {currentChatLog.map((msg, i) => (
-                <div key={i} className={msg.isMe ? "msg-from-me" : "msg-from-them"}>
+                <div
+                  key={i}
+                  className={msg.isMe ? "msg-from-me" : "msg-from-them"}
+                >
                   <b>{msg.from}:</b> {msg.message}
                 </div>
               ))}

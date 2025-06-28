@@ -111,8 +111,10 @@ const BlogManagement = () => {
 
       if (currentBlog) {
         await updateBlog(currentBlog.blogId, blogData);
+        toast.success("Cập Nhật Bài Viết Thành Công", { autoClose: 1000 });
       } else {
         await createBlog(blogData);
+        toast.success("Thêm Bài Viết Thành Công", { autoClose: 1000 });
       }
 
       // Refresh danh sách

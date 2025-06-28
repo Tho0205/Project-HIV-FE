@@ -28,7 +28,7 @@ body:has(.admin-layout) nav {
 }
 
 .content-header-admin h1 {
-  color: #d32f2f;
+  color: #257df4;
   font-size: 24px;
   font-weight: bold;
   margin: 0;
@@ -36,7 +36,7 @@ body:has(.admin-layout) nav {
 
 /* ===== BUTTONS ===== */
 .btn-primary-admin {
-  background-color: #d32f2f;
+  background-color: #4caf50;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -190,7 +190,7 @@ body:has(.admin-layout) nav {
 
 .username-admin {
   font-weight: 600;
-  color: #d32f2f;
+  color: #257df4;
 }
 
 .actions-admin {
@@ -209,7 +209,7 @@ body:has(.admin-layout) nav {
   min-width: 100px;
 }
 
-/* ===== BADGES ===== */
+/*===== BADGES =====*/
 .status-badge-admin {
   padding: 4px 12px;
   border-radius: 12px;

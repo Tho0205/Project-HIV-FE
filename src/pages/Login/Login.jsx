@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import "./Login.css";
-import { loginApi, tokenManager } from "../../services/account";
+import { loginApi } from "../../services/account";
 import LoadingOverlay from "../../components/Loading/Loading";
 import { toast } from "react-toastify";
+
+const backendBaseUrl = "https://localhost:7243";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,37 +14,105 @@ const Login = () => {
   const [result, setResult] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  // Check if user is already logged in
   useEffect(() => {
-    if (tokenManager.isAuthenticated()) {
-      const role = tokenManager.getCurrentUserRole();
-      if (role === "Patient" || role === "Doctor") {
-        navigate("/");
-      } else if (role === "Staff") {
-        navigate("/Staff-ManagerPatient");
-<<<<<<< Updated upstream
-      } else if (role === "Manager") {
-        navigate("/Admin-AccountManagement");
-      }
-    }
-=======
-      } else if (role === "Admin" || role === "Manager") {
-        navigate("/Admin-AccountManagement");
-      }
-    }
-    const cookies = document.cookie.split(";");
-    const usernameCookie = cookies.find((c) =>
-      c.trim().startsWith("username=")
-    );
+    // Handle Google OAuth callback results
+    const success = searchParams.get("success");
+    const error = searchParams.get("error");
+    const message = searchParams.get("message");
+    const userEmail = searchParams.get("email");
 
-    if (usernameCookie) {
-      const usernameValue = decodeURIComponent(usernameCookie.split("=")[1]);
-      setEmail(usernameValue);
-      setRemember(true); // Tự động tích vào checkbox nếu có cookie
+    if (success === "true") {
+      toast.success(`Google login successful! Welcome ${userEmail}`, {
+        autoClose: 2000,
+      });
+      checkUserStatusAndRedirect();
+    } else if (error) {
+      let errorMessage = "Google login failed";
+
+      switch (error) {
+        case "auth_failed":
+          errorMessage = "Google authentication failed. Please try again.";
+          break;
+        case "no_email":
+          errorMessage =
+            "Email not provided by Google. Please check your Google account settings.";
+          break;
+        case "server_error":
+          errorMessage = "Server error occurred. Please try again.";
+          break;
+        case "oauth_failed":
+          errorMessage = message
+            ? decodeURIComponent(message)
+            : "OAuth process failed. Please try again.";
+          break;
+        case "google_error":
+          errorMessage = message
+            ? decodeURIComponent(message)
+            : "Google returned an error.";
+          break;
+        default:
+          errorMessage = message
+            ? decodeURIComponent(message)
+            : "An unexpected error occurred";
+      }
+
+      toast.error(errorMessage, { autoClose: 5000 });
+
+      // Clear URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
     }
->>>>>>> Stashed changes
-  }, [navigate]);
+
+    // Handle remember me functionality
+    const cookies = document.cookie.split("; ");
+    const cookieObj = {};
+    cookies.forEach((cookie) => {
+      const [key, value] = cookie.split("=");
+      if (key && value) {
+        cookieObj[key] = value;
+      }
+    });
+
+    if (cookieObj.username) {
+      setEmail(decodeURIComponent(cookieObj.username));
+      setRemember(true);
+    }
+  }, [searchParams]);
+
+  const checkUserStatusAndRedirect = async () => {
+    try {
+      const response = await fetch(`${backendBaseUrl}/api/Account/status`, {
+        method: "GET",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.isAuthenticated) {
+          // Store user data in localStorage
+          localStorage.setItem("username", data.name || data.email);
+          localStorage.setItem("role", data.role || "Patient");
+          localStorage.setItem("email", data.email);
+
+          // Redirect based on role
+          if (data.role === "Patient" || data.role === "Doctor") {
+            navigate("/");
+          } else if (data.role === "Staff" || data.role === "Manager") {
+            navigate("/Staff-ManagerPatient");
+          } else {
+            navigate("/");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking user status:", error);
+      navigate("/");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,14 +125,36 @@ const Login = () => {
         setLoading(false);
       }, 800);
 
+    if (response.ok) {
+      toast.success("Login Successfully", { autoClose: 1000 });
+      const data = await response.json();
+      localStorage.setItem("username", data.fullName);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("account_id", data.accountid);
+      localStorage.setItem("user_id", data.userid);
+      console.log("user_id", data.userid);
+      localStorage.setItem("item", JSON.stringify(data.list));
+      localStorage.setItem(
+        "user_avatar",
+        data.user_avatar
+          ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
+          : "./assets/image/patient/patient.png"
+      );
+
+      if (data.role === "Patient" || data.role === "Doctor") {
+        navigate("/");
+      } else if (data.role === "Staff" || data.role === "Manager") {
+        navigate("/Staff-ManagerPatient");
+      } else if (data.role === "Admin") {
+        navigate("/Admin-AccountManagement");
       // Handle remember me cookie
       if (remember) {
-        const expires = new Date(
-          Date.now() + 7 * 24 * 60 * 60 * 1000
-        ).toUTCString();
-        document.cookie = `username=${encodeURIComponent(
-          email
-        )}; expires=${expires}; path=/; SameSite=Lax`;
+        document.cookie =
+          "username=" +
+          encodeURIComponent(email) +
+          "; expires=" +
+          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toUTCString() +
+          "; path=/; SameSite=Lax";
       } else {
         document.cookie =
           "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
@@ -71,19 +163,25 @@ const Login = () => {
       if (response.ok) {
         toast.success("Login Successfully", { autoClose: 1000 });
         const data = await response.json();
-        tokenManager.setToken(data.token, 60);
 
-        const role = tokenManager.getCurrentUserRole();
-        if (role === "Patient" || role === "Doctor") {
+        // Store user data
+        localStorage.setItem("username", data.fullName);
+        localStorage.setItem("role", data.role);
+        localStorage.setItem("account_id", data.accountid);
+        localStorage.setItem("user_id", data.userid);
+        localStorage.setItem("item", JSON.stringify(data.list));
+        localStorage.setItem(
+          "user_avatar",
+          data.user_avatar
+            ? `${backendBaseUrl}/api/account/avatar/${data.user_avatar}`
+            : "./assets/image/patient/patient.png"
+        );
+
+        // Navigate based on role
+        if (data.role === "Patient" || data.role === "Doctor") {
           navigate("/");
-        } else if (role === "Staff") {
+        } else if (data.role === "Staff" || data.role === "Manager") {
           navigate("/Staff-ManagerPatient");
-<<<<<<< Updated upstream
-        } else if (role === "Manager") {
-=======
-        } else if (role === "Admin" || role === "Manager") {
->>>>>>> Stashed changes
-          navigate("/Admin-AccountManagement");
         }
       } else {
         const error = await response.json().catch(() => null);
@@ -111,30 +209,6 @@ const Login = () => {
     }, 400);
   };
 
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     setLoading(true);
-
-  //     // Clear any existing authentication data
-  //     tokenManager.removeToken();
-  //     document.cookie =
-  //       "HIV.Auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
-  //     document.cookie =
-
-  //       "Google.Correlation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
-  //     const currentUrl = window.location.origin + window.location.pathname;
-  //     const returnUrl = encodeURIComponent(currentUrl);
-  //     const googleAuthUrl = `${backendBaseUrl}/api/Account/login/google?returnUrl=${returnUrl}`;
-
-  //     console.log("Starting Google OAuth...", googleAuthUrl);
-  //     window.location.replace(googleAuthUrl);
-  //   } catch (error) {
-  //     console.error("Error starting Google login:", error);
-  //     toast.error("Failed to start Google login. Please try again.");
-  //     setLoading(false);
-  //   }
-  // };
-
   return (
     <div className="login-container">
       <div className="login-left-section">
@@ -149,15 +223,31 @@ const Login = () => {
             alt="Doctors"
             className="login-doctors-img"
           />
+          <div className="login-badge">
+            <div className="badge-icon">🔍</div>
+            <div>
+              <strong>Well qualified doctors</strong>
+              <br />
+              <small>Treat with care</small>
+            </div>
+          </div>
+          <div className="login-appointment-card">
+            <div className="login-icon">📅</div>
+            <div>
+              <strong>Book an appointment</strong>
+              <br />
+              <small>Online appointment</small>
+            </div>
+          </div>
         </div>
       </div>
       <div className="login-right-section">
         <form id="loginForm" onSubmit={handleSubmit}>
-          <h1 style={{ textAlign: "center", fontSize: 46 }}> Chào Mừng</h1>
+          <h1 style={{ textAlign: "center", fontSize: 46 }}>Welcome back</h1>
           <p className="login-register-link">
-            Bạn không có tài khoản ?{" "}
+            Don't have an account?{" "}
             <a href="/register" onClick={handleRegister}>
-              Đăng ký ngay
+              Register
             </a>
           </p>
 
@@ -167,17 +257,17 @@ const Login = () => {
           <input
             type="text"
             id="email"
-            placeholder="Nhập tên người dùng..."
+            placeholder="Input Username..."
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
 
-          <label htmlFor="password">Mật khẩu</label>
+          <label htmlFor="password">Your password</label>
           <input
             type="password"
             id="password"
-            placeholder="Nhập mật khẩu..."
+            placeholder="Input Password..."
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -186,7 +276,7 @@ const Login = () => {
           />
 
           <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? "Logging in..." : "Đăng Nhập"}
+            {loading ? "Logging in..." : "Log in"}
           </button>
 
           <div className="login-options">
@@ -196,14 +286,14 @@ const Login = () => {
                 checked={remember}
                 onChange={(e) => setRemember(e.target.checked)}
               />
-              Ghi nhớ đăng nhập
+              Remember me
             </label>
             <Link to="/forgot-password" className="login-forgot">
-              Quên mật khẩu?
+              Forgot password?
             </Link>
           </div>
 
-          <div className="login-divider">Đăng nhập bằng</div>
+          <div className="login-divider">Or log in with</div>
 
           <button
             type="button"
@@ -216,7 +306,7 @@ const Login = () => {
               alt="Google"
               width="30px"
             />
-            <span>Đăng nhập bằng Google</span>
+            <span>Login With Google</span>
           </button>
 
           <button
@@ -229,7 +319,7 @@ const Login = () => {
               alt="Facebook"
               width="30"
             />
-            <span>Đăng nhập bằng Facebook (Coming Soon)</span>
+            <span>Login With Facebook (Coming Soon)</span>
           </button>
         </form>
       </div>

@@ -4,7 +4,10 @@ import { useNavigate } from "react-router-dom";
 import ARVProtocolService from "../../services/ARVProtocolService";
 import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import Pagination from "../../components/Pagination/Pagination";
 import "./ARVProtocol.css";
+
+const PAGE_SIZE = 10;
 
 export default function ARVProtocol() {
   const [protocols, setProtocols] = useState([]);
@@ -12,17 +15,20 @@ export default function ARVProtocol() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showARVModal, setShowARVModal] = useState(false);
-  
+
   // Data states
   const [newProtocol, setNewProtocol] = useState({
     name: "",
     description: "",
     status: "ACTIVE",
-    details: []
+    details: [],
   });
   const [editData, setEditData] = useState(null);
   const [arvDetails, setArvDetails] = useState([]);
@@ -47,7 +53,7 @@ export default function ARVProtocol() {
 
   useEffect(() => {
     fetchProtocols();
-    
+
     if (tokenManager.getCurrentUserRole() !== "Staff") {
       alert("You are not authorized");
       navigate("/login");
@@ -60,12 +66,13 @@ export default function ARVProtocol() {
     try {
       setLoading(true);
       setError("");
-      
-      const details = await ARVProtocolService.getProtocolDetails(protocol.protocolId);
+
+      const details = await ARVProtocolService.getProtocolDetails(
+        protocol.protocolId
+      );
       setArvDetails(details);
       setShowARVModal(true);
     } catch (err) {
-
       setError("Lỗi khi lấy ARV");
       console.error(err);
     } finally {
@@ -79,7 +86,7 @@ export default function ARVProtocol() {
       name: "",
       description: "",
       status: "ACTIVE",
-      details: []
+      details: [],
     });
     setShowCreateModal(true);
     loadARVs();
@@ -90,18 +97,20 @@ export default function ARVProtocol() {
     try {
       setLoading(true);
       setError("");
-      
-      const protocolData = await ARVProtocolService.getProtocolById(protocol.protocolId);
-      
+
+      const protocolData = await ARVProtocolService.getProtocolById(
+        protocol.protocolId
+      );
+
       if (!protocolData) {
         throw new Error("Protocol not found");
       }
 
       setEditData({
         ...protocolData,
-        details: protocolData.details || []
+        details: protocolData.details || [],
       });
-      
+
       setShowEditModal(true);
       await loadARVs();
     } catch (err) {
@@ -114,16 +123,13 @@ export default function ARVProtocol() {
 
   // Delete protocol
   const handleDelete = async (id) => {
-
     if (window.confirm("Bạn có chắc chắn muốn xóa protocol này?")) {
       try {
         await ARVProtocolService.deleteProtocol(id);
         await fetchProtocols();
         alert("Protocol deleted successfully!");
       } catch (err) {
-
         setError("Lỗi khi xóa protocol");
-
         console.error(err);
       }
     }
@@ -180,26 +186,26 @@ export default function ARVProtocol() {
 
   // Add ARV to create form
   const handleAddARVDetail = () => {
-    setNewProtocol(prev => ({
+    setNewProtocol((prev) => ({
       ...prev,
       details: [
         ...prev.details,
-        { arvId: "", dosage: "", usageInstruction: "", status: "ACTIVE" }
-      ]
+        { arvId: "", dosage: "", usageInstruction: "", status: "ACTIVE" },
+      ],
     }));
   };
 
   // Remove ARV from create form
   const handleRemoveARVDetail = (index) => {
-    setNewProtocol(prev => ({
+    setNewProtocol((prev) => ({
       ...prev,
-      details: prev.details.filter((_, i) => i !== index)
+      details: prev.details.filter((_, i) => i !== index),
     }));
   };
 
   // Update ARV detail in create form
   const handleARVDetailChange = (index, field, value) => {
-    setNewProtocol(prev => {
+    setNewProtocol((prev) => {
       const newDetails = [...prev.details];
       newDetails[index] = { ...newDetails[index], [field]: value };
       return { ...prev, details: newDetails };
@@ -208,20 +214,27 @@ export default function ARVProtocol() {
 
   // Add ARV to edit form
   const handleAddEditARVDetail = () => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
       details: [
         ...prev.details,
-        { arvId: "", dosage: "", usageInstruction: "", status: "ACTIVE" }
-      ]
+        { arvId: "", dosage: "", usageInstruction: "", status: "ACTIVE" },
+      ],
     }));
   };
 
   // Filter protocols
-  const filteredProtocols = protocols.filter(p =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.description && p.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredProtocols = protocols.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.description &&
+        p.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Calculate pagination
+  const startIndex = (page - 1) * PAGE_SIZE;
+  const endIndex = startIndex + PAGE_SIZE;
+  const pagedProtocols = filteredProtocols.slice(startIndex, endIndex);
 
   return (
     <div className="wrapper">
@@ -263,18 +276,20 @@ export default function ARVProtocol() {
                 <tr>
                   <td colSpan={5}>Loading...</td>
                 </tr>
-              ) : filteredProtocols.length === 0 ? (
+              ) : pagedProtocols.length === 0 ? (
                 <tr>
                   <td colSpan={5}>No protocols found</td>
                 </tr>
               ) : (
-                filteredProtocols.map(p => (
+                pagedProtocols.map((p) => (
                   <tr key={p.protocolId}>
                     <td>{p.protocolId}</td>
                     <td>{p.name}</td>
                     <td>{p.description || "-"}</td>
                     <td>
-                      <span className={`status-badge ${p.status.toLowerCase()}`}>
+                      <span
+                        className={`status-badge ${p.status.toLowerCase()}`}
+                      >
                         {p.status}
                       </span>
                     </td>
@@ -306,24 +321,38 @@ export default function ARVProtocol() {
           </table>
         </div>
 
+        {/* Pagination */}
+        {filteredProtocols.length > PAGE_SIZE && (
+          <Pagination
+            page={page}
+            total={filteredProtocols.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        )}
+
         {/* Create Protocol Modal */}
         {showCreateModal && (
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
                 <h3>Create New Protocol</h3>
-                <button onClick={() => setShowCreateModal(false)}>&times;</button>
+                <button onClick={() => setShowCreateModal(false)}>
+                  &times;
+                </button>
               </div>
               <div className="modal-body">
                 {error && <div className="error-message">{error}</div>}
-                
+
                 <form onSubmit={handleCreateWithDetails}>
                   <div className="form-group">
                     <label>Protocol Name*</label>
                     <input
                       type="text"
                       value={newProtocol.name}
-                      onChange={(e) => setNewProtocol({...newProtocol, name: e.target.value})}
+                      onChange={(e) =>
+                        setNewProtocol({ ...newProtocol, name: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -332,7 +361,12 @@ export default function ARVProtocol() {
                     <label>Description</label>
                     <textarea
                       value={newProtocol.description}
-                      onChange={(e) => setNewProtocol({...newProtocol, description: e.target.value})}
+                      onChange={(e) =>
+                        setNewProtocol({
+                          ...newProtocol,
+                          description: e.target.value,
+                        })
+                      }
                     />
                   </div>
 
@@ -340,7 +374,12 @@ export default function ARVProtocol() {
                     <label>Status</label>
                     <select
                       value={newProtocol.status}
-                      onChange={(e) => setNewProtocol({...newProtocol, status: e.target.value})}
+                      onChange={(e) =>
+                        setNewProtocol({
+                          ...newProtocol,
+                          status: e.target.value,
+                        })
+                      }
                     >
                       <option value="ACTIVE">Active</option>
                       <option value="INACTIVE">Inactive</option>
@@ -364,11 +403,17 @@ export default function ARVProtocol() {
                         <div className="arv-detail-row">
                           <select
                             value={detail.arvId}
-                            onChange={(e) => handleARVDetailChange(index, "arvId", e.target.value)}
+                            onChange={(e) =>
+                              handleARVDetailChange(
+                                index,
+                                "arvId",
+                                e.target.value
+                              )
+                            }
                             required
                           >
                             <option value="">Select ARV</option>
-                            {availableARVs.map(arv => (
+                            {availableARVs.map((arv) => (
                               <option key={arv.arvId} value={arv.arvId}>
                                 {arv.name}
                               </option>
@@ -379,7 +424,13 @@ export default function ARVProtocol() {
                             type="text"
                             placeholder="Dosage*"
                             value={detail.dosage}
-                            onChange={(e) => handleARVDetailChange(index, "dosage", e.target.value)}
+                            onChange={(e) =>
+                              handleARVDetailChange(
+                                index,
+                                "dosage",
+                                e.target.value
+                              )
+                            }
                             required
                           />
 
@@ -387,7 +438,13 @@ export default function ARVProtocol() {
                             type="text"
                             placeholder="Usage Instructions"
                             value={detail.usageInstruction}
-                            onChange={(e) => handleARVDetailChange(index, "usageInstruction", e.target.value)}
+                            onChange={(e) =>
+                              handleARVDetailChange(
+                                index,
+                                "usageInstruction",
+                                e.target.value
+                              )
+                            }
                           />
                         </div>
 
@@ -437,14 +494,16 @@ export default function ARVProtocol() {
               </div>
               <div className="modal-body">
                 {error && <div className="error-message">{error}</div>}
-                
+
                 <form onSubmit={handleSubmitEdit}>
                   <div className="form-group">
                     <label>Protocol Name*</label>
                     <input
                       type="text"
                       value={editData.name}
-                      onChange={(e) => setEditData({...editData, name: e.target.value})}
+                      onChange={(e) =>
+                        setEditData({ ...editData, name: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -453,7 +512,12 @@ export default function ARVProtocol() {
                     <label>Description</label>
                     <textarea
                       value={editData.description}
-                      onChange={(e) => setEditData({...editData, description: e.target.value})}
+                      onChange={(e) =>
+                        setEditData({
+                          ...editData,
+                          description: e.target.value,
+                        })
+                      }
                     />
                   </div>
 
@@ -461,7 +525,9 @@ export default function ARVProtocol() {
                     <label>Status</label>
                     <select
                       value={editData.status}
-                      onChange={(e) => setEditData({...editData, status: e.target.value})}
+                      onChange={(e) =>
+                        setEditData({ ...editData, status: e.target.value })
+                      }
                     >
                       <option value="ACTIVE">Active</option>
                       <option value="INACTIVE">Inactive</option>
@@ -487,13 +553,16 @@ export default function ARVProtocol() {
                             value={detail.arvId}
                             onChange={(e) => {
                               const newDetails = [...editData.details];
-                              newDetails[index] = {...newDetails[index], arvId: e.target.value};
-                              setEditData({...editData, details: newDetails});
+                              newDetails[index] = {
+                                ...newDetails[index],
+                                arvId: e.target.value,
+                              };
+                              setEditData({ ...editData, details: newDetails });
                             }}
                             required
                           >
                             <option value="">Select ARV</option>
-                            {availableARVs.map(arv => (
+                            {availableARVs.map((arv) => (
                               <option key={arv.arvId} value={arv.arvId}>
                                 {arv.name}
                               </option>
@@ -506,8 +575,11 @@ export default function ARVProtocol() {
                             value={detail.dosage}
                             onChange={(e) => {
                               const newDetails = [...editData.details];
-                              newDetails[index] = {...newDetails[index], dosage: e.target.value};
-                              setEditData({...editData, details: newDetails});
+                              newDetails[index] = {
+                                ...newDetails[index],
+                                dosage: e.target.value,
+                              };
+                              setEditData({ ...editData, details: newDetails });
                             }}
                             required
                           />
@@ -518,8 +590,11 @@ export default function ARVProtocol() {
                             value={detail.usageInstruction}
                             onChange={(e) => {
                               const newDetails = [...editData.details];
-                              newDetails[index] = {...newDetails[index], usageInstruction: e.target.value};
-                              setEditData({...editData, details: newDetails});
+                              newDetails[index] = {
+                                ...newDetails[index],
+                                usageInstruction: e.target.value,
+                              };
+                              setEditData({ ...editData, details: newDetails });
                             }}
                           />
                         </div>
@@ -528,10 +603,14 @@ export default function ARVProtocol() {
                           <button
                             type="button"
                             className="btn-remove-arv"
-                            onClick={() => setEditData({
-                              ...editData,
-                              details: editData.details.filter((_, i) => i !== index)
-                            })}
+                            onClick={() =>
+                              setEditData({
+                                ...editData,
+                                details: editData.details.filter(
+                                  (_, i) => i !== index
+                                ),
+                              })
+                            }
                           >
                             🗑️ Remove
                           </button>
@@ -583,7 +662,7 @@ export default function ARVProtocol() {
                       </tr>
                     </thead>
                     <tbody>
-                      {arvDetails.map(detail => (
+                      {arvDetails.map((detail) => (
                         <tr key={detail.detailId}>
                           <td>{detail.arvId}</td>
                           <td>{detail.arvName}</td>
