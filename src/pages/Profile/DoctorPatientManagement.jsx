@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import SidebarProfile from '../../components/SidebarProfile/SidebarProfile';
+import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 import Pagination from "../../components/Pagination/Pagination";
 import doctorPatientService from "../../services/DoctorPatientService";
+import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
 import { tokenManager } from "../../services/account";
 
@@ -21,7 +22,7 @@ export default function DoctorPatientManagement() {
     totalPatients: 0,
     activePatients: 0,
     recentAppointments: 0,
-    pendingAppointments: 0
+    pendingAppointments: 0,
   });
 
   // Modal & Form states
@@ -39,12 +40,16 @@ export default function DoctorPatientManagement() {
   // Fetch patients
   const fetchPatients = useCallback(async () => {
     if (!doctorId) return;
-    
+
     setLoading(true);
     try {
       const [sortBy, order] = sort.split("_");
       const result = await doctorPatientService.getDoctorPatients(
-        doctorId, page, PAGE_SIZE, sortBy, order
+        doctorId,
+        page,
+        PAGE_SIZE,
+        sortBy,
+        order
       );
 
       if (result.success) {
@@ -75,7 +80,7 @@ export default function DoctorPatientManagement() {
   }, [fetchPatients, navigate]);
 
   // Filter patients by search
-  const filteredPatients = patients.filter(patient => {
+  const filteredPatients = patients.filter((patient) => {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
     const fullName = patient.fullName || "";
@@ -96,7 +101,7 @@ export default function DoctorPatientManagement() {
       gender: patient.gender || "Other",
       birthdate: patient.birthdate ? patient.birthdate.slice(0, 10) : "",
       address: patient.address || "",
-      status: patient.status || "ACTIVE"
+      status: patient.status || "ACTIVE",
     });
     setShowEditModal(true);
   };
@@ -105,7 +110,7 @@ export default function DoctorPatientManagement() {
     setSelectedPatient(patient);
     try {
       const result = await doctorPatientService.getPatientHistory(
-        patient.accountId, 
+        patient.accountId,
         doctorId
       );
       if (result.success) {
@@ -123,7 +128,7 @@ export default function DoctorPatientManagement() {
     e.preventDefault();
     try {
       const result = await doctorPatientService.updatePatientInfo(
-        editData.accountId, 
+        editData.accountId,
         editData
       );
       if (result.success) {
@@ -139,23 +144,27 @@ export default function DoctorPatientManagement() {
   };
 
   const openExamModal = (exam = null) => {
-    setExamData(exam ? {
-      examId: exam.examId,
-      patientId: selectedPatient.accountId,
-      doctorId: doctorId,
-      examDate: exam.examDate || new Date().toISOString().split('T')[0],
-      result: exam.result || '',
-      cd4Count: exam.cd4Count || '',
-      hivLoad: exam.hivLoad || ''
-    } : {
-      examId: null,
-      patientId: selectedPatient.accountId,
-      doctorId: doctorId,
-      examDate: new Date().toISOString().split('T')[0],
-      result: '',
-      cd4Count: '',
-      hivLoad: ''
-    });
+    setExamData(
+      exam
+        ? {
+            examId: exam.examId,
+            patientId: selectedPatient.accountId,
+            doctorId: doctorId,
+            examDate: exam.examDate || new Date().toISOString().split("T")[0],
+            result: exam.result || "",
+            cd4Count: exam.cd4Count || "",
+            hivLoad: exam.hivLoad || "",
+          }
+        : {
+            examId: null,
+            patientId: selectedPatient.accountId,
+            doctorId: doctorId,
+            examDate: new Date().toISOString().split("T")[0],
+            result: "",
+            cd4Count: "",
+            hivLoad: "",
+          }
+    );
     setShowExamModal(true);
   };
 
@@ -165,14 +174,16 @@ export default function DoctorPatientManagement() {
       const payload = {
         ...examData,
         cd4Count: examData.cd4Count ? parseInt(examData.cd4Count) : null,
-        hivLoad: examData.hivLoad ? parseInt(examData.hivLoad) : null
+        hivLoad: examData.hivLoad ? parseInt(examData.hivLoad) : null,
       };
       const result = await doctorPatientService.saveExamination(payload);
       if (result.success) {
-        toast.success(examData.examId ? "Cập nhật thành công" : "Thêm kết quả thành công");
+        toast.success(
+          examData.examId ? "Cập nhật thành công" : "Thêm kết quả thành công"
+        );
         setShowExamModal(false);
         const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.accountId, 
+          selectedPatient.accountId,
           doctorId
         );
         if (historyResult.success) setPatientHistory(historyResult.data);
@@ -186,13 +197,13 @@ export default function DoctorPatientManagement() {
 
   const handleDeleteExam = async (examId) => {
     if (!window.confirm("Bạn có chắc muốn xóa kết quả xét nghiệm này?")) return;
-    
+
     try {
       const result = await doctorPatientService.deleteExamination(examId);
       if (result.success) {
         toast.success("Xóa thành công");
         const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.accountId, 
+          selectedPatient.accountId,
           doctorId
         );
         if (historyResult.success) setPatientHistory(historyResult.data);
@@ -217,11 +228,11 @@ export default function DoctorPatientManagement() {
 
   return (
     <div className="container">
-      <SidebarProfile />
-      
+      <SidebarDoctor />
+
       <section className="profile">
         <h2>Quản lý bệnh nhân</h2>
-        
+
         {/* Statistics Cards */}
         <div className="stats-grid">
           <div className="stat-card">
@@ -268,9 +279,12 @@ export default function DoctorPatientManagement() {
           </div>
           <div className="sort-wrapper">
             <label>Sắp xếp: </label>
-            <select 
-              value={sort} 
-              onChange={(e) => { setSort(e.target.value); setPage(1); }}
+            <select
+              value={sort}
+              onChange={(e) => {
+                setSort(e.target.value);
+                setPage(1);
+              }}
               className="sort-select"
             >
               <option value="full_name_asc">Tên A-Z</option>
@@ -313,24 +327,30 @@ export default function DoctorPatientManagement() {
               ) : (
                 filteredPatients.map((patient, idx) => (
                   <tr key={patient.accountId}>
-                    <td className="text-center">{(page - 1) * PAGE_SIZE + idx + 1}</td>
+                    <td className="text-center">
+                      {(page - 1) * PAGE_SIZE + idx + 1}
+                    </td>
                     <td>
                       <img
-                        src={doctorPatientService.getAvatarUrl(patient.userAvatar)}
+                        src={doctorPatientService.getAvatarUrl(
+                          patient.userAvatar
+                        )}
                         alt="avatar"
                         className="patient-avatar"
-                        onError={(e) => { 
-                          e.target.src = "/assets/image/patient/patient.png"; 
+                        onError={(e) => {
+                          e.target.src = "/assets/image/patient/patient.png";
                         }}
                       />
                     </td>
                     <td className="patient-name">{patient.fullName}</td>
                     <td>{patient.email}</td>
-                    <td>{patient.phone || '-'}</td>
+                    <td>{patient.phone || "-"}</td>
                     <td>{formatDate(patient.birthdate)}</td>
                     <td className="text-center">{patient.gender}</td>
                     <td className="text-center">
-                      <span className="badge">{patient.appointmentCount || 0}</span>
+                      <span className="badge">
+                        {patient.appointmentCount || 0}
+                      </span>
                     </td>
                     <td className="action-cell">
                       <button
@@ -372,33 +392,43 @@ export default function DoctorPatientManagement() {
                 <input
                   type="text"
                   value={editData.fullName}
-                  onChange={(e) => setEditData({...editData, fullName: e.target.value})}
+                  onChange={(e) =>
+                    setEditData({ ...editData, fullName: e.target.value })
+                  }
                   required
                 />
                 <label>Email</label>
                 <input
                   type="email"
                   value={editData.email}
-                  onChange={(e) => setEditData({...editData, email: e.target.value})}
+                  onChange={(e) =>
+                    setEditData({ ...editData, email: e.target.value })
+                  }
                   required
                 />
                 <label>Số điện thoại</label>
                 <input
                   type="text"
                   value={editData.phone}
-                  onChange={(e) => setEditData({...editData, phone: e.target.value})}
+                  onChange={(e) =>
+                    setEditData({ ...editData, phone: e.target.value })
+                  }
                   required
                 />
                 <label>Ngày sinh</label>
                 <input
                   type="date"
                   value={editData.birthdate}
-                  onChange={(e) => setEditData({...editData, birthdate: e.target.value})}
+                  onChange={(e) =>
+                    setEditData({ ...editData, birthdate: e.target.value })
+                  }
                 />
                 <label>Giới tính</label>
                 <select
                   value={editData.gender}
-                  onChange={(e) => setEditData({...editData, gender: e.target.value})}
+                  onChange={(e) =>
+                    setEditData({ ...editData, gender: e.target.value })
+                  }
                 >
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
@@ -408,12 +438,20 @@ export default function DoctorPatientManagement() {
                 <input
                   type="text"
                   value={editData.address}
-                  onChange={(e) => setEditData({...editData, address: e.target.value})}
+                  onChange={(e) =>
+                    setEditData({ ...editData, address: e.target.value })
+                  }
                   required
                 />
                 <div className="modal-actions">
-                  <button type="submit" className="btn-green">Lưu</button>
-                  <button type="button" className="btn-purple" onClick={() => setShowEditModal(false)}>
+                  <button type="submit" className="btn-green">
+                    Lưu
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-purple"
+                    onClick={() => setShowEditModal(false)}
+                  >
                     Hủy
                   </button>
                 </div>
@@ -435,16 +473,27 @@ export default function DoctorPatientManagement() {
                       <h4>📅 Lịch hẹn khám</h4>
                       {patientHistory.appointments?.length > 0 ? (
                         <div className="appointment-list">
-                          {patientHistory.appointments.map(appointment => (
-                            <div key={appointment.appointmentId} className="appointment-item">
+                          {patientHistory.appointments.map((appointment) => (
+                            <div
+                              key={appointment.appointmentId}
+                              className="appointment-item"
+                            >
                               <div className="appointment-info">
-                                <span className="date">{formatDate(appointment.appointmentDate)}</span>
-                                <span className={`status ${appointment.status?.toLowerCase()}`}>
+                                <span className="date">
+                                  {formatDate(appointment.appointmentDate)}
+                                </span>
+                                <span
+                                  className={`status ${appointment.status?.toLowerCase()}`}
+                                >
                                   {appointment.status}
                                 </span>
                               </div>
-                              {appointment.room && <p>Phòng: {appointment.room}</p>}
-                              {appointment.note && <p className="note">{appointment.note}</p>}
+                              {appointment.room && (
+                                <p>Phòng: {appointment.room}</p>
+                              )}
+                              {appointment.note && (
+                                <p className="note">{appointment.note}</p>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -457,34 +506,64 @@ export default function DoctorPatientManagement() {
                     <div className="history-section">
                       <div className="section-header">
                         <h4>🔬 Kết quả xét nghiệm</h4>
-                        <button className="btn-add" onClick={() => openExamModal()}>
+                        <button
+                          className="btn-add"
+                          onClick={() => openExamModal()}
+                        >
                           + Thêm mới
                         </button>
                       </div>
                       {patientHistory.examinations?.length > 0 ? (
                         <div className="exam-list">
-                          {patientHistory.examinations.map(exam => (
+                          {patientHistory.examinations.map((exam) => (
                             <div key={exam.examId} className="exam-item">
                               <div className="exam-header">
-                                <span className="date">Ngày: {formatDate(exam.examDate)}</span>
+                                <span className="date">
+                                  Ngày: {formatDate(exam.examDate)}
+                                </span>
                                 <div className="exam-actions">
-                                  <button onClick={() => openExamModal(exam)} className="btn-icon">✏️</button>
-                                  <button onClick={() => handleDeleteExam(exam.examId)} className="btn-icon">🗑️</button>
+                                  <button
+                                    onClick={() => openExamModal(exam)}
+                                    className="btn-icon"
+                                  >
+                                    ✏️
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteExam(exam.examId)
+                                    }
+                                    className="btn-icon"
+                                  >
+                                    🗑️
+                                  </button>
                                 </div>
                               </div>
                               <p className="result">{exam.result}</p>
                               <div className="metrics">
-                                {exam.cd4Count && <span className="metric">CD4: {exam.cd4Count} cells/μL</span>}
-                                {exam.hivLoad && <span className="metric">HIV Load: {exam.hivLoad} copies/ml</span>}
+                                {exam.cd4Count && (
+                                  <span className="metric">
+                                    CD4: {exam.cd4Count} cells/μL
+                                  </span>
+                                )}
+                                {exam.hivLoad && (
+                                  <span className="metric">
+                                    HIV Load: {exam.hivLoad} copies/ml
+                                  </span>
+                                )}
                               </div>
-                              <small>Ngày tạo: {formatDateTime(exam.createdAt)}</small>
+                              <small>
+                                Ngày tạo: {formatDateTime(exam.createdAt)}
+                              </small>
                             </div>
                           ))}
                         </div>
                       ) : (
                         <div className="no-data-section">
                           <p>Chưa có kết quả xét nghiệm nào</p>
-                          <button className="btn-add" onClick={() => openExamModal()}>
+                          <button
+                            className="btn-add"
+                            onClick={() => openExamModal()}
+                          >
                             + Thêm kết quả đầu tiên
                           </button>
                         </div>
@@ -496,7 +575,10 @@ export default function DoctorPatientManagement() {
                 )}
               </div>
               <div className="modal-actions">
-                <button className="btn-purple" onClick={() => setShowHistoryModal(false)}>
+                <button
+                  className="btn-purple"
+                  onClick={() => setShowHistoryModal(false)}
+                >
                   Đóng
                 </button>
               </div>
@@ -508,57 +590,77 @@ export default function DoctorPatientManagement() {
         {showExamModal && examData && (
           <div className="modal" style={{ display: "flex" }}>
             <div className="modal-content">
-              <h3>{examData.examId ? "Chỉnh sửa kết quả xét nghiệm" : "Thêm kết quả xét nghiệm"}</h3>
+              <h3>
+                {examData.examId
+                  ? "Chỉnh sửa kết quả xét nghiệm"
+                  : "Thêm kết quả xét nghiệm"}
+              </h3>
               <form onSubmit={handleExamSubmit} id="modalForm">
                 <div className="patient-info">
                   <h4>Thông tin bệnh nhân</h4>
-                  <p><strong>Họ tên:</strong> {selectedPatient?.fullName}</p>
-                  <p><strong>Email:</strong> {selectedPatient?.email}</p>
+                  <p>
+                    <strong>Họ tên:</strong> {selectedPatient?.fullName}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {selectedPatient?.email}
+                  </p>
                 </div>
-                
+
                 <label>Ngày xét nghiệm</label>
                 <input
                   type="date"
                   value={examData.examDate}
-                  onChange={(e) => setExamData({...examData, examDate: e.target.value})}
+                  onChange={(e) =>
+                    setExamData({ ...examData, examDate: e.target.value })
+                  }
                   required
-                  max={new Date().toISOString().split('T')[0]}
+                  max={new Date().toISOString().split("T")[0]}
                 />
-                
+
                 <label>CD4 Count (cells/μL)</label>
                 <input
                   type="number"
                   value={examData.cd4Count}
-                  onChange={(e) => setExamData({...examData, cd4Count: e.target.value})}
+                  onChange={(e) =>
+                    setExamData({ ...examData, cd4Count: e.target.value })
+                  }
                   min="0"
                   max="2000"
                   placeholder="VD: 350"
                 />
-                
+
                 <label>HIV Load (copies/ml)</label>
                 <input
                   type="number"
                   value={examData.hivLoad}
-                  onChange={(e) => setExamData({...examData, hivLoad: e.target.value})}
+                  onChange={(e) =>
+                    setExamData({ ...examData, hivLoad: e.target.value })
+                  }
                   min="0"
                   placeholder="VD: 50000"
                 />
-                
+
                 <label>Kết quả</label>
                 <textarea
                   value={examData.result}
-                  onChange={(e) => setExamData({...examData, result: e.target.value})}
+                  onChange={(e) =>
+                    setExamData({ ...examData, result: e.target.value })
+                  }
                   rows="4"
                   required
                   placeholder="Nhập kết quả xét nghiệm..."
-                  style={{ width: '100%', gridColumn: '1 / -1' }}
+                  style={{ width: "100%", gridColumn: "1 / -1" }}
                 />
-                
-                <div className="modal-actions" style={{ gridColumn: '1 / -1' }}>
+
+                <div className="modal-actions" style={{ gridColumn: "1 / -1" }}>
                   <button type="submit" className="btn-green">
                     {examData.examId ? "Cập nhật" : "Thêm mới"}
                   </button>
-                  <button type="button" className="btn-purple" onClick={() => setShowExamModal(false)}>
+                  <button
+                    type="button"
+                    className="btn-purple"
+                    onClick={() => setShowExamModal(false)}
+                  >
                     Hủy
                   </button>
                 </div>

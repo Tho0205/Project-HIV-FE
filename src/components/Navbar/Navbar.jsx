@@ -7,6 +7,7 @@ import { tokenManager } from "../../services/account";
 // const backendBaseUrl = "https://localhost:7243";
 const Header = () => {
   const navigate = useNavigate();
+  const Userrole = tokenManager.getCurrentUserRole();
 
   const [role, setRole] = useState(tokenManager.getCurrentUserRole());
   const [avatarUrl, setAvatarUrl] = useState("");
@@ -25,14 +26,12 @@ const Header = () => {
 
   const Logout = () => {
     setLoading(true);
-    setTimeout(() => {
-      sessionStorage.clear();
-      localStorage.clear();
-      setRole(null);
-      setLoading(false);
-      navigate("/");
-      toast.success("Đăng xuất thành công", { autoClose: 1000 });
-    }, 800);
+    sessionStorage.clear();
+    localStorage.clear();
+    setRole(null);
+    setLoading(false);
+    navigate("/");
+    toast.success("Đăng xuất thành công", { autoClose: 1000 });
   };
 
   return (
@@ -47,6 +46,11 @@ const Header = () => {
           <Link to="/appointment">Đặt Lịch Hẹn</Link>
           <Link to="/blog">Blog</Link>
           <Link to="/education">Tài Liệu giáo dục</Link>
+          {Userrole === "Doctor" && (
+            <Link Link to="/Doctor-Patient-Management">
+              Làm Việc
+            </Link>
+          )}
         </nav>
 
         <div className="header-buttons">
@@ -62,10 +66,8 @@ const Header = () => {
               className="btn-primary login"
               onClick={() => {
                 setLoading(true);
-                setTimeout(() => {
-                  navigate("/login");
-                  setLoading(false);
-                }, 800);
+                navigate("/login");
+                setLoading(false);
               }}
             >
               Đăng Nhập
@@ -79,10 +81,8 @@ const Header = () => {
                 className="avatar-btn profile"
                 onClick={() => {
                   setLoading(true);
-                  setTimeout(() => {
-                    navigate("/Profile-Patient");
-                    setLoading(false);
-                  }, 800);
+                  navigate("/Profile-Patient");
+                  setLoading(false);
                 }}
               >
                 <img src={avatarUrl} alt="Avatar" />

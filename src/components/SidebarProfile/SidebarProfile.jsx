@@ -10,8 +10,8 @@ const SidebarProfile = () => {
   const getActiveItem = () => {
     if (location.pathname === "/Profile-Patient") return "general";
     if (location.pathname === "/Blog-Management") return "blog";
-    if (location.pathname === "/Doctor-Patient-Management")
-      return "patient-management";
+    // if (location.pathname === "/Doctor-Patient-Management")
+    //   return "patient-management";
     return "";
   };
 
@@ -46,7 +46,7 @@ const SidebarProfile = () => {
         Quản lý bài viết
       </Link>
       {/* Chỉ hiển thị cho Doctor */}
-      {userRole === "Doctor" && (
+      {/* {userRole === "Doctor" && (
         <Link
           to="/Doctor-Patient-Management"
           className={`sidebar-link ${
@@ -55,7 +55,7 @@ const SidebarProfile = () => {
         >
           Quản lý bệnh nhân
         </Link>
-      )}
+      )} */}
     </aside>
   );
 };
