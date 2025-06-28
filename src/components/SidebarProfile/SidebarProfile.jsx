@@ -1,10 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./SidebarProfile.css";
-
+import { tokenManager } from "../../services/account";
 const SidebarProfile = () => {
   const location = useLocation();
-  const userRole = localStorage.getItem("role");
+  const userRole = tokenManager.getCurrentUserRole();
 
   // Xác định active item dựa trên pathname
   const getActiveItem = () => {

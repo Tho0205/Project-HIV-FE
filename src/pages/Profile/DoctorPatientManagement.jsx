@@ -5,6 +5,7 @@ import SidebarProfile from '../../components/SidebarProfile/SidebarProfile';
 import Pagination from "../../components/Pagination/Pagination";
 import doctorPatientService from "../../services/DoctorPatientService";
 import "./DoctorPatientManagement.css";
+import { tokenManager } from "../../services/account";
 
 const PAGE_SIZE = 8;
 
@@ -33,7 +34,7 @@ export default function DoctorPatientManagement() {
   const [examData, setExamData] = useState(null);
 
   const navigate = useNavigate();
-  const doctorId = localStorage.getItem("user_id");
+  const doctorId = tokenManager.getCurrentUserId();
 
   // Fetch patients
   const fetchPatients = useCallback(async () => {
@@ -64,7 +65,7 @@ export default function DoctorPatientManagement() {
 
   // Initialize
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Doctor") {
       toast.error("Bạn không có quyền truy cập");
       navigate("/");
