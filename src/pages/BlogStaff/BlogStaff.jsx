@@ -8,6 +8,7 @@ import {
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { toast } from 'react-toastify';
 import './BlogStaff.css';
+import { tokenManager } from '../../services/account';
 
 const BlogStaff = () => {
   const [blogs, setBlogs] = useState([]);
@@ -27,7 +28,7 @@ const BlogStaff = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
       toast.error("Bạn không có quyền truy cập");
       navigate("/");

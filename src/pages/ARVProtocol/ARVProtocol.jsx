@@ -65,7 +65,8 @@ export default function ARVProtocol() {
       setArvDetails(details);
       setShowARVModal(true);
     } catch (err) {
-      setError(err.message || "Failed to load ARV details");
+
+      setError("Lỗi khi lấy ARV");
       console.error(err);
     } finally {
       setLoading(false);
@@ -113,13 +114,16 @@ export default function ARVProtocol() {
 
   // Delete protocol
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this protocol?")) {
+
+    if (window.confirm("Bạn có chắc chắn muốn xóa protocol này?")) {
       try {
         await ARVProtocolService.deleteProtocol(id);
         await fetchProtocols();
         alert("Protocol deleted successfully!");
       } catch (err) {
-        setError(err.message || "Failed to delete protocol");
+
+        setError("Lỗi khi xóa protocol");
+
         console.error(err);
       }
     }
