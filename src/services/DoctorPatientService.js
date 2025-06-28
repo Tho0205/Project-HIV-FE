@@ -1,10 +1,11 @@
+import { apiRequest } from "./account";
 const API_BASE = "https://localhost:7243";
 
 class DoctorPatientService {
   // Helper method for API calls
   async apiCall(url, options = {}) {
     try {
-      const response = await fetch(`${API_BASE}${url}`, {
+      const response = await apiRequest(`${API_BASE}${url}`, {
         headers: { "Content-Type": "application/json" },
         ...options,
       });
