@@ -1,10 +1,11 @@
+import { apiRequest } from "./account";
 const API_BASE = "https://localhost:7243/api/ARVProtocol";
 
 const handleResponse = async (response) => {
   if (!response.ok) {
-    const errorData = await response.json();
-    const errorMessage = errorData.errors 
-      ? errorData.errors.join(", ") 
+    const errorData = await response.json().catch(() => ({}));
+    const errorMessage = errorData.errors
+      ? errorData.errors.join(", ")
       : errorData.message || "Request failed";
     throw new Error(errorMessage);
   }
@@ -14,11 +15,7 @@ const handleResponse = async (response) => {
 export const ARVProtocolService = {
   getAllProtocols: async () => {
     try {
-      const response = await fetch(API_BASE, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        }
-      });
+      const response = await apiRequest(API_BASE);
       const data = await handleResponse(response);
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -29,13 +26,8 @@ export const ARVProtocolService = {
 
   getProtocolById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        }
-      });
-      const data = await handleResponse(response);
-      return data || null;
+      const response = await apiRequest(`${API_BASE}/${id}`);
+      return await handleResponse(response);
     } catch (error) {
       console.error("Failed to fetch protocol:", error);
       throw error;
@@ -44,11 +36,7 @@ export const ARVProtocolService = {
 
   getProtocolDetails: async (protocolId) => {
     try {
-      const response = await fetch(`${API_BASE}/${protocolId}/arv-details`, {
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        }
-      });
+      const response = await apiRequest(`${API_BASE}/${protocolId}/arv-details`);
       const data = await handleResponse(response);
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -59,12 +47,8 @@ export const ARVProtocolService = {
 
   createProtocol: async (protocolData) => {
     try {
-      const response = await fetch(API_BASE, {
+      const response = await apiRequest(API_BASE, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        },
         body: JSON.stringify(protocolData),
       });
       return await handleResponse(response);
@@ -76,12 +60,8 @@ export const ARVProtocolService = {
 
   createProtocolWithDetails: async (protocolData) => {
     try {
-      const response = await fetch(`${API_BASE}/create-with-details`, {
+      const response = await apiRequest(`${API_BASE}/create-with-details`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        },
         body: JSON.stringify(protocolData),
       });
       return await handleResponse(response);
@@ -93,12 +73,8 @@ export const ARVProtocolService = {
 
   updateProtocol: async (id, protocolData) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        },
         body: JSON.stringify(protocolData),
       });
       return await handleResponse(response);
@@ -110,11 +86,8 @@ export const ARVProtocolService = {
 
   deleteProtocol: async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        }
       });
       return await handleResponse(response);
     } catch (error) {
@@ -125,12 +98,8 @@ export const ARVProtocolService = {
 
   addARVToProtocol: async (protocolId, arvData) => {
     try {
-      const response = await fetch(`${API_BASE}/${protocolId}/add-arv`, {
+      const response = await apiRequest(`${API_BASE}/${protocolId}/add-arv`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        },
         body: JSON.stringify(arvData),
       });
       return await handleResponse(response);
@@ -142,12 +111,8 @@ export const ARVProtocolService = {
 
   updateProtocolDetail: async (protocolId, detailId, detailData) => {
     try {
-      const response = await fetch(`${API_BASE}/${protocolId}/details/${detailId}`, {
+      const response = await apiRequest(`${API_BASE}/${protocolId}/details/${detailId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        },
         body: JSON.stringify(detailData),
       });
       return await handleResponse(response);
@@ -159,18 +124,15 @@ export const ARVProtocolService = {
 
   removeProtocolDetail: async (protocolId, detailId) => {
     try {
-      const response = await fetch(`${API_BASE}/${protocolId}/details/${detailId}`, {
+      const response = await apiRequest(`${API_BASE}/${protocolId}/details/${detailId}`, {
         method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token") || ""}`
-        }
       });
       return await handleResponse(response);
     } catch (error) {
       console.error("Failed to remove protocol detail:", error);
       throw error;
     }
-  }
+  },
 };
 
 export default ARVProtocolService;
