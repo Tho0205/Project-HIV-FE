@@ -1,106 +1,511 @@
-.chat-toggle-btn {
+/* Chat Toggle Button */
+.hiv-chat-toggle-btn {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #007bff;
+  bottom: 24px;
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-  border-radius: 50%;
-  width: 55px;
-  height: 55px;
-  font-size: 24px;
   border: none;
+  border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.chat-popup {
+.hiv-chat-toggle-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+.hiv-chat-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.hiv-chat-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  background: #ff4757;
+  border: 2px solid white;
+  border-radius: 50%;
+  animation: hiv-pulse-badge 2s infinite;
+}
+
+@keyframes hiv-pulse-badge {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Chat Popup */
+.hiv-chat-popup {
   position: fixed;
-  bottom: 90px;
-  right: 20px;
-  width: 320px;
+  bottom: 100px;
+  right: 24px;
+  width: 380px;
+  height: 500px;
   background: white;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 1000;
+  z-index: 999;
+  animation: hiv-chat-slide-up 0.3s ease-out;
 }
 
-.chat-popup-header {
-  background: #007bff;
+@keyframes hiv-chat-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header */
+.hiv-chat-header {
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: white;
-  padding: 10px;
-  font-weight: bold;
+  padding: 16px 20px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
 }
 
-.chat-popup-body {
-  padding: 10px;
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
-.chat-popup-input {
-  padding: 10px;
+.hiv-chat-header-info {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 12px;
 }
 
-.chat-popup-input input {
-  flex: 1;
-  padding: 8px;
-}
-
-.chat-popup-input button {
-  padding: 8px 12px;
-}
-
-.chat-log {
-  margin-top: 10px;
-  max-height: 150px;
-  overflow-y: auto;
-  background: #f8f8f8;
-  padding: 5px;
-  border-radius: 5px;
-}
-
-
-.chat-badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 12px;
-  height: 12px;
-  background-color: red;
+.hiv-chat-avatar {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
 }
 
-.chat-log {
+.hiv-chat-avatar svg {
+  width: 20px;
+  height: 20px;
+}
+
+.hiv-chat-user-info h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.hiv-chat-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.hiv-status-dot {
+  width: 8px;
+  height: 8px;
+  background: #2ed573;
+  border-radius: 50%;
+  animation: hiv-pulse-dot 2s infinite;
+}
+
+.hiv-status-dot.active {
+  background: #2ed573;
+}
+
+@keyframes hiv-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.hiv-chat-close-btn {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.hiv-chat-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.hiv-chat-close-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Body */
+.hiv-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+/* User Selection */
+.hiv-chat-user-selection {
+  padding: 20px;
+}
+
+.hiv-chat-welcome {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.hiv-chat-welcome h3 {
+  font-size: 18px;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
+
+.hiv-chat-welcome p {
+  color: #718096;
+  font-size: 14px;
+}
+
+.hiv-staff-list {
   display: flex;
   flex-direction: column;
+  gap: 12px;
+}
+
+.hiv-staff-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.hiv-staff-item:hover {
+  background: #f7fafc;
+  border-color: #667eea;
+  transform: translateY(-1px);
+}
+
+.hiv-staff-avatar {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.hiv-staff-info {
+  flex: 1;
+}
+
+.hiv-staff-info h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #2d3748;
+  font-weight: 600;
+}
+
+.hiv-staff-info span {
+  font-size: 12px;
+  color: #718096;
+}
+
+.hiv-staff-status {
+  display: flex;
+  align-items: center;
+}
+
+/* Chat Messages */
+.hiv-chat-messages {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 300px;
+}
+
+.hiv-chat-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  text-align: center;
+  color: #718096;
+}
+
+.hiv-chat-empty-icon {
+  width: 48px;
+  height: 48px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.hiv-chat-empty-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.hiv-chat-empty p {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.hiv-chat-empty span {
+  font-size: 12px;
+}
+
+/* Messages */
+.hiv-message {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.hiv-message-sent {
+  justify-content: flex-end;
+}
+
+.hiv-message-received {
+  justify-content: flex-start;
+}
+
+.hiv-message-content {
+  max-width: 70%;
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+}
+
+.hiv-message-sent .hiv-message-content {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.hiv-message-received .hiv-message-content {
+  background: white;
+  color: #2d3748;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 4px;
+}
+
+.hiv-message-content p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.hiv-message-time {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 4px;
+  display: block;
+}
+
+/* Typing Indicator */
+.hiv-typing-indicator {
+  display: flex;
+  align-items: center;
   gap: 4px;
-  padding: 10px;
-  max-height: 250px;
-  overflow-y: auto;
+  padding: 12px 16px;
 }
 
-.msg-from-me {
-  align-self: flex-end;
-  background-color: #dcf8c6;
-  padding: 8px 12px;
-  border-radius: 15px 15px 0 15px;
-  max-width: 70%;
-  text-align: right;
+.hiv-typing-indicator span {
+  width: 6px;
+  height: 6px;
+  background: #718096;
+  border-radius: 50%;
+  animation: hiv-typing 1.4s infinite ease-in-out;
 }
 
-.msg-from-them {
-  align-self: flex-start;
-  background-color: #f1f0f0;
-  padding: 8px 12px;
-  border-radius: 15px 15px 15px 0;
-  max-width: 70%;
-  text-align: left;
+.hiv-typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.hiv-typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes hiv-typing {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Input */
+.hiv-chat-input {
+  padding: 16px 20px;
+  background: white;
+  border-top: 1px solid #e2e8f0;
+}
+
+.hiv-chat-input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.hiv-chat-input textarea {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  resize: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  max-height: 80px;
+  min-height: 40px;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.hiv-chat-input textarea:focus {
+  border-color: #667eea;
+}
+
+.hiv-chat-input textarea::placeholder {
+  color: #a0aec0;
+}
+
+.hiv-send-btn {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.hiv-send-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+.hiv-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hiv-send-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.hiv-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.hiv-back-btn:hover {
+  color: #5a67d8;
+}
+
+.hiv-back-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .hiv-chat-popup {
+    right: 16px;
+    left: 16px;
+    width: auto;
+    bottom: 90px;
+  }
+
+  .hiv-chat-toggle-btn {
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+/* Scrollbar */
+.hiv-chat-body::-webkit-scrollbar,
+.hiv-chat-messages::-webkit-scrollbar {
+  width: 4px;
+}
+
+.hiv-chat-body::-webkit-scrollbar-track,
+.hiv-chat-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.hiv-chat-body::-webkit-scrollbar-thumb,
+.hiv-chat-messages::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 2px;
+}
+
+.hiv-chat-body::-webkit-scrollbar-thumb:hover,
+.hiv-chat-messages::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
 }
