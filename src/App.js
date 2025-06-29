@@ -8,6 +8,7 @@ import Footer from "./components/Footer/Footer";
 import { routes } from "./routes";
 import FloatingChat from "./components/ChatBox/FloatingChat";
 import LoadingOverlay from "./components/Loading/Loading";
+import { tokenManager } from "./services/account";
 import "./App.css";
 
 function App() {
@@ -47,7 +48,8 @@ function App() {
       </main>
       {!hideHeaderFooter && <Footer />}
       <ToastContainer />
-      <FloatingChat />
+      {tokenManager.isAuthenticated() && <FloatingChat />}
+
     </div>
   );
 }
