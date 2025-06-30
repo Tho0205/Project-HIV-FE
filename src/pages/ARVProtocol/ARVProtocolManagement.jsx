@@ -143,25 +143,30 @@ const ARVProtocolManagement = () => {
   };
 
   // Handle protocol update
-  const handleUpdateProtocol = async (protocolId, isCustom) => {
-    try {
-      setLoading(true);
-      await CustomArvProtocolsService.updatePatientProtocol(
-        selectedPatient.patientId,
-        { protocolId, isCustom }
-      );
-      
-      toast.success("Cập nhật phác đồ thành công!");
-      await loadPatientProtocol(selectedPatient.patientId);
+ const handleUpdateProtocol = async (protocolId, isCustom) => {
+  try {
+    setLoading(true);
+    await CustomArvProtocolsService.updatePatientProtocol(
+      selectedPatient.patientId,
+      { protocolId, isCustom }
+    );
 
-        window.location.reload();
-      setModalType('view');
-    } catch (err) {
-      toast.error("Lỗi khi cập nhật phác đồ: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.success("Cập nhật phác đồ thành công!");
+
+    // Tải lại toàn bộ danh sách (không reload trình duyệt)
+    await fetchInitialData();
+
+    // Tải lại phác đồ của bệnh nhân đang xem
+    await loadPatientProtocol(selectedPatient.patientId);
+
+    setModalType('view');
+  } catch (err) {
+    toast.error("Lỗi khi cập nhật phác đồ: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Add ARV to new protocol
   const addARVToProtocol = (arvId) => {
