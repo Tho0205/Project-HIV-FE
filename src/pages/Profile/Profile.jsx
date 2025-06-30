@@ -62,11 +62,26 @@ export default function Profile() {
   // Mở modal edit
   function openEdit() {
     setEditError("");
-    setPreviewAvatar(
-      profile?.user_avatar
-        ? `${backendBaseUrl}/api/account/avatar/${profile.user_avatar}`
-        : "/assets/image/patient/patient.png"
-    );
+
+    let avatarUrl = "/assets/image/patient/patient.png"; // default
+
+    if (profile?.user_avatar) {
+      if (profile.user_avatar.startsWith("http")) {
+        // avatar từ Google
+        avatarUrl = profile.user_avatar;
+      } else {
+        // avatar từ hệ thống (upload)
+        avatarUrl = `${backendBaseUrl}/api/account/avatar/${profile.user_avatar}`;
+      }
+    } else {
+      // nếu không có thì thử lấy từ token
+      const tokenAvatar = tokenManager.getUserAvatarUrl?.();
+      if (tokenAvatar?.startsWith("http")) {
+        avatarUrl = tokenAvatar;
+      }
+    }
+
+    setPreviewAvatar(avatarUrl);
     setShowEdit(true);
   }
 
@@ -209,10 +224,14 @@ export default function Profile() {
           <div className="profile-photo">
             <img
               src={
-                profile.user_avatar
-                  ? `${backendBaseUrl}/api/account/avatar/${
-                      profile.user_avatar
-                    }?t=${Date.now()}`
+                profile?.user_avatar
+                  ? profile.user_avatar.startsWith("http")
+                    ? profile.user_avatar
+                    : `${backendBaseUrl}/api/account/avatar/${
+                        profile.user_avatar
+                      }?t=${Date.now()}`
+                  : tokenManager.getUserAvatarUrl?.()?.startsWith("http")
+                  ? tokenManager.getUserAvatarUrl()
                   : "/assets/image/patient/patient.png"
               }
               alt="Avatar"
