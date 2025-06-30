@@ -59,17 +59,22 @@ class DoctorPatientService {
     );
   }
 
-  // Update patient information
-  async updatePatientInfo(accountId, patientData) {
-    return this.apiCall(`/api/Doctor/UpdatePatient/${accountId}`, {
-      method: "PUT",
-      body: JSON.stringify(patientData),
-    });
-  }
-
   // Get patient stats
   async getPatientStats(doctorId) {
     return this.apiCall(`/api/Doctor/PatientStats/${doctorId}`);
+  }
+
+  // Get available patients (chưa có bác sĩ)
+  async getAvailablePatients() {
+    return this.apiCall("/api/Doctor/AvailablePatients");
+  }
+
+  // Assign patient to doctor
+  async assignPatientToDoctor(doctorId, patientId) {
+    return this.apiCall("/api/Doctor/AssignPatient", {
+      method: "POST",
+      body: JSON.stringify({ doctorId, patientId }),
+    });
   }
 
   // Get patient history

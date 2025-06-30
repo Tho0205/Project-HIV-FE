@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
-import Pagination from "../../components/Pagination/Pagination";
 import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
@@ -25,13 +24,14 @@ export default function DoctorPatientManagement() {
   });
 
   // Modal & Form states
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [showExamModal, setShowExamModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [editData, setEditData] = useState(null);
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
+  const [availablePatients, setAvailablePatients] = useState([]);
+  const [selectedNewPatient, setSelectedNewPatient] = useState(null);
 
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
@@ -56,7 +56,6 @@ export default function DoctorPatientManagement() {
         setTotal(result.data.total || 0);
         if (result.data.stats) setStats(result.data.stats);
       } else {
-        // Show specific error message
         toast.error(result.message || "Không thể tải danh sách bệnh nhân");
       }
     } catch (error) {
@@ -90,19 +89,45 @@ export default function DoctorPatientManagement() {
     );
   });
 
-  // Handlers
-  const handleEditPatient = (patient) => {
-    setEditData({
-      accountId: patient.accountId,
-      email: patient.email,
-      fullName: patient.fullName,
-      phone: patient.phone || "",
-      gender: patient.gender || "Other",
-      birthdate: patient.birthdate ? patient.birthdate.slice(0, 10) : "",
-      address: patient.address || "",
-      status: patient.status || "ACTIVE",
-    });
-    setShowEditModal(true);
+  // Handle add new patient
+  const handleAddPatient = async () => {
+    try {
+      const result = await doctorPatientService.getAvailablePatients();
+      if (result.success) {
+        setAvailablePatients(result.data || []);
+        setShowAddModal(true);
+      } else {
+        toast.error("Không thể tải danh sách bệnh nhân khả dụng");
+      }
+    } catch (error) {
+      toast.error("Lỗi kết nối server");
+    }
+  };
+
+  // Handle assign patient
+  const handleAssignPatient = async () => {
+    if (!selectedNewPatient) {
+      toast.error("Vui lòng chọn bệnh nhân");
+      return;
+    }
+
+    try {
+      const result = await doctorPatientService.assignPatientToDoctor(
+        doctorId,
+        selectedNewPatient
+      );
+      
+      if (result.success) {
+        toast.success("Thêm bệnh nhân thành công");
+        setShowAddModal(false);
+        setSelectedNewPatient(null);
+        fetchPatients();
+      } else {
+        toast.error(result.message || "Không thể thêm bệnh nhân");
+      }
+    } catch (error) {
+      toast.error("Có lỗi xảy ra");
+    }
   };
 
   const handleViewHistory = async (patient) => {
@@ -120,25 +145,6 @@ export default function DoctorPatientManagement() {
       }
     } catch (error) {
       toast.error("Không thể tải lịch sử bệnh nhân");
-    }
-  };
-
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const result = await doctorPatientService.updatePatientInfo(
-        editData.accountId,
-        editData
-      );
-      if (result.success) {
-        toast.success("Cập nhật thành công");
-        setShowEditModal(false);
-        fetchPatients();
-      } else {
-        toast.error(result.message || "Có lỗi xảy ra");
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra");
     }
   };
 
@@ -230,7 +236,12 @@ export default function DoctorPatientManagement() {
       <SidebarDoctor />
 
       <section className="profile">
-        <h2>Quản lý bệnh nhân</h2>
+        <div className="section-header">
+          <h2>Quản lý bệnh nhân</h2>
+          <button className="btn-add-patient" onClick={handleAddPatient}>
+            ➕ Thêm bệnh nhân mới
+          </button>
+        </div>
 
         {/* Statistics Cards */}
         <div className="stats-grid">
@@ -359,13 +370,6 @@ export default function DoctorPatientManagement() {
                       >
                         📋
                       </button>
-                      <button
-                        onClick={() => handleEditPatient(patient)}
-                        className="btn-icon"
-                        title="Chỉnh sửa"
-                      >
-                        ✏️
-                      </button>
                     </td>
                   </tr>
                 ))
@@ -374,87 +378,92 @@ export default function DoctorPatientManagement() {
           </table>
         </div>
 
-        <Pagination
-          page={page}
-          total={total}
-          pageSize={PAGE_SIZE}
-          onPageChange={setPage}
-        />
+        {/* Pagination */}
+        {Math.ceil(total / PAGE_SIZE) > 1 && (
+          <div className="pagination">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              Prev
+            </button>
+            
+            {[...Array(Math.ceil(total / PAGE_SIZE))].map((_, idx) => (
+              <button
+                key={idx + 1}
+                className={page === idx + 1 ? "active" : ""}
+                onClick={() => setPage(idx + 1)}
+              >
+                {idx + 1}
+              </button>
+            ))}
+            
+            <button
+              disabled={page === Math.ceil(total / PAGE_SIZE)}
+              onClick={() => setPage(page + 1)}
+            >
+              Next
+            </button>
+          </div>
+        )}
 
-        {/* Edit Modal */}
-        {showEditModal && editData && (
+        {/* Add Patient Modal */}
+        {showAddModal && (
           <div className="modal" style={{ display: "flex" }}>
             <div className="modal-content">
-              <h3>Chỉnh sửa thông tin bệnh nhân</h3>
-              <form onSubmit={handleEditSubmit} id="modalForm">
-                <label>Họ tên</label>
-                <input
-                  type="text"
-                  value={editData.fullName}
-                  onChange={(e) =>
-                    setEditData({ ...editData, fullName: e.target.value })
-                  }
-                  required
-                />
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={editData.email}
-                  onChange={(e) =>
-                    setEditData({ ...editData, email: e.target.value })
-                  }
-                  required
-                />
-                <label>Số điện thoại</label>
-                <input
-                  type="text"
-                  value={editData.phone}
-                  onChange={(e) =>
-                    setEditData({ ...editData, phone: e.target.value })
-                  }
-                  required
-                />
-                <label>Ngày sinh</label>
-                <input
-                  type="date"
-                  value={editData.birthdate}
-                  onChange={(e) =>
-                    setEditData({ ...editData, birthdate: e.target.value })
-                  }
-                />
-                <label>Giới tính</label>
-                <select
-                  value={editData.gender}
-                  onChange={(e) =>
-                    setEditData({ ...editData, gender: e.target.value })
-                  }
+              <h3>Thêm bệnh nhân mới</h3>
+              <div className="available-patients-list">
+                {availablePatients.length === 0 ? (
+                  <p className="no-data">Không có bệnh nhân nào chưa được phân công</p>
+                ) : (
+                  <>
+                    <p>Chọn bệnh nhân từ danh sách:</p>
+                    <div className="patient-selection-list">
+                      {availablePatients.map((patient) => (
+                        <div
+                          key={patient.accountId}
+                          className={`patient-selection-item ${
+                            selectedNewPatient === patient.accountId ? "selected" : ""
+                          }`}
+                          onClick={() => setSelectedNewPatient(patient.accountId)}
+                        >
+                          <img
+                            src={doctorPatientService.getAvatarUrl(patient.userAvatar)}
+                            alt="avatar"
+                            className="patient-avatar-small"
+                            onError={(e) => {
+                              e.target.src = "/assets/image/patient/patient.png";
+                            }}
+                          />
+                          <div className="patient-info-selection">
+                            <p className="patient-name">{patient.fullName}</p>
+                            <p className="patient-email">{patient.email}</p>
+                            <p className="patient-phone">{patient.phone || "Chưa có SĐT"}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="modal-actions">
+                <button 
+                  className="btn-green" 
+                  onClick={handleAssignPatient}
+                  disabled={!selectedNewPatient}
                 >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                <label>Địa chỉ</label>
-                <input
-                  type="text"
-                  value={editData.address}
-                  onChange={(e) =>
-                    setEditData({ ...editData, address: e.target.value })
-                  }
-                  required
-                />
-                <div className="modal-actions">
-                  <button type="submit" className="btn-green">
-                    Lưu
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-purple"
-                    onClick={() => setShowEditModal(false)}
-                  >
-                    Hủy
-                  </button>
-                </div>
-              </form>
+                  Thêm
+                </button>
+                <button
+                  className="btn-purple"
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedNewPatient(null);
+                  }}
+                >
+                  Hủy
+                </button>
+              </div>
             </div>
           </div>
         )}
