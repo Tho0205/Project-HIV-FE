@@ -176,17 +176,18 @@ export default function ARVProtocol() {
       const protocolPayload = {
         name: editData.name,
         description: editData.description,
-        status: editData.status
+        status: editData.status,
       };
 
       // 2. Update protocol info
       const updatedProtocol = await ARVProtocolService.updateProtocol(
-        editData.protocolId, 
+        editData.protocolId,
         protocolPayload
       );
 
       // 3. Update ARV details
-      const detailUpdates = editData.details.map(detail => {
+
+      const detailUpdates = editData.details.map((detail) => {
         if (detail.detailId) {
           // Existing detail - update
           return ARVProtocolService.updateProtocolDetail(
@@ -197,29 +198,29 @@ export default function ARVProtocol() {
               arvId: detail.arvId,
               dosage: detail.dosage,
               usageInstruction: detail.usageInstruction,
-              status: detail.status
+              status: detail.status,
+
             }
           );
         } else {
           // New detail - add
-          return ARVProtocolService.addARVToProtocol(
-            editData.protocolId,
-            {
-              arvId: detail.arvId,
-              dosage: detail.dosage,
-              usageInstruction: detail.usageInstruction,
-              status: detail.status
-            }
-          );
+          return ARVProtocolService.addARVToProtocol(editData.protocolId, {
+            arvId: detail.arvId,
+            dosage: detail.dosage,
+            usageInstruction: detail.usageInstruction,
+            status: detail.status,
+          });
         }
       });
 
       await Promise.all(detailUpdates);
 
       // 4. Update UI
-      setProtocols(prev => prev.map(p => 
-        p.protocolId === editData.protocolId ? updatedProtocol : p
-      ));
+      setProtocols((prev) =>
+        prev.map((p) =>
+          p.protocolId === editData.protocolId ? updatedProtocol : p
+        )
+      );
       setShowEditModal(false);
       alert("Protocol updated successfully!");
     } catch (err) {
