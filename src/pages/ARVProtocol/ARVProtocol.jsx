@@ -172,9 +172,54 @@ export default function ARVProtocol() {
       setLoading(true);
       setError("");
 
-      await ARVProtocolService.updateProtocol(editData.protocolId, editData);
+      // 1. Prepare protocol data without details
+      const protocolPayload = {
+        name: editData.name,
+        description: editData.description,
+        status: editData.status,
+      };
+
+      // 2. Update protocol info
+      const updatedProtocol = await ARVProtocolService.updateProtocol(
+        editData.protocolId,
+        protocolPayload
+      );
+
+      // 3. Update ARV details
+      const detailUpdates = editData.details.map((detail) => {
+        if (detail.detailId) {
+          // Existing detail - update
+          return ARVProtocolService.updateProtocolDetail(
+            editData.protocolId,
+            detail.detailId,
+            {
+              detailId: detail.detailId,
+              arvId: detail.arvId,
+              dosage: detail.dosage,
+              usageInstruction: detail.usageInstruction,
+              status: detail.status,
+            }
+          );
+        } else {
+          // New detail - add
+          return ARVProtocolService.addARVToProtocol(editData.protocolId, {
+            arvId: detail.arvId,
+            dosage: detail.dosage,
+            usageInstruction: detail.usageInstruction,
+            status: detail.status,
+          });
+        }
+      });
+
+      await Promise.all(detailUpdates);
+
+      // 4. Update UI
+      setProtocols((prev) =>
+        prev.map((p) =>
+          p.protocolId === editData.protocolId ? updatedProtocol : p
+        )
+      );
       setShowEditModal(false);
-      await fetchProtocols();
       alert("Protocol updated successfully!");
     } catch (err) {
       setError(err.message || "Failed to update protocol");
@@ -183,7 +228,6 @@ export default function ARVProtocol() {
       setLoading(false);
     }
   };
-
   // Add ARV to create form
   const handleAddARVDetail = () => {
     setNewProtocol((prev) => ({
