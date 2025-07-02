@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./Sidebar.css"; // Sẽ tạo file css riêng cho sidebar
+import "./Sidebar.css";
 import { toast } from "react-toastify";
 
 export default function Sidebar({ active }) {
@@ -65,6 +65,12 @@ export default function Sidebar({ active }) {
             <Link to="/arv-protocol">
               <span className="icon">📋</span>
               <span>Quản Lí ARV Protocol</span>
+            </Link>
+          </li>
+          <li className={active === "doctor" ? "active" : ""}>
+            <Link to="/Staff-DoctorInfo">
+              <span className="icon">👨‍⚕️</span>
+              <span>Quản Lí Thông Tin Bác Sĩ</span>
             </Link>
           </li>
         </ul>

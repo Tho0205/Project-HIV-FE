@@ -37,7 +37,7 @@ export const routes = [
   { path: "/appointment", element: <Appointment /> },
   { path: "/arv", element: <ARV /> },
   { path: "/arv-protocol", element: <ARVProtocol /> },
-  { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> },
+  { path: "/HIV-ExaminationManagement", element: <HIVExaminationManagement /> }, 
   { path: "/Doctor-Patient-Management", element: <DoctorPatientManagement /> },
   { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
   { path: "/Doctor-Info", element: <DoctorInfoView /> },
