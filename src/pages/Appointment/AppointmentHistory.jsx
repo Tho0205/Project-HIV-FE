@@ -1,12 +1,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, Clock, User, Search, Filter, ChevronLeft, ChevronRight, AlertCircle, FileText, Edit } from 'lucide-react';
+import { 
+  Calendar, 
+  Clock, 
+  User, 
+  Search, 
+  Filter, 
+  ChevronLeft, 
+  ChevronRight, 
+  AlertCircle, 
+  FileText, 
+  Edit 
+} from 'lucide-react';
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from '../../services/account';
 import Sidebar from "../../components/SidebarProfile/SidebarProfile";
 
 const AppointmentHistory = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -39,38 +50,61 @@ const AppointmentHistory = () => {
     setError(null);
     try {
       const patientData = await appointmentService.getPatientInfo(patientId);
-      if (!patientData) throw new Error(`Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`);
+      if (!patientData) {
+        throw new Error(`Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`);
+      }
       setPatientInfo(patientData);
+      
       const allAppointments = await appointmentService.getAppointments();
       const doctors = await appointmentService.getDoctors();
+      
       const patientAppointments = allAppointments
-        .filter(app => (app.patientId || app.PatientId) === patientId)
+        .filter(app => {
+          const appPatientId = app.patientId || app.PatientId;
+          return appPatientId === patientId;
+        })
         .map(appointment => {
-          const dateInfo = appointmentService.formatDate(appointment.appointmentDate || appointment.createdAt);
-          const isPast = appointmentService.isPast(appointment.appointmentDate || appointment.createdAt);
+          const dateInfo = appointmentService.formatDate(
+            appointment.appointmentDate || appointment.createdAt
+          );
+          const isPast = appointmentService.isPast(
+            appointment.appointmentDate || appointment.createdAt
+          );
+          
+          // Get doctor information
           let doctorName = "Bác sĩ không xác định";
           let doctorSpecialty = '';
           const doctorId = appointment.doctorId || appointment.DoctorId;
-          if (doctorId) {
+          if (doctorId && doctors) {
             const doctor = doctors.find(d => d.userId === doctorId);
             if (doctor) {
               doctorName = doctor.fullName || doctor.name || doctorName;
               doctorSpecialty = doctor.specialty || '';
             }
           }
+
           return {
             ...appointment,
             doctorName,
             doctorSpecialty,
             formattedDate: dateInfo,
             isPast,
-            displayStatus: getDisplayStatus(appointment.status, isPast)
+            displayStatus: getDisplayStatus(appointment.status, isPast),
           };
         })
-        .sort((a, b) => new Date(b.appointmentDate || b.createdAt) - new Date(a.appointmentDate || a.createdAt));
+        .sort(
+          (a, b) =>
+            new Date(b.appointmentDate || b.createdAt) -
+            new Date(a.appointmentDate || a.createdAt)
+        );
+
+      console.log("Patient appointments:", patientAppointments);
       setAppointments(patientAppointments);
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra khi tải lịch sử khám. Vui lòng thử lại.');
+      console.error("Error fetching appointment history:", err);
+      setError(
+        err.message || "Có lỗi xảy ra khi tải lịch sử khám. Vui lòng thử lại."
+      );
     } finally {
       setLoading(false);
     }
@@ -81,11 +115,12 @@ const AppointmentHistory = () => {
   }, [fetchAppointmentHistory]);
 
   const getDisplayStatus = (status, isPast) => {
-    if (status === 'Cancel' || status === 'CANCELLED') return 'cancelled';
-    if (status === 'COMPLETED') return 'completed'; 
-    if (status === 'CONFIRMED') return 'upcoming';
-    if (status === 'SCHEDULED') return 'pending'; 
-    return 'pending';
+    if (status === "Cancel" || status === "CANCELLED") return "cancelled";
+    if (status === "COMPLETED") return "completed";
+    if (status === "CONFIRMED" && isPast) return "completed";
+    if (status === "CONFIRMED" && !isPast) return "upcoming";
+    if (status === "SCHEDULED") return "pending";
+    return "pending";
   };
 
   const handleCancelClick = (appointment) => {
@@ -106,21 +141,27 @@ const AppointmentHistory = () => {
 
   const handleConfirmCancel = async () => {
     if (!selectedAppointment?.appointmentId) {
-      alert('Không thể hủy lịch hẹn: ID không hợp lệ');
+      alert("Không thể hủy lịch hẹn: ID không hợp lệ");
       return;
     }
     try {
-      const result = await appointmentService.cancelAppointment(selectedAppointment.appointmentId);
-      setAppointments(appointments.map(app => 
-        app.appointmentId === selectedAppointment.appointmentId 
-          ? { ...app, status: 'Cancel', displayStatus: 'cancelled' }
-          : app
-      ));
+      const result = await appointmentService.cancelAppointment(
+        selectedAppointment.appointmentId
+      );
+      console.log("Cancel result:", result);
+      setAppointments(
+        appointments.map((app) =>
+          app.appointmentId === selectedAppointment.appointmentId
+            ? { ...app, status: "Cancel", displayStatus: "cancelled" }
+            : app
+        )
+      );
       setShowCancelModal(false);
       setSelectedAppointment(null);
-      alert('Hủy lịch hẹn thành công!');
+      alert("Hủy lịch hẹn thành công!");
     } catch (err) {
-      alert(`Lỗi khi hủy lịch hẹn: ${err.message || 'Vui lòng thử lại sau'}`);
+      console.error("Error canceling appointment:", err);
+      alert(`Lỗi khi hủy lịch hẹn: ${err.message || "Vui lòng thử lại sau"}`);
     }
   };
 
@@ -129,14 +170,20 @@ const AppointmentHistory = () => {
     setSelectedAppointment(null);
   };
 
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesSearch = 
+  const filteredAppointments = appointments.filter((appointment) => {
+    const matchesSearch =
       appointment.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (appointment.note && appointment.note.toLowerCase().includes(searchTerm.toLowerCase()));
+      (appointment.note &&
+        appointment.note.toLowerCase().includes(searchTerm.toLowerCase()));
+
     let matchesFilter = true;
-    if (filterStatus === 'completed') matchesFilter = appointment.displayStatus === 'completed';
-    else if (filterStatus === 'upcoming') matchesFilter = appointment.displayStatus === 'upcoming';
-    else if (filterStatus === 'cancelled') matchesFilter = appointment.displayStatus === 'cancelled';
+    if (filterStatus === "completed")
+      matchesFilter = appointment.displayStatus === "completed";
+    else if (filterStatus === "upcoming")
+      matchesFilter = appointment.displayStatus === "upcoming";
+    else if (filterStatus === "cancelled")
+      matchesFilter = appointment.displayStatus === "cancelled";
+
     return matchesSearch && matchesFilter;
   });
 
@@ -145,19 +192,21 @@ const AppointmentHistory = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
 
-  const getStatusColor = (displayStatus) => ({
-    completed: { backgroundColor: '#dcfce7', color: '#15803d' },
-    upcoming: { backgroundColor: '#dbeafe', color: '#1e40af' },
-    cancelled: { backgroundColor: '#fee2e2', color: '#b91c1c' },
-    pending: { backgroundColor: '#fef9c3', color: '#a16207' },
-  }[displayStatus] || { backgroundColor: '#f3f4f6', color: '#1f2937' });
+  const getStatusColor = (displayStatus) =>
+    ({
+      completed: { backgroundColor: "#dcfce7", color: "#15803d" },
+      upcoming: { backgroundColor: "#dbeafe", color: "#1e40af" },
+      cancelled: { backgroundColor: "#fee2e2", color: "#b91c1c" },
+      pending: { backgroundColor: "#fef9c3", color: "#a16207" },
+    }[displayStatus] || { backgroundColor: "#f3f4f6", color: "#1f2937" });
 
-  const getStatusText = (displayStatus) => ({
-    completed: 'Đã khám',
-    upcoming: 'Sắp tới',
-    cancelled: 'Đã hủy',
-    pending: 'Chờ xác nhận',
-  }[displayStatus] || displayStatus);
+  const getStatusText = (displayStatus) =>
+    ({
+      completed: "Đã khám",
+      upcoming: "Sắp tới",
+      cancelled: "Đã hủy",
+      pending: "Chờ xác nhận",
+    }[displayStatus] || displayStatus);
 
   // Style objects for buttons
   const baseButtonStyle = {
