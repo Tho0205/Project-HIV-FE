@@ -1,36 +1,12 @@
-import axios from 'axios';
+import { apiRequest } from "./account";
 
-const API_BASE = "https://localhost:7243";
-
+const backendBaseUrl = "https://localhost:7243";
 class AdminAccountService {
-  constructor() {
-    this.api = axios.create({
-      baseURL: API_BASE,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Add request interceptor to include auth token if needed
-    this.api.interceptors.request.use(
-      (config) => {
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-  }
-
   // Get all accounts
   async getAllAccounts() {
     try {
-      const response = await this.api.get('/api/Admin');
-      return response.data;
+      const response = await apiRequest(`${backendBaseUrl}/api/Admin`);
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -39,8 +15,10 @@ class AdminAccountService {
   // Get account by ID
   async getAccountById(accountId) {
     try {
-      const response = await this.api.get(`/api/Admin/${accountId}`);
-      return response.data;
+      const response = await apiRequest(
+        `${backendBaseUrl}/api/Admin/${accountId}`
+      );
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -49,8 +27,13 @@ class AdminAccountService {
   // Create new account
   async createAccount(accountData) {
     try {
-      const response = await this.api.post('/api/Admin', accountData);
-      return response.data;
+      const response = await apiRequest(`${backendBaseUrl}/api/Admin`, {
+        method: "POST",
+        body: JSON.stringify(accountData),
+      });
+
+      if (response.status === 204) return null; // No content
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -59,21 +42,32 @@ class AdminAccountService {
   // Update account
   async updateAccount(accountId, accountData) {
     try {
-      const response = await this.api.put(`/api/Admin/${accountId}`, accountData);
-      return response.data;
+      const response = await apiRequest(
+        `${backendBaseUrl}/api/Admin/${accountId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(accountId, accountData),
+        }
+      );
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
   }
 
   // Update account status
+  // AdminAccountService.js
   async updateAccountStatus(accountId, status) {
     try {
-      const response = await this.api.patch(`/api/Admin/${accountId}/status`, {
-        accountId: accountId,
-        status: status
-      });
-      return response.data;
+      const response = await apiRequest(
+        `${backendBaseUrl}/api/Admin/${accountId}/status`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ accountId, status }),
+        }
+      );
+      if (response.status === 204) return null;
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -82,8 +76,13 @@ class AdminAccountService {
   // Delete account
   async deleteAccount(accountId) {
     try {
-      const response = await this.api.delete(`/api/Admin/${accountId}`);
-      return response.data;
+      const response = await apiRequest(
+        `${backendBaseUrl}/api/Admin/${accountId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -92,8 +91,10 @@ class AdminAccountService {
   // Get accounts by status
   async getAccountsByStatus(status) {
     try {
-      const response = await this.api.get(`/api/Admin/status/${status}`);
-      return response.data;
+      const response = await apiRequest(
+        `${backendBaseUrl}/api/Admin/status/${status}`
+      );
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -102,8 +103,10 @@ class AdminAccountService {
   // Get account by username
   async getAccountByUsername(username) {
     try {
-      const response = await this.api.get(`/api/Admin/username/${username}`);
-      return response.data;
+      const response = await apiRequest(
+        `${backendBaseUrl}/api/Admin/username/${username}`
+      );
+      return await response.json();
     } catch (error) {
       throw this.handleError(error);
     }
@@ -112,15 +115,11 @@ class AdminAccountService {
   // Error handler
   handleError(error) {
     if (error.response) {
-      // Server responded with error status
-      const errorMessage = error.response.data?.message || error.response.data || 'An error occurred';
-      return new Error(errorMessage);
+      return new Error(error.response.data?.message || "Lỗi máy chủ");
     } else if (error.request) {
-      // Request was made but no response received
-      return new Error('Network error: No response from server');
+      return new Error("Không thể kết nối đến máy chủ");
     } else {
-      // Something else happened
-      return new Error(error.message || 'An unexpected error occurred');
+      return new Error(error.message || "Lỗi không xác định");
     }
   }
 }

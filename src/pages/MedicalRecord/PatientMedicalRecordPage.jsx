@@ -21,7 +21,7 @@ const PatientMedicalRecordPage = () => {
   if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="container">
+    <div className="medi-management-page">
       <SidebarProfile />
       <div className="medi-content">
         <div className="medi-header">

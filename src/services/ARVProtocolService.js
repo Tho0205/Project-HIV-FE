@@ -16,7 +16,7 @@ const handleResponse = async (response) => {
 export const ARVProtocolService = {
   getAllProtocols: async () => {
     try {
-      const response = await fetch(API_BASE);
+      const response = await apiRequest(API_BASE);
       const data = await handleResponse(response);
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -27,7 +27,7 @@ export const ARVProtocolService = {
 
   getProtocolById: async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`);
+      const response = await apiRequest(`${API_BASE}/${id}`);
       return await handleResponse(response);
     } catch (error) {
       console.error("Failed to fetch protocol:", error);
@@ -37,7 +37,9 @@ export const ARVProtocolService = {
 
   getProtocolDetails: async (protocolId) => {
     try {
-      const response = await fetch(`${API_BASE}/${protocolId}/arv-details`);
+      const response = await apiRequest(
+        `${API_BASE}/${protocolId}/arv-details`
+      );
       const data = await handleResponse(response);
       return Array.isArray(data) ? data : [];
     } catch (error) {
@@ -48,7 +50,7 @@ export const ARVProtocolService = {
 
   createProtocol: async (protocolData) => {
     try {
-      const response = await fetch(API_BASE, {
+      const response = await apiRequest(API_BASE, {
         method: "POST",
         body: JSON.stringify(protocolData),
       });
@@ -61,7 +63,7 @@ export const ARVProtocolService = {
 
   createProtocolWithDetails: async (protocolData) => {
     try {
-      const response = await fetch(`${API_BASE}/create-with-details`, {
+      const response = await apiRequest(`${API_BASE}/create-with-details`, {
         method: "POST",
         body: JSON.stringify(protocolData),
       });
@@ -74,7 +76,7 @@ export const ARVProtocolService = {
 
   updateProtocol: async (id, protocolData) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "PUT",
         body: JSON.stringify(protocolData),
       });
@@ -87,7 +89,7 @@ export const ARVProtocolService = {
 
   deleteProtocol: async (id) => {
     try {
-      const response = await fetch(`${API_BASE}/${id}`, {
+      const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "DELETE",
       });
       return await handleResponse(response);
@@ -99,7 +101,7 @@ export const ARVProtocolService = {
 
   addARVToProtocol: async (protocolId, arvData) => {
     try {
-      const response = await fetch(`${API_BASE}/${protocolId}/add-arv`, {
+      const response = await apiRequest(`${API_BASE}/${protocolId}/add-arv`, {
         method: "POST",
         body: JSON.stringify(arvData),
       });
@@ -112,7 +114,7 @@ export const ARVProtocolService = {
 
   updateProtocolDetail: async (protocolId, detailId, detailData) => {
     try {
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_BASE}/${protocolId}/details/${detailId}`,
         {
           method: "PUT",
@@ -128,7 +130,7 @@ export const ARVProtocolService = {
 
   removeProtocolDetail: async (protocolId, detailId) => {
     try {
-      const response = await fetch(
+      const response = await apiRequest(
         `${API_BASE}/${protocolId}/details/${detailId}`,
         {
           method: "DELETE",

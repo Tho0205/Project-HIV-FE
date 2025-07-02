@@ -5,13 +5,13 @@ const API_BASE = "https://localhost:7243";
 class DoctorInfoService {
   async getAllDoctors() {
     try {
-      console.log('🔍 Fetching all doctors...');
+      console.log("🔍 Fetching all doctors...");
       const response = await apiRequest(`${API_BASE}/api/DoctorInfo`);
       const data = await response.json();
-      console.log('✅ Doctors fetched successfully:', data);
+      console.log("✅ Doctors fetched successfully:", data);
       return data;
     } catch (error) {
-      console.error('❌ Error in getAllDoctors:', error);
+      console.error("❌ Error in getAllDoctors:", error);
       throw error;
     }
   }
@@ -27,7 +27,9 @@ class DoctorInfoService {
 
   async getDoctorById(doctorId) {
     try {
-      const response = await apiRequest(`${API_BASE}/api/DoctorInfo/${doctorId}`);
+      const response = await apiRequest(
+        `${API_BASE}/api/DoctorInfo/${doctorId}`
+      );
       return await response.json();
     } catch (error) {
       throw error;
@@ -48,7 +50,7 @@ class DoctorInfoService {
 
   async updateDoctor(doctorId, doctorData) {
     try {
-      const response = await apiRequest(`${API_BASE}/api/DoctorInfo/${doctorId}`, {
+      const response = await fetch(`${API_BASE}/api/DoctorInfo/${doctorId}`, {
         method: "PUT",
         body: JSON.stringify(doctorData),
       });
@@ -60,9 +62,12 @@ class DoctorInfoService {
 
   async deleteDoctor(doctorId) {
     try {
-      const response = await apiRequest(`${API_BASE}/api/DoctorInfo/${doctorId}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest(
+        `${API_BASE}/api/DoctorInfo/${doctorId}`,
+        {
+          method: "DELETE",
+        }
+      );
       return await response.json();
     } catch (error) {
       throw error;

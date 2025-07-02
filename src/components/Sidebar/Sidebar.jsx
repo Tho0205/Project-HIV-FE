@@ -5,14 +5,14 @@ import { toast } from "react-toastify";
 
 export default function Sidebar({ active }) {
   const navigate = useNavigate();
-  
+
   function logout() {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
     toast.success("Đăng xuất thành công", { autoClose: 1000 });
   }
-  
+
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
@@ -43,12 +43,12 @@ export default function Sidebar({ active }) {
               <span>Quản Lí Thông Tin KH</span>
             </Link>
           </li>
-          <li className={active === "consult" ? "active" : ""}>
+          {/* <li className={active === "consult" ? "active" : ""}>
             <Link to="#">
               <span className="icon">📋</span>
               <span>Quản Lí DS Tư Vấn Đã Đặt</span>
             </Link>
-          </li>
+          </li> */}
           <li className={active === "result" ? "active" : ""}>
             <Link to="/HIV-ExaminationManagement">
               <span className="icon">🧪</span>
