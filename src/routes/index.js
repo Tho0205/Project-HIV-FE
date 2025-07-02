@@ -44,7 +44,12 @@ export const routes = [
   { path: "/Appointment-History", element: <AppointmentHistory />},
   { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage/>},
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
+<<<<<<< Updated upstream
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
   {path: "/Appointment-History", element: <AppointmentHistory />},
   { path: "/DashBoard", element: <Dashboard />}
+=======
+  { path: "/DashBoard", element: <Dashboard />}
+
+>>>>>>> Stashed changes
 ];
