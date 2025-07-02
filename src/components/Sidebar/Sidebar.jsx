@@ -9,7 +9,7 @@ export default function Sidebar({ active }) {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
-    toast.success("Đăng xuấ thành công", { autoClose: 1000 });
+    toast.success("Đăng xuất thành công", { autoClose: 1000 });
   }
   return (
     <aside className="sidebar">

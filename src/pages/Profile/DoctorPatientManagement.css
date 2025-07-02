@@ -243,19 +243,19 @@
   color: #333;
 }
 
-.status {
+.status-doctor-patient {
   padding: 3px 10px;
   border-radius: 15px;
   font-size: 12px;
   font-weight: 500;
 }
 
-.status.pending {
+.status-doctor-patient.pending {
   background: #fef3c7;
   color: #d97706;
 }
 
-.status.completed {
+.status-doctor-patient.completed {
   background: #dcfce7;
   color: #16a34a;
 }
