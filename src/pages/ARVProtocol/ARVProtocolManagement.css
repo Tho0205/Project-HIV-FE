@@ -243,19 +243,19 @@
   color: #333;
 }
 
-.status-doctor-patient {
+.status {
   padding: 3px 10px;
   border-radius: 15px;
   font-size: 12px;
   font-weight: 500;
 }
 
-.status-doctor-patient.pending {
+.status.pending {
   background: #fef3c7;
   color: #d97706;
 }
 
-.status-doctor-patient.completed {
+.status.completed {
   background: #dcfce7;
   color: #16a34a;
 }
@@ -338,6 +338,39 @@
   font-size: 13px;
 }
 
+/* ===== Pagination (Override) ===== */
+/* .pagination {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 20px;
+} */
+
+/* .pagination button {
+  padding: 6px 12px;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #f0f0f0;
+}
+
+.pagination button.active {
+  background: #4439c7;
+  color: white;
+  border-color: #4439c7;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+} */
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   .stats-grid {
@@ -384,4 +417,22 @@
   .stat-card {
     padding: 12px;
   }
+}
+/* ===== Layout fix: Sidebar + Main content side by side ===== */
+.doctor-dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar-section {
+  width: 240px; /* hoặc thay đổi phù hợp */
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.main-content-section {
+  flex: 1;
+  padding: 20px;
+  overflow-x: hidden;
 }

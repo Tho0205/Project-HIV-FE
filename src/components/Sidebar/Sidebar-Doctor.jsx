@@ -28,6 +28,15 @@ export default function SidebarAdmin({ active }) {
               <span>Quản Lý Bệnh Nhân</span>
             </li>
           </Link>
+          <Link
+            to="/Protocol-management"
+            style={{ textDecoration: "none" }}
+          >
+            <li className={active === "account" ? "active" : ""}>
+              <span className="icon">👤</span>
+              <span>Quản Lý Phác đồ</span>
+            </li>
+          </Link>
         </ul>
       </div>
     </aside>
