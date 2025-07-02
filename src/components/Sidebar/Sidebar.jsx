@@ -5,12 +5,14 @@ import { toast } from "react-toastify";
 
 export default function Sidebar({ active }) {
   const navigate = useNavigate();
+  
   function logout() {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
-    toast.success("Đăng xuấ thành công", { autoClose: 1000 });
+    toast.success("Đăng xuất thành công", { autoClose: 1000 });
   }
+  
   return (
     <aside className="sidebar">
       <div className="sidebar-top">
@@ -24,9 +26,15 @@ export default function Sidebar({ active }) {
             </Link>
           </li>
           <li className={active === "calendar" ? "active" : ""}>
-            <Link to="#">
+            <Link to="/Appointment-Management">
               <span className="icon">📅</span>
               <span>Quản Lí Lịch Đặt Khám</span>
+            </Link>
+          </li>
+          <li className={active === "doctor-schedule" ? "active" : ""}>
+            <Link to="/Staff-DoctorSchedule">
+              <span className="icon">👨‍⚕️</span>
+              <span>Sắp Xếp Lịch Bác Sĩ</span>
             </Link>
           </li>
           <li className={active === "patient" ? "active" : ""}>
@@ -36,24 +44,26 @@ export default function Sidebar({ active }) {
             </Link>
           </li>
           <li className={active === "consult" ? "active" : ""}>
-            <span className="icon">📋</span>
-            <span>Quản Lí DS Tư Vấn Đã Đặt</span>
+            <Link to="#">
+              <span className="icon">📋</span>
+              <span>Quản Lí DS Tư Vấn Đã Đặt</span>
+            </Link>
           </li>
           <li className={active === "result" ? "active" : ""}>
-            <span className="icon">🧪</span>
             <Link to="/HIV-ExaminationManagement">
+              <span className="icon">🧪</span>
               <span>Quản Lí Kết Quả Xét Nghiệm</span>
             </Link>
           </li>
           <li className={active === "arv" ? "active" : ""}>
             <Link to="/arv">
-              <span className="icon">🧪</span>
+              <span className="icon">💊</span>
               <span>Quản Lí ARV</span>
             </Link>
           </li>
           <li className={active === "arv-protocol" ? "active" : ""}>
             <Link to="/arv-protocol">
-              <span className="icon">🧪</span>
+              <span className="icon">📋</span>
               <span>Quản Lí ARV Protocol</span>
             </Link>
           </li>
