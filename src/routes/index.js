@@ -17,6 +17,7 @@ import AdminManagementAccount from "../pages/Admin/AdminManagementAccount";
 import DoctorInfoView from "../pages/DoctorInfo/DoctorInfoView";
 import ManagementDoctorInfo from "../pages/Staff/ManagementDoctorInfo";
 import ARVProtocolManagement from "../pages/ARVProtocol/ARVProtocolManagement";
+import AppointmentHistory from "../pages/Appointment/AppointmentHistory";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -37,5 +38,9 @@ export const routes = [
   { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
   { path: "/Doctor-Info", element: <DoctorInfoView /> },
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
+
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
+
+  {path: "/Appointment-History", element: <AppointmentHistory />},
+
 ];

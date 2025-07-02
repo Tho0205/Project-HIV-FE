@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./nav-bar.css";
 import { toast } from "react-toastify";
-import { tokenManager } from "../../services/account";
+import { apiRequest, tokenManager } from "../../services/account";
 
-// const backendBaseUrl = "https://localhost:7243";
+const backendBaseUrl = "https://localhost:7243";
 const Header = () => {
   const navigate = useNavigate();
   const Userrole = tokenManager.getCurrentUserRole();
@@ -16,18 +16,34 @@ const Header = () => {
   useEffect(() => {
     const storedAvatar =
       localStorage.getItem("user_avatar") || tokenManager.getUserAvatarUrl();
-    console.log(storedAvatar);
+
     if (storedAvatar) {
-      setAvatarUrl(`${storedAvatar}?t=${new Date().getTime()}`);
+      const isFullUrl = storedAvatar.startsWith("http");
+
+      setAvatarUrl(
+        isFullUrl
+          ? `${storedAvatar}?t=${Date.now()}`
+          : `${backendBaseUrl}/api/Account/avatar/${storedAvatar}?t=${Date.now()}`
+      );
     } else {
       setAvatarUrl("/assets/image/patient/patient.png");
     }
   }, []);
 
-  const Logout = () => {
+  const Logout = async () => {
     setLoading(true);
     sessionStorage.clear();
     localStorage.clear();
+
+    try {
+      await fetch("https://localhost:7243/api/account/logout", {
+        method: "POST",
+        credentials: "include", // bắt buộc để gửi cookie
+      });
+    } catch (error) {
+      console.error("Logout error", error);
+    }
+
     setRole(null);
     setLoading(false);
     navigate("/");

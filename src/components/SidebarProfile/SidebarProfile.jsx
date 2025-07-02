@@ -26,7 +26,7 @@ const SidebarProfile = () => {
         Thông tin chung
       </Link>
       <Link
-        to="#"
+        to="/Appointment-History"
         className={`sidebar-link ${
           activeItem === "consultation" ? "active" : ""
         }`}
