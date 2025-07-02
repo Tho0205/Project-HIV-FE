@@ -32,6 +32,7 @@ function App() {
     "/arv-protocol",
     "/HIV-ExaminationManagement",
     "/Admin-AccountManagement",
+    "/DashBoard"
   ].includes(location.pathname);
 
   return (

@@ -20,6 +20,7 @@ import ARVProtocolManagement from "../pages/ARVProtocol/ARVProtocolManagement";
 import AppointmentHistory from "../pages/Appointment/AppointmentHistory";
 import DoctorMedicalRecordPage from "../pages/MedicalRecord/DoctorMedicalRecordPage";
 import PatientMedicalRecordPage from "../pages/MedicalRecord/PatientMedicalRecordPage";
+import Dashboard from "../pages/Staff/DashBoard";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -43,7 +44,11 @@ export const routes = [
   { path: "/Appointment-History", element: <AppointmentHistory />},
   { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage/>},
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
+<<<<<<< Updated upstream
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
   {path: "/Appointment-History", element: <AppointmentHistory />},
+=======
+  { path: "/DashBoard", element: <Dashboard />}
+>>>>>>> Stashed changes
 
 ];
