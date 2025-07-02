@@ -73,11 +73,14 @@ export const ARVProtocolService = {
     }
   },
 
-  updateProtocol: async (id, protocolData) => {
+   updateProtocol: async (id, protocolData) => {
     try {
       const response = await apiRequest(`${API_BASE}/${id}`, {
         method: "PUT",
         body: JSON.stringify(protocolData),
+        headers: {
+          'Content-Type': 'application/json'
+        }
       });
       return await handleResponse(response);
     } catch (error) {
@@ -86,31 +89,44 @@ export const ARVProtocolService = {
     }
   },
 
-  deleteProtocol: async (id) => {
+  updateProtocolDetail: async (protocolId, detailId, detailData) => {
     try {
-      const response = await apiRequest(`${API_BASE}/${id}`, {
-        method: "DELETE",
-      });
+      const response = await apiRequest(
+        `${API_BASE}/${protocolId}/details/${detailId}`, 
+        {
+          method: "PUT",
+          body: JSON.stringify(detailData),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       return await handleResponse(response);
     } catch (error) {
-      console.error("Delete protocol error:", error);
+      console.error("Update detail error:", error);
       throw error;
     }
   },
 
   addARVToProtocol: async (protocolId, arvData) => {
     try {
-      const response = await apiRequest(`${API_BASE}/${protocolId}/add-arv`, {
-        method: "POST",
-        body: JSON.stringify(arvData),
-      });
+      const response = await apiRequest(
+        `${API_BASE}/${protocolId}/add-arv`, 
+        {
+          method: "POST",
+          body: JSON.stringify(arvData),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       return await handleResponse(response);
     } catch (error) {
-      console.error("Failed to add ARV to protocol:", error);
+      console.error("Add ARV error:", error);
       throw error;
     }
   },
-
+  
   updateProtocolDetail: async (protocolId, detailId, detailData) => {
     try {
       const response = await apiRequest(`${API_BASE}/${protocolId}/details/${detailId}`, {
