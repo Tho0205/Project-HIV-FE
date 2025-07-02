@@ -151,6 +151,17 @@ export const ARVProtocolService = {
       throw error;
     }
   },
+  deleteProtocol: async (id) => {
+  try {
+    const response = await apiRequest(`${API_BASE}/${id}`, {
+      method: "DELETE",
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    console.error("Delete protocol error:", error);
+    throw error;
+  }
+},
 };
 
 export default ARVProtocolService;
