@@ -19,13 +19,13 @@ const DoctorMedicalRecordPage = () => {
   if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="medi-management-page">
-        <SidebarProfile />
+    <div className="container">
+      <SidebarProfile />
       <div className="medi-content">
         <div className="medi-header">
           <h2 className="medi-title">Hồ sơ bệnh nhân bạn phụ trách</h2>
         </div>
-        
+
         <div className="medi-list">
           {records.length === 0 ? (
             <div className="medi-empty-message">Không có hồ sơ nào.</div>
@@ -40,14 +40,16 @@ const DoctorMedicalRecordPage = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="medi-datetime">
                   <span className="medi-exam-date">{r.examDate}</span>
                   <span className="medi-exam-time">{r.examTime}</span>
                 </div>
-                
+
                 <div className="medi-summary">
-                  {r.summary || <span className="medi-no-summary">Không có ghi chú</span>}
+                  {r.summary || (
+                    <span className="medi-no-summary">Không có ghi chú</span>
+                  )}
                 </div>
               </div>
             ))
