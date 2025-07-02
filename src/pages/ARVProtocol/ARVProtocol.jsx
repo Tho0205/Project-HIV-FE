@@ -166,7 +166,7 @@ export default function ARVProtocol() {
   };
 
   // Update protocol
-  const handleSubmitEdit = async (e) => {
+    const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
@@ -186,6 +186,7 @@ export default function ARVProtocol() {
       );
 
       // 3. Update ARV details
+
       const detailUpdates = editData.details.map((detail) => {
         if (detail.detailId) {
           // Existing detail - update
@@ -198,6 +199,7 @@ export default function ARVProtocol() {
               dosage: detail.dosage,
               usageInstruction: detail.usageInstruction,
               status: detail.status,
+
             }
           );
         } else {

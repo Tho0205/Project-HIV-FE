@@ -78,14 +78,14 @@ export const ARVProtocolService = {
     }
   },
 
-  updateProtocol: async (id, protocolData) => {
+   updateProtocol: async (id, protocolData) => {
     try {
       const response = await fetch(`${API_BASE}/${id}`, {
         method: "PUT",
         body: JSON.stringify(protocolData),
         headers: {
-          "Content-Type": "application/json",
-        },
+          'Content-Type': 'application/json'
+        }
       });
       return await handleResponse(response);
     } catch (error) {
@@ -128,7 +128,7 @@ export const ARVProtocolService = {
       throw error;
     }
   },
-
+  
   updateProtocolDetail: async (protocolId, detailId, detailData) => {
     try {
       const response = await fetch(
@@ -163,6 +163,7 @@ export const ARVProtocolService = {
     }
   },
   deleteProtocol: async (id) => {
+
     try {
       const response = await fetch(`${API_BASE}/${id}`, {
         method: "DELETE",
