@@ -7,6 +7,7 @@ import ARVService from "../../services/ARVService";
 import ARVProtocolService from "../../services/ARVProtocolService";
 import { toast } from "react-toastify";
 import "./ARVProtocolManagement.css";
+import { Bold } from "lucide-react";
 
 const ARVProtocolManagement = () => {
   const navigate = useNavigate();
@@ -26,9 +27,10 @@ const ARVProtocolManagement = () => {
     baseProtocolId: null,
     name: "",
     description: "",
-    details: []
+    details: [],
   });
-  const [selectedStandardProtocol, setSelectedStandardProtocol] = useState(null);
+  const [selectedStandardProtocol, setSelectedStandardProtocol] =
+    useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [patientsPerPage] = useState(10);
 
@@ -38,7 +40,7 @@ const ARVProtocolManagement = () => {
   const currentPatients = useMemo(() => {
     return patients.slice(indexOfFirstPatient, indexOfLastPatient);
   }, [patients, indexOfFirstPatient, indexOfLastPatient]);
-  
+
   const totalPages = Math.ceil(patients.length / patientsPerPage);
 
   const paginate = (pageNumber) => {
@@ -56,11 +58,12 @@ const ARVProtocolManagement = () => {
         ARVProtocolService.getAllProtocols(),
         ARVService.getAllARVs(),
       ]);
-      
+
       // Đảm bảo patients là unique
-      const uniquePatients = [...new Map(patientsData.map(item => 
-        [item.patientId, item])).values()];
-      
+      const uniquePatients = [
+        ...new Map(patientsData.map((item) => [item.patientId, item])).values(),
+      ];
+
       setPatients(uniquePatients);
       setStandardProtocols(protocolsData);
       setAvailableARVs(arvsData);
@@ -96,9 +99,9 @@ const ARVProtocolManagement = () => {
       setLoading(true);
       const [current, history] = await Promise.all([
         CustomArvProtocolsService.getPatientCurrentProtocol(patientId),
-        CustomArvProtocolsService.getPatientProtocolHistory(patientId)
+        CustomArvProtocolsService.getPatientProtocolHistory(patientId),
       ]);
-      
+
       setCurrentProtocol(current);
       setProtocolHistory(history);
     } catch (err) {
@@ -112,7 +115,7 @@ const ARVProtocolManagement = () => {
   const handleSelectPatient = (patient) => {
     setSelectedPatient(patient);
     loadPatientProtocol(patient.patientId);
-    setModalType('view');
+    setModalType("view");
     setIsModalOpen(true);
   };
 
@@ -120,20 +123,21 @@ const ARVProtocolManagement = () => {
   const handleCreateProtocol = async () => {
     try {
       setLoading(true);
-      const createdProtocol = await CustomArvProtocolsService.createCustomProtocol(
-        doctorId,
-        selectedPatient.patientId,
-        newProtocolData
-      );
-      
+      const createdProtocol =
+        await CustomArvProtocolsService.createCustomProtocol(
+          doctorId,
+          selectedPatient.patientId,
+          newProtocolData
+        );
+
       toast.success("Tạo phác đồ thành công!");
       await loadPatientProtocol(selectedPatient.patientId);
-      setModalType('view');
+      setModalType("view");
       setNewProtocolData({
         baseProtocolId: null,
         name: "",
         description: "",
-        details: []
+        details: [],
       });
     } catch (err) {
       toast.error("Lỗi khi tạo phác đồ: " + err.message);
@@ -143,37 +147,36 @@ const ARVProtocolManagement = () => {
   };
 
   // Handle protocol update
- const handleUpdateProtocol = async (protocolId, isCustom) => {
-  try {
-    setLoading(true);
-    await CustomArvProtocolsService.updatePatientProtocol(
-      selectedPatient.patientId,
-      { protocolId, isCustom }
-    );
+  const handleUpdateProtocol = async (protocolId, isCustom) => {
+    try {
+      setLoading(true);
+      await CustomArvProtocolsService.updatePatientProtocol(
+        selectedPatient.patientId,
+        { protocolId, isCustom }
+      );
 
-    toast.success("Cập nhật phác đồ thành công!");
+      toast.success("Cập nhật phác đồ thành công!");
 
-    // Tải lại toàn bộ danh sách (không reload trình duyệt)
-    await fetchInitialData();
+      // Tải lại toàn bộ danh sách (không reload trình duyệt)
+      await fetchInitialData();
 
-    // Tải lại phác đồ của bệnh nhân đang xem
-    await loadPatientProtocol(selectedPatient.patientId);
+      // Tải lại phác đồ của bệnh nhân đang xem
+      await loadPatientProtocol(selectedPatient.patientId);
 
-    setModalType('view');
-  } catch (err) {
-    toast.error("Lỗi khi cập nhật phác đồ: " + err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      setModalType("view");
+    } catch (err) {
+      toast.error("Lỗi khi cập nhật phác đồ: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Add ARV to new protocol
   const addARVToProtocol = (arvId) => {
-    const arv = availableARVs.find(a => a.arvId === arvId);
+    const arv = availableARVs.find((a) => a.arvId === arvId);
     if (!arv) return;
 
-    setNewProtocolData(prev => ({
+    setNewProtocolData((prev) => ({
       ...prev,
       details: [
         ...prev.details,
@@ -181,34 +184,34 @@ const ARVProtocolManagement = () => {
           arvId,
           dosage: "1 viên",
           usageInstruction: "Uống hàng ngày",
-          status: "ACTIVE"
-        }
-      ]
+          status: "ACTIVE",
+        },
+      ],
     }));
   };
 
   // Handle standard protocol selection
   const handleStandardProtocolSelect = async (protocolId) => {
-    const protocol = standardProtocols.find(p => p.protocolId === protocolId);
+    const protocol = standardProtocols.find((p) => p.protocolId === protocolId);
     if (!protocol) return;
 
     const details = await loadProtocolDetails(protocolId);
-    
+
     setSelectedStandardProtocol({
       ...protocol,
-      details: details
+      details: details,
     });
-    
+
     setNewProtocolData({
       baseProtocolId: protocolId,
       name: protocol.name,
       description: protocol.description,
-      details: details.map(d => ({
+      details: details.map((d) => ({
         arvId: d.arvId,
         dosage: d.dosage || "1 viên",
         usageInstruction: d.usageInstruction || "Uống hàng ngày",
-        status: "ACTIVE"
-      }))
+        status: "ACTIVE",
+      })),
     });
   };
 
@@ -220,12 +223,12 @@ const ARVProtocolManagement = () => {
   };
 
   return (
-    <div className="doctor-dashboard-layout">
-      <div className="sidebar-section">
-        <SidebarDoctor active="protocol" />
-      </div>
+    <div className="container">
+      <SidebarDoctor active="Protocol-Manager" />
+
       <div className="main-content-section">
-        <main className="content">     
+        <h2>Quản lý Phác Đồ</h2>
+        <main className="content">
           <div className="patient-list-container">
             <table className="patient-table">
               <thead>
@@ -240,31 +243,48 @@ const ARVProtocolManagement = () => {
               </thead>
               <tbody>
                 {loading && patients.length === 0 ? (
-                  <tr><td colSpan="6">Đang tải dữ liệu...</td></tr>
+                  <tr>
+                    <td colSpan="6">Đang tải dữ liệu...</td>
+                  </tr>
                 ) : currentPatients.length === 0 ? (
-                  <tr><td colSpan="6">Không có bệnh nhân nào</td></tr>
+                  <tr>
+                    <td colSpan="6">Không có bệnh nhân nào</td>
+                  </tr>
                 ) : (
                   currentPatients.map((patient, index) => {
                     const globalIndex = indexOfFirstPatient + index;
                     return (
                       <tr key={`${patient.patientId}-${globalIndex}`}>
                         <td>{globalIndex + 1}</td>
-                        <td>{patient.fullName}</td>
+                        <td style={{ fontWeight: "bold" }}>
+                          {patient.fullName}
+                        </td>
                         <td>{patient.phone || "N/A"}</td>
                         <td>
                           {patient.latestExamination ? (
                             <>
-                              <div>Ngày: {formatDate(patient.latestExamination.examDate)}</div>
-                              <div>CD4: {patient.latestExamination.cd4Count || "N/A"}</div>
-                              <div>Tải lượng: {patient.latestExamination.hivLoad || "N/A"}</div>
+                              <div>
+                                Ngày:{" "}
+                                {formatDate(patient.latestExamination.examDate)}
+                              </div>
+                              <div>
+                                CD4:{" "}
+                                {patient.latestExamination.cd4Count || "N/A"}
+                              </div>
+                              <div>
+                                Tải lượng:{" "}
+                                {patient.latestExamination.hivLoad || "N/A"}
+                              </div>
                             </>
-                          ) : "Không có dữ liệu"}
+                          ) : (
+                            "Không có dữ liệu"
+                          )}
                         </td>
                         <td>
                           {patient.currentProtocol?.name || "Chưa có phác đồ"}
                         </td>
                         <td>
-                          <button 
+                          <button
                             className="btn-view"
                             onClick={() => handleSelectPatient(patient)}
                           >
@@ -277,11 +297,11 @@ const ARVProtocolManagement = () => {
                 )}
               </tbody>
             </table>
-            
+
             {patients.length > patientsPerPage && (
               <div className="pagination">
-                <button 
-                  onClick={() => paginate(1)} 
+                <button
+                  onClick={() => paginate(1)}
                   disabled={currentPage === 1}
                 >
                   &laquo;
@@ -297,19 +317,19 @@ const ARVProtocolManagement = () => {
                   } else {
                     pageNumber = currentPage - 2 + i;
                   }
-                  
+
                   return (
                     <button
                       key={pageNumber}
                       onClick={() => paginate(pageNumber)}
-                      className={currentPage === pageNumber ? 'active' : ''}
+                      className={currentPage === pageNumber ? "active" : ""}
                     >
                       {pageNumber}
                     </button>
                   );
                 })}
-                <button 
-                  onClick={() => paginate(totalPages)} 
+                <button
+                  onClick={() => paginate(totalPages)}
                   disabled={currentPage === totalPages}
                 >
                   &raquo;
@@ -320,17 +340,18 @@ const ARVProtocolManagement = () => {
 
           {/* Modal for protocol details */}
           {isModalOpen && selectedPatient && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <div className="modal-header">
+            <div className="modal-overlay-ARVProtocol">
+              <div className="modal-content-ARVProtocol">
+                <div className="modal-header-ARVProtocol">
                   <h3>
-                    {modalType === 'view' && `Phác đồ của ${selectedPatient.fullName}`}
-                    {modalType === 'create' && `Tạo phác đồ mới`}
-                    {modalType === 'history' && `Lịch sử phác đồ`}
-                    {modalType === 'switch' && `Chuyển phác đồ`}
+                    {modalType === "view" &&
+                      `Phác đồ của ${selectedPatient.fullName}`}
+                    {modalType === "create" && `Tạo phác đồ mới`}
+                    {modalType === "history" && `Lịch sử phác đồ`}
+                    {modalType === "switch" && `Chuyển phác đồ`}
                   </h3>
-                  <button 
-                    className="close-btn"
+                  <button
+                    className="close-btn-ARVProtocol"
                     onClick={() => {
                       setIsModalOpen(false);
                       setModalType(null);
@@ -339,7 +360,7 @@ const ARVProtocolManagement = () => {
                         baseProtocolId: null,
                         name: "",
                         description: "",
-                        details: []
+                        details: [],
                       });
                     }}
                   >
@@ -347,34 +368,41 @@ const ARVProtocolManagement = () => {
                   </button>
                 </div>
 
-                {modalType === 'view' && currentProtocol && (
-                  <div className="protocol-details">
-                    <div className="current-protocol">
+                {modalType === "view" && currentProtocol && (
+                  <div className="protocol-details-ARVProtocol">
+                    <div className="current-protocol-ARVProtocol">
                       <h4>Phác đồ hiện tại</h4>
-                      <p><strong>Tên:</strong> {currentProtocol.name}</p>
-                      <p><strong>Mô tả:</strong> {currentProtocol.description}</p>
-                      <p><strong>Trạng thái:</strong> {currentProtocol.status}</p>
-                      
+                      <p>
+                        <strong>Tên:</strong> {currentProtocol.name}
+                      </p>
+                      <p>
+                        <strong>Mô tả:</strong> {currentProtocol.description}
+                      </p>
+                      <p>
+                        <strong>Trạng thái:</strong> {currentProtocol.status}
+                      </p>
+
                       <h5>Danh sách ARV</h5>
-                      <ul className="arv-list">
-                        {currentProtocol.details.map(detail => (
+                      <ul className="arv-list-ARVProtocol">
+                        {currentProtocol.details.map((detail) => (
                           <li key={detail.detailId}>
-                            {detail.arvName} - {detail.dosage} ({detail.usageInstruction})
+                            {detail.arvName} - {detail.dosage} (
+                            {detail.usageInstruction})
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="action-buttons">
-                      <button 
-                        className="btn-history"
-                        onClick={() => setModalType('history')}
+                    <div className="action-buttons-ARVProtocol">
+                      <button
+                        className="btn-history-ARVProtocol"
+                        onClick={() => setModalType("history")}
                       >
                         Xem lịch sử
                       </button>
-                      <button 
-                        className="btn-switch"
-                        onClick={() => setModalType('switch')}
+                      <button
+                        className="btn-switch-ARVProtocol"
+                        onClick={() => setModalType("switch")}
                       >
                         Chuyển phác đồ
                       </button>
@@ -382,21 +410,21 @@ const ARVProtocolManagement = () => {
                   </div>
                 )}
 
-                {modalType === 'switch' && (
-                  <div className="switch-protocol">
-                    <div className="switch-options">
+                {modalType === "switch" && (
+                  <div className="switch-protocol-ARVProtocol">
+                    <div className="switch-options-ARVProtocol">
                       <h4>Chọn loại phác đồ:</h4>
-                      <div className="option-buttons">
+                      <div className="option-buttons-ARVProtocol">
                         <button
-                          className="option-btn active"
-                          onClick={() => setModalType('create')}
+                          className="option-btn-ARVProtocol active"
+                          onClick={() => setModalType("create")}
                         >
                           Tạo phác đồ tùy chỉnh
                         </button>
                         <button
-                          className="option-btn"
+                          className="option-btn-ARVProtocol"
                           onClick={() => {
-                            setModalType('select-standard');
+                            setModalType("select-standard");
                           }}
                         >
                           Chọn phác đồ chuẩn
@@ -404,27 +432,32 @@ const ARVProtocolManagement = () => {
                       </div>
                     </div>
 
-                    <button 
-                      className="btn-back"
-                      onClick={() => setModalType('view')}
+                    <button
+                      className="btn-back-ARVProtocol"
+                      onClick={() => setModalType("view")}
                     >
                       Quay lại
                     </button>
                   </div>
                 )}
 
-                {modalType === 'select-standard' && (
-                  <div className="select-standard-protocol">
+                {modalType === "select-standard" && (
+                  <div className="select-standard-protocol-ARVProtocol">
                     <h4>Chọn phác đồ chuẩn</h4>
-                    <div className="form-group">
+                    <div className="form-group-ARVProtocol">
                       <label>Phác đồ chuẩn:</label>
                       <select
-                        onChange={(e) => handleStandardProtocolSelect(parseInt(e.target.value))}
+                        onChange={(e) =>
+                          handleStandardProtocolSelect(parseInt(e.target.value))
+                        }
                         value={selectedStandardProtocol?.protocolId || ""}
                       >
                         <option value="">-- Chọn phác đồ --</option>
-                        {standardProtocols.map(protocol => (
-                          <option key={protocol.protocolId} value={protocol.protocolId}>
+                        {standardProtocols.map((protocol) => (
+                          <option
+                            key={protocol.protocolId}
+                            value={protocol.protocolId}
+                          >
                             {protocol.name}
                           </option>
                         ))}
@@ -432,42 +465,66 @@ const ARVProtocolManagement = () => {
                     </div>
 
                     {selectedStandardProtocol && (
-                      <div className="protocol-preview">
+                      <div className="protocol-preview-ARVProtocol">
                         <h5>Thông tin phác đồ:</h5>
-                        <p><strong>Tên:</strong> {selectedStandardProtocol.name}</p>
-                        <p><strong>Mô tả:</strong> {selectedStandardProtocol.description}</p>
-                        
+                        <p>
+                          <strong>Tên:</strong> {selectedStandardProtocol.name}
+                        </p>
+                        <p>
+                          <strong>Mô tả:</strong>{" "}
+                          {selectedStandardProtocol.description}
+                        </p>
+
                         <h5>Danh sách ARV:</h5>
-                        {selectedStandardProtocol.details && selectedStandardProtocol.details.length > 0 ? (
-                          <ul className="arv-list">
-                            {selectedStandardProtocol.details.map((detail, index) => {
-                              const arv = availableARVs.find(a => a.arvId === detail.arvId);
-                              return (
-                                <li key={index}>
-                                  <div className="arv-info">
-                                    <span className="arv-name">{arv?.name || `ARV ID: ${detail.arvId}`}</span>
-                                    <span className="arv-dosage">Liều lượng: {detail.dosage}</span>
-                                    <span className="arv-instruction">Hướng dẫn: {detail.usageInstruction}</span>
-                                  </div>
-                                </li>
-                              );
-                            })}
+                        {selectedStandardProtocol.details &&
+                        selectedStandardProtocol.details.length > 0 ? (
+                          <ul className="arv-list-ARVProtocol">
+                            {selectedStandardProtocol.details.map(
+                              (detail, index) => {
+                                const arv = availableARVs.find(
+                                  (a) => a.arvId === detail.arvId
+                                );
+                                return (
+                                  <li key={index}>
+                                    <div className="arv-info-ARVProtocol">
+                                      <span className="arv-name-ARVProtocol">
+                                        {arv?.name || `ARV ID: ${detail.arvId}`}
+                                      </span>
+                                      <span className="arv-dosage-ARVProtocol">
+                                        Liều lượng: {detail.dosage}
+                                      </span>
+                                      <span className="arv-instruction-ARVProtocol">
+                                        Hướng dẫn: {detail.usageInstruction}
+                                      </span>
+                                    </div>
+                                  </li>
+                                );
+                              }
+                            )}
                           </ul>
                         ) : (
                           <p>Đang tải danh sách ARV...</p>
                         )}
 
-                        <div className="action-buttons">
+                        <div className="action-buttons-ARVProtocol">
                           <button
-                            className="btn-customize"
-                            onClick={() => setModalType('create')}
+                            className="btn-customize-ARVProtocol"
+                            onClick={() => setModalType("create")}
                           >
                             Tùy chỉnh phác đồ
                           </button>
                           <button
-                            className="btn-apply"
-                            onClick={() => handleUpdateProtocol(selectedStandardProtocol.protocolId, false)}
-                            disabled={!selectedStandardProtocol.details || selectedStandardProtocol.details.length === 0}
+                            className="btn-apply-ARVProtocol"
+                            onClick={() =>
+                              handleUpdateProtocol(
+                                selectedStandardProtocol.protocolId,
+                                false
+                              )
+                            }
+                            disabled={
+                              !selectedStandardProtocol.details ||
+                              selectedStandardProtocol.details.length === 0
+                            }
                           >
                             Áp dụng nguyên mẫu
                           </button>
@@ -475,88 +532,123 @@ const ARVProtocolManagement = () => {
                       </div>
                     )}
 
-                    <button 
-                      className="btn-back"
-                      onClick={() => setModalType('switch')}
+                    <button
+                      className="btn-back-ARVProtocol"
+                      onClick={() => setModalType("switch")}
                     >
                       Quay lại
                     </button>
                   </div>
                 )}
 
-                {modalType === 'create' && (
-                  <div className="create-protocol">
+                {modalType === "create" && (
+                  <div className="create-protocol-ARVProtocol">
                     <h4>Tạo phác đồ mới</h4>
-                    
+
                     {selectedStandardProtocol && (
-                      <div className="standard-protocol-info">
-                        <p>Đang tạo từ phác đồ: <strong>{selectedStandardProtocol.name}</strong></p>
+                      <div className="standard-protocol-info-ARVProtocol">
+                        <p>
+                          Đang tạo từ phác đồ:{" "}
+                          <strong>{selectedStandardProtocol.name}</strong>
+                        </p>
                       </div>
                     )}
 
-                    <div className="form-group">
+                    <div className="form-group-ARVProtocol">
                       <label>Tên phác đồ:</label>
                       <input
                         type="text"
                         value={newProtocolData.name}
-                        onChange={(e) => setNewProtocolData({ ...newProtocolData, name: e.target.value })}
+                        onChange={(e) =>
+                          setNewProtocolData({
+                            ...newProtocolData,
+                            name: e.target.value,
+                          })
+                        }
                         placeholder="Nhập tên phác đồ"
                       />
                     </div>
 
-                    <div className="form-group">
+                    <div className="form-group-ARVProtocol">
                       <label>Mô tả:</label>
                       <textarea
                         value={newProtocolData.description}
-                        onChange={(e) => setNewProtocolData({ ...newProtocolData, description: e.target.value })}
+                        onChange={(e) =>
+                          setNewProtocolData({
+                            ...newProtocolData,
+                            description: e.target.value,
+                          })
+                        }
                         placeholder="Nhập mô tả phác đồ"
                       />
                     </div>
 
-                    <div className="arv-selections">
+                    <div className="arv-selections-ARVProtocol">
                       <h5>Danh sách thuốc ARV:</h5>
                       {newProtocolData.details.length === 0 ? (
                         <p>Chưa có thuốc ARV nào trong phác đồ</p>
                       ) : (
                         <ul>
                           {newProtocolData.details.map((detail, index) => {
-                            const arv = availableARVs.find(a => a.arvId === detail.arvId);
+                            const arv = availableARVs.find(
+                              (a) => a.arvId === detail.arvId
+                            );
                             return (
                               <li key={index}>
-                                <div className="arv-info">
-                                  <span className="arv-name">{arv?.name || "Unknown ARV"}</span>
-                                  <div className="arv-dosage">
+                                <div className="arv-info-ARVProtocol">
+                                  <span className="arv-name-ARVProtocol">
+                                    {arv?.name || "Unknown ARV"}
+                                  </span>
+                                  <div className="arv-dosage-ARVProtocol">
                                     <label>Liều lượng:</label>
                                     <input
                                       type="text"
                                       value={detail.dosage}
                                       onChange={(e) => {
-                                        const updatedDetails = [...newProtocolData.details];
-                                        updatedDetails[index].dosage = e.target.value;
-                                        setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                                        const updatedDetails = [
+                                          ...newProtocolData.details,
+                                        ];
+                                        updatedDetails[index].dosage =
+                                          e.target.value;
+                                        setNewProtocolData({
+                                          ...newProtocolData,
+                                          details: updatedDetails,
+                                        });
                                       }}
                                       placeholder="VD: 1 viên/ngày"
                                     />
                                   </div>
-                                  <div className="arv-instruction">
+                                  <div className="arv-instruction-ARVProtocol">
                                     <label>Hướng dẫn:</label>
                                     <input
                                       type="text"
                                       value={detail.usageInstruction}
                                       onChange={(e) => {
-                                        const updatedDetails = [...newProtocolData.details];
-                                        updatedDetails[index].usageInstruction = e.target.value;
-                                        setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                                        const updatedDetails = [
+                                          ...newProtocolData.details,
+                                        ];
+                                        updatedDetails[index].usageInstruction =
+                                          e.target.value;
+                                        setNewProtocolData({
+                                          ...newProtocolData,
+                                          details: updatedDetails,
+                                        });
                                       }}
                                       placeholder="VD: Uống buổi sáng"
                                     />
                                   </div>
                                 </div>
                                 <button
-                                  className="btn-remove"
+                                  className="btn-remove-ARVProtocol"
                                   onClick={() => {
-                                    const updatedDetails = newProtocolData.details.filter((_, i) => i !== index);
-                                    setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                                    const updatedDetails =
+                                      newProtocolData.details.filter(
+                                        (_, i) => i !== index
+                                      );
+                                    setNewProtocolData({
+                                      ...newProtocolData,
+                                      details: updatedDetails,
+                                    });
                                   }}
                                 >
                                   Xóa
@@ -568,23 +660,27 @@ const ARVProtocolManagement = () => {
                       )}
                     </div>
 
-                    <div className="form-actions">
+                    <div className="form-actions-ARVProtocol">
                       <button
-                        className="btn-cancel"
+                        className="btn-cancel-ARVProtocol"
                         onClick={() => {
                           if (selectedStandardProtocol) {
-                            setModalType('select-standard');
+                            setModalType("select-standard");
                           } else {
-                            setModalType('switch');
+                            setModalType("switch");
                           }
                         }}
                       >
                         Quay lại
                       </button>
                       <button
-                        className="btn-submit"
+                        className="btn-submit-ARVProtocol"
                         onClick={handleCreateProtocol}
-                        disabled={loading || !newProtocolData.name || newProtocolData.details.length === 0}
+                        disabled={
+                          loading ||
+                          !newProtocolData.name ||
+                          newProtocolData.details.length === 0
+                        }
                       >
                         {loading ? "Đang xử lý..." : "Lưu phác đồ"}
                       </button>
@@ -592,8 +688,8 @@ const ARVProtocolManagement = () => {
                   </div>
                 )}
 
-                {modalType === 'history' && (
-                  <div className="protocol-history">
+                {modalType === "history" && (
+                  <div className="protocol-history-ARVProtocol">
                     <table>
                       <thead>
                         <tr>
@@ -605,7 +701,7 @@ const ARVProtocolManagement = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {protocolHistory.map(protocol => (
+                        {protocolHistory.map((protocol) => (
                           <tr key={protocol.customProtocolId}>
                             <td>{formatDate(protocol.createdDate)}</td>
                             <td>{protocol.name}</td>
@@ -614,8 +710,13 @@ const ARVProtocolManagement = () => {
                             <td>
                               {protocol.status !== "ACTIVE" && (
                                 <button
-                                  className="btn-activate"
-                                  onClick={() => handleUpdateProtocol(protocol.customProtocolId, true)}
+                                  className="btn-activate-ARVProtocol"
+                                  onClick={() =>
+                                    handleUpdateProtocol(
+                                      protocol.customProtocolId,
+                                      true
+                                    )
+                                  }
                                 >
                                   Kích hoạt
                                 </button>
@@ -625,9 +726,9 @@ const ARVProtocolManagement = () => {
                         ))}
                       </tbody>
                     </table>
-                    <button 
-                      className="btn-back"
-                      onClick={() => setModalType('view')}
+                    <button
+                      className="btn-back-ARVProtocol"
+                      onClick={() => setModalType("view")}
                     >
                       Quay lại
                     </button>
