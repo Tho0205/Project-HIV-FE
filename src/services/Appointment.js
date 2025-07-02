@@ -29,6 +29,34 @@ export const getPatientInfoApi = async (patientId) => {
   }
 };
 
+// Get doctor information by ID
+export const getDoctorInfoApi = async (doctorId) => {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/Appointment/doctor/${doctorId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error("Không tìm thấy thông tin bác sĩ");
+      }
+      throw new Error("Lỗi khi tải thông tin bác sĩ");
+    }
+
+    const doctorData = await response.json();
+    return doctorData;
+  } catch (error) {
+    console.error("Error fetching doctor info:", error);
+    throw error;
+  }
+};
+
 // Get list of doctors
 export const getDoctorsApi = async () => {
   try {
@@ -131,7 +159,7 @@ export const getAppointmentsApi = async () => {
   }
 };
 
-// Cancel appointment
+// Cancel appointment (old method)
 export const cancelAppointmentApi = async (appointmentId) => {
   try {
     const response = await fetch(
@@ -158,6 +186,148 @@ export const cancelAppointmentApi = async (appointmentId) => {
     console.error("Error canceling appointment:", error);
     throw error;
   }
+};
+
+// NEW STATUS MANAGEMENT METHODS (using existing endpoints)
+
+// Update appointment status using the available endpoint
+export const updateAppointmentStatusApi = async (appointmentId, status, note = null) => {
+  try {
+    const requestBody = {
+      appointmentId: appointmentId,
+      status: status,
+      note: note
+    };
+
+    const response = await fetch(`${API_BASE_URL}/Appointment/update-status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Không thể cập nhật status";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error updating appointment status:", error);
+    throw error;
+  }
+};
+
+// Confirm appointment using the available endpoint
+export const confirmAppointmentApi = async (appointmentId, note = null) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/Appointment/confirm/${appointmentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: note ? JSON.stringify(note) : null,
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Không thể xác nhận lịch hẹn";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error confirming appointment:", error);
+    throw error;
+  }
+};
+
+// Complete appointment using the available endpoint
+export const completeAppointmentApi = async (appointmentId, note = null) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/Appointment/complete/${appointmentId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: note ? JSON.stringify(note) : null,
+    });
+
+    if (!response.ok) {
+      let errorMessage = "Không thể hoàn thành lịch hẹn";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorMessage;
+      } catch {
+        const errorText = await response.text();
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Error completing appointment:", error);
+    throw error;
+  }
+};
+
+// Get appointment by ID using the available endpoint
+export const getAppointmentByIdApi = async (appointmentId) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/Appointment/${appointmentId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error("Không tìm thấy lịch hẹn");
+      }
+      throw new Error("Lỗi khi tải thông tin lịch hẹn");
+    }
+
+    const appointment = await response.json();
+    return appointment;
+  } catch (error) {
+    console.error("Error fetching appointment:", error);
+    throw error;
+  }
+};
+
+// Static list of valid statuses (since we don't have the endpoint)
+export const getValidStatusesApi = async () => {
+  return ['CONFIRMED', 'COMPLETED', 'CANCELLED'];
+};
+
+// Static list of valid transitions (since we don't have the endpoint)
+export const getValidTransitionsApi = async (currentStatus) => {
+  const validTransitions = {
+    'CONFIRMED': ['COMPLETED', 'CANCELLED'],
+    'COMPLETED': [],
+    'CANCELLED': []
+  };
+  
+  return validTransitions[currentStatus] || [];
 };
 
 // Helper function to format date for display
@@ -189,14 +359,24 @@ export const isAppointmentPast = (dateString) => {
   return appointmentDate < now;
 };
 
-// Main appointmentService object for backward compatibility
+// Main appointmentService object
 export const appointmentService = {
   getPatientInfo: getPatientInfoApi,
+  getDoctorInfo: getDoctorInfoApi,
   getDoctors: getDoctorsApi,
   getDoctorSchedules: getDoctorSchedulesApi,
   createAppointment: createAppointmentApi,
   getAppointments: getAppointmentsApi,
   cancelAppointment: cancelAppointmentApi,
+  
+  // New status management methods
+  updateAppointmentStatus: updateAppointmentStatusApi,
+  confirmAppointment: confirmAppointmentApi,
+  completeAppointment: completeAppointmentApi,
+  getAppointmentById: getAppointmentByIdApi,
+  getValidStatuses: getValidStatusesApi,
+  getValidTransitions: getValidTransitionsApi,
+  
   formatDate: formatAppointmentDate,
   isPast: isAppointmentPast,
 };

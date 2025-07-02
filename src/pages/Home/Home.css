@@ -334,37 +334,6 @@
   object-fit: cover;
 }
 
-.hiv-doctor-status {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: rgba(34, 197, 94, 0.9);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 15px;
-  font-size: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.hiv-status-dot {
-  width: 6px;
-  height: 6px;
-  background: #ffd700;
-  border-radius: 50%;
-  animation: hiv-pulse 2s infinite;
-}
-
-@keyframes hiv-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
 
 .hiv-doctor-info {
   padding: 25px;

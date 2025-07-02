@@ -177,12 +177,6 @@ const Home = () => {
                       }
                       alt={doctor.doctorName}
                     />
-                    <div className="hiv-doctor-status">
-                      <span className="hiv-status-dot"></span>
-                      {doctor.status === "ACTIVE"
-                        ? "Đang hoạt động"
-                        : "Không hoạt động"}
-                    </div>
                   </div>
                   <div className="hiv-doctor-info">
                     <h3 className="hiv-doctor-name">

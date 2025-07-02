@@ -5,14 +5,12 @@ import { toast } from "react-toastify";
 
 export default function SidebarAdmin({ active }) {
   const navigate = useNavigate();
-
   function logout() {
     sessionStorage.clear();
     localStorage.clear();
     navigate("/login");
     toast.success("Đăng xuất thành công", { autoClose: 1000 });
   }
-
   return (
     <aside className="sidebar">
       <div className="sidebar-top">

@@ -2,7 +2,7 @@ import { apiRequest } from "./account";
 const API_BASE = "https://localhost:7243";
 
 class DoctorPatientService {
-  // Helper method for API calls
+  // Helper method for API calls with better error handling
   async apiCall(url, options = {}) {
     try {
       const response = await apiRequest(`${API_BASE}${url}`, {
@@ -10,83 +10,79 @@ class DoctorPatientService {
         ...options,
       });
 
-      if (!response.ok) {
-        if (response.status === 403) {
-          throw new Error("Không có quyền truy cập");
-        }
-        if (response.status === 404) {
-          throw new Error("Không tìm thấy dữ liệu");
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response) {
+        return { success: false, message: "Không có phản hồi từ server" };
       }
 
-      // Handle 204 No Content
+      if (!response.ok) {
+        const statusMessages = {
+          403: "Không có quyền truy cập",
+          404: "Không tìm thấy dữ liệu",
+        };
+        return {
+          success: false,
+          message: statusMessages[response.status] || `Lỗi server: ${response.status}`,
+        };
+      }
+
       if (response.status === 204) {
         return { success: true };
       }
 
-      const data = await response.json();
-      return { success: true, data };
+      try {
+        const data = await response.json();
+        return { success: true, data };
+      } catch (jsonError) {
+        console.error("JSON Parse Error:", jsonError);
+        return { success: true, data: null };
+      }
     } catch (error) {
-      // Check if it's a network error
-      if (error.message === "Failed to fetch") {
-        console.error("Network Error: Cannot connect to API server");
+      console.error("API Error:", error);
+      
+      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
         return {
           success: false,
-          message:
-            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng và đảm bảo server đang chạy.",
+          message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
         };
       }
-
-      console.error("API Error:", error);
+      
       return {
         success: false,
-        message: error.message || "Lỗi kết nối server",
+        message: error.message || "Lỗi không xác định",
       };
     }
   }
 
-  // Get doctor's patients list
-  async getDoctorPatients(
-    doctorId,
-    page = 1,
-    pageSize = 8,
-    sortBy = "full_name",
-    order = "asc"
-  ) {
+  // API Methods
+  async getDoctorPatients(doctorId, page = 1, pageSize = 8, sortBy = "full_name", order = "asc") {
     return this.apiCall(
       `/api/Doctor/Patients?doctorId=${doctorId}&page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&order=${order}`
     );
   }
 
-  // Update patient information
-  async updatePatientInfo(accountId, patientData) {
-    return this.apiCall(`/api/Doctor/UpdatePatient/${accountId}`, {
-      method: "PUT",
-      body: JSON.stringify(patientData),
-    });
-  }
-
-  // Get patient stats
   async getPatientStats(doctorId) {
     return this.apiCall(`/api/Doctor/PatientStats/${doctorId}`);
   }
 
-  // Get patient history
+  async getAvailablePatients() {
+    return this.apiCall("/api/Doctor/AvailablePatients");
+  }
+
+  async assignPatientToDoctor(doctorId, patientId) {
+    return this.apiCall("/api/Doctor/AssignPatient", {
+      method: "POST",
+      body: JSON.stringify({ doctorId, patientId }),
+    });
+  }
+
   async getPatientHistory(patientId, doctorId) {
-    return this.apiCall(
-      `/api/Doctor/PatientHistory/${patientId}?doctorId=${doctorId}`
-    );
+    return this.apiCall(`/api/Doctor/PatientHistory/${patientId}?doctorId=${doctorId}`);
   }
 
-  // Get patient detail
   async getPatientDetail(patientId, doctorId) {
-    return this.apiCall(
-      `/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`
-    );
+    return this.apiCall(`/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`);
   }
 
-  // Create or update examination
   async saveExamination(examData) {
     return this.apiCall("/api/HIVExamination/save", {
       method: "POST",
@@ -94,18 +90,33 @@ class DoctorPatientService {
     });
   }
 
-  // Delete examination (soft delete - set status to INACTIVE)
   async deleteExamination(examId) {
     return this.apiCall(`/api/HIVExamination/${examId}`, {
       method: "DELETE",
     });
   }
 
-  // Helper method for avatar URL
+  // Fixed avatar URL helper - sửa đường dẫn ảnh mặc định
   getAvatarUrl(avatarPath) {
-    return avatarPath
-      ? `${API_BASE}/api/Account/avatar/${avatarPath}`
-      : "/assets/image/patient/patient.png";
+    // Đường dẫn mặc định - sửa từ patient.png thành default-avatar.png
+    const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
+    
+    if (!avatarPath) {
+      return DEFAULT_AVATAR;
+    }
+    
+    // Check if it's already a full URL
+    if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+      return avatarPath;
+    }
+    
+    // Check if it starts with /
+    if (avatarPath.startsWith('/')) {
+      return `${API_BASE}${avatarPath}`;
+    }
+    
+    // Otherwise, assume it's just the filename
+    return `${API_BASE}/api/Account/avatar/${avatarPath}`;
   }
 }
 
