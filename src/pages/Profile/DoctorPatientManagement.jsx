@@ -482,7 +482,7 @@ export default function DoctorPatientManagement() {
                                   {formatDate(appointment.appointmentDate)}
                                 </span>
                                 <span
-                                  className={`status ${appointment.status?.toLowerCase()}`}
+                                  className={`status-doctor-patient ${appointment.status?.toLowerCase()}`}
                                 >
                                   {appointment.status}
                                 </span>

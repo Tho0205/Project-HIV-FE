@@ -101,7 +101,7 @@ const Header = () => {
                   setLoading(false);
                 }}
               >
-                <img src={avatarUrl} alt="Avatar" />
+                <img src={avatarUrl || null} alt="Avatar" />
               </button>
             </>
           )}

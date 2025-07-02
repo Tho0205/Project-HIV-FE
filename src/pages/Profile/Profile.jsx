@@ -392,7 +392,7 @@ export default function Profile() {
         )}
 
         {/* Medical History */}
-        <div className="card medical-history">
+        {/* <div className="card medical-history">
           <strong>Tiền sử bệnh án/Chuyên khoa và trình độ chuyên môn</strong>
           <div className="info-grid">
             <div>
@@ -404,7 +404,7 @@ export default function Profile() {
               <p>None</p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* General Settings */}
         <div className="card general-settings">
