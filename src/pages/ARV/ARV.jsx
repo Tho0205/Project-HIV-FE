@@ -95,7 +95,7 @@ export default function ARV() {
 
   // Authorization check
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
       alert("You are not authorized to access this page");
       navigate("/login");
@@ -195,14 +195,6 @@ export default function ARV() {
                         title="Edit"
                       >
                         ✏️
-                      </button>
-                      <button
-                        className="arvpage-action-btn delete"
-                        onClick={() => handleDelete(arv.arvId)}
-                        title="Delete"
-                        disabled={arv.status === "DELETED"}
-                      >
-                        🗑️
                       </button>
                     </td>
                   </tr>

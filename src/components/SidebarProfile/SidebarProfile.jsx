@@ -41,12 +41,6 @@ const SidebarProfile = () => {
         Lịch tư vấn
       </Link>
       <Link
-        to="#"
-        className={`sidebar-link ${activeItem === "documents" ? "active" : ""}`}
-      >
-        Tài liệu
-      </Link>
-      <Link
         to="/Blog-Management"
         className={`sidebar-link ${activeItem === "blog" ? "active" : ""}`}
       >

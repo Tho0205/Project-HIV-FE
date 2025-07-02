@@ -31,7 +31,7 @@ export default function Sidebar({ active }) {
               <span> Quản Lí Bài Viết</span>
             </Link>
           </li>
-          <li className={active === "calendar" ? "active" : ""}>
+          <li className={active === "appointment" ? "active" : ""}>
             <Link to="/Appointment-Management">
               <span className="icon">📅</span>
               <span>Quản Lí Lịch Đặt Khám</span>
