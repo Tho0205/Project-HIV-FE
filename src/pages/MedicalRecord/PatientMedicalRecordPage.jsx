@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { getMedicalRecordsByPatient } from "../../services/medicalRecordService"
-import { tokenManager } from "../../services/account"
-import "./MedicalRecordPage.css"
-import SidebarProfile from "../../components/SidebarProfile/SidebarProfile"
+import { useEffect, useState } from "react";
+import { getMedicalRecordsByPatient } from "../../services/medicalRecordService";
+import { tokenManager } from "../../services/account";
+import "./MedicalRecordPage.css";
+import SidebarProfile from "../../components/SidebarProfile/SidebarProfile";
 
 const PatientMedicalRecordPage = () => {
-  const [records, setRecords] = useState([])
-  const [loading, setLoading] = useState(true)
-  const patientId = tokenManager.getCurrentUserId()
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const patientId = tokenManager.getCurrentUserId();
 
   useEffect(() => {
     getMedicalRecordsByPatient(patientId)
       .then(setRecords)
       .catch((err) => console.error("Failed to fetch patient records", err))
-      .finally(() => setLoading(false))
-  }, [patientId])
+      .finally(() => setLoading(false));
+  }, [patientId]);
 
-  if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>
+  if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="medi-management-page">
+    <div className="container">
       <SidebarProfile />
       <div className="medi-content">
         <div className="medi-header">
@@ -37,7 +37,9 @@ const PatientMedicalRecordPage = () => {
                 <div className="medi-main">
                   <h3 className="medi-patient-name">{r.doctorName}</h3>
                   <div className="medi-actions">
-                    <span className={`medi-status ${r.status?.toLowerCase()}`}>{r.status}</span>
+                    <span className={`medi-status ${r.status?.toLowerCase()}`}>
+                      {r.status}
+                    </span>
                   </div>
                 </div>
 
@@ -47,7 +49,9 @@ const PatientMedicalRecordPage = () => {
                 </div>
 
                 <div className="medi-summary">
-                  {r.summary || <span className="medi-no-summary">Không có ghi chú</span>}
+                  {r.summary || (
+                    <span className="medi-no-summary">Không có ghi chú</span>
+                  )}
                 </div>
               </div>
             ))
@@ -55,7 +59,7 @@ const PatientMedicalRecordPage = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PatientMedicalRecordPage
+export default PatientMedicalRecordPage;
