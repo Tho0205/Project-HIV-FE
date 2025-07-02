@@ -320,7 +320,25 @@
   font-size: 14px;
 }
 
-.history-detail {
+
+.status-doctor-patient {
+  padding: 3px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-doctor-patient.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-doctor-patient.completed {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.note {
   color: #666;
   font-size: 13px;
   margin: 4px 0;
@@ -404,6 +422,7 @@
   color: #16a34a;
 }
 
+
 /* No data row */
 .no-data-admin {
   text-align: center;
@@ -433,6 +452,7 @@
   outline: none;
   border-color: #4439c7;
 }
+
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {

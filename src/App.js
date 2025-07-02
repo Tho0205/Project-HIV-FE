@@ -37,7 +37,6 @@ function App() {
   return (
     <div className="app-wrapper">
       <LoadingOverlay isLoading={loading} />
-
       {!hideHeaderFooter && <Navbar />}
       <main className="main-content">
         <Routes>
@@ -49,7 +48,6 @@ function App() {
       {!hideHeaderFooter && <Footer />}
       <ToastContainer />
       {tokenManager.isAuthenticated() && <FloatingChat />}
-
     </div>
   );
 }

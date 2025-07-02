@@ -112,7 +112,7 @@ export const tokenManager = {
       return "./assets/image/patient/patient.png";
     }
 
-    return `${backendBaseUrl}/api/account/avatar/${avatar}`;
+    return avatar;
   },
 };
 

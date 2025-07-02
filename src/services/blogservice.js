@@ -2,7 +2,7 @@ import { apiRequest } from "./account";
 const API_BASE = "https://localhost:7243/api/blog";
 
 export const getAllBlogs = async () => {
-  const response = await apiRequest(`${API_BASE}/list`);
+  const response = await fetch(`${API_BASE}/list`);
   if (response.status === 204) {
     return null;
   }
@@ -12,7 +12,7 @@ export const getAllBlogs = async () => {
 };
 
 export const getBlogById = async (id) => {
-  const response = await apiRequest(`${API_BASE}/${id}`);
+  const response = await fetch(`${API_BASE}/${id}`);
   if (response.status === 204) {
     return null;
   }

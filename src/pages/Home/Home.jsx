@@ -1,36 +1,34 @@
-
-import { useState, useEffect } from "react"
-import { getDotorInfo} from "../../services/doctorInfo"
+import { useState, useEffect } from "react";
+import { getDotorInfo } from "../../services/doctorInfo";
 import { Link } from "react-router-dom";
-import "./Home.css"
-
+import "./Home.css";
 
 const Home = () => {
-  const [doctors, setDoctors] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        setLoading(true)
-        const doctorData = await getDotorInfo()
-
+        setLoading(true);
+        const doctorData = await getDotorInfo();
+        console.log("11233" + doctorData.doctorName);
         if (doctorData) {
-          setDoctors(doctorData)
+          setDoctors(doctorData);
         } else {
-          setError("Không thể tải thông tin bác sĩ")
+          setError("Không thể tải thông tin bác sĩ");
         }
       } catch (err) {
-        setError("Lỗi khi tải dữ liệu bác sĩ")
-        console.error("Error loading doctors:", err)
+        setError("Lỗi khi tải dữ liệu bác sĩ");
+        console.error("Error loading doctors:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDoctors()
-  }, [])
+    fetchDoctors();
+  }, []);
 
   // Hàm helper để chuyển đổi specialization sang tiếng Việt
   const getVietnameseSpecialization = (specialization) => {
@@ -41,17 +39,17 @@ const Home = () => {
       Nutrition: "Dinh dưỡng HIV",
       "Internal Medicine": "Nội khoa",
       Immunology: "Miễn dịch học",
-    }
-    return specializationMap[specialization] || specialization
-  }
+    };
+    return specializationMap[specialization] || specialization;
+  };
 
   // Hàm helper để tạo placeholder avatar
   const getAvatarUrl = (doctorAvatar, doctorId) => {
     if (doctorAvatar) {
-      return doctorAvatar
+      return doctorAvatar;
     }
-    return `/placeholder.svg?height=200&width=200&text=BS${doctorId}`
-  }
+    return `/placeholder.svg?height=200&width=200&text=BS${doctorId}`;
+  };
 
   return (
     <div className="hiv-home-container">
@@ -64,20 +62,17 @@ const Home = () => {
               <span className="hiv-highlight"> An Toàn & Bảo Mật</span>
             </h1>
             <p className="hiv-hero-description">
-              Dịch vụ tư vấn chuyên nghiệp 24/7 với đội ngũ bác sĩ giàu kinh nghiệm. Chúng tôi cam kết bảo mật thông tin
-              và hỗ trợ bạn trong hành trình chăm sóc sức khỏe.
+              Dịch vụ tư vấn chuyên nghiệp 24/7 với đội ngũ bác sĩ giàu kinh
+              nghiệm. Chúng tôi cam kết bảo mật thông tin và hỗ trợ bạn trong
+              hành trình chăm sóc sức khỏe.
             </p>
             <div className="hiv-hero-buttons">
               <Link to="/appointment">
                 <button className="hiv-btn-primary">
-                  <svg className="hiv-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 ..."/>
-                  </svg> 
                   Tư vấn ngay
                 </button>
               </Link>
             </div>
-
           </div>
           <div className="hiv-hero-image">
             <div className="hiv-floating-card">
@@ -141,7 +136,8 @@ const Home = () => {
         <div className="hiv-container">
           <h2 className="hiv-section-title">Đội Ngũ Bác Sĩ Chuyên Khoa</h2>
           <p className="hiv-section-subtitle">
-            Các chuyên gia hàng đầu trong lĩnh vực HIV/AIDS và các bệnh nhiễm khuẩn
+            Các chuyên gia hàng đầu trong lĩnh vực HIV/AIDS và các bệnh nhiễm
+            khuẩn
           </p>
 
           {loading && (
@@ -154,7 +150,10 @@ const Home = () => {
           {error && (
             <div className="hiv-error-container">
               <p className="hiv-error-message">{error}</p>
-              <button className="hiv-retry-btn" onClick={() => window.location.reload()}>
+              <button
+                className="hiv-retry-btn"
+                onClick={() => window.location.reload()}
+              >
                 Thử lại
               </button>
             </div>
@@ -172,23 +171,23 @@ const Home = () => {
                 <div className="hiv-doctor-card" key={doctor.doctorId}>
                   <div className="hiv-doctor-image">
                     <img
-                      src={getAvatarUrl(doctor.doctorAvatar, doctor.doctorId) || "/placeholder.svg"}
+                      src={
+                        getAvatarUrl(doctor.doctorAvatar, doctor.doctorId) ||
+                        "/placeholder.svg"
+                      }
                       alt={doctor.doctorName}
-                      onError={(e) => {
-                        e.target.src = `/placeholder.svg?height=200&width=200&text=BS${doctor.doctorId}`
-                      }}
                     />
-                    <div className="hiv-doctor-status">
-                      <span className="hiv-status-dot"></span>
-                      {doctor.status === "ACTIVE" ? "Đang hoạt động" : "Không hoạt động"}
-                    </div>
                   </div>
                   <div className="hiv-doctor-info">
                     <h3 className="hiv-doctor-name">
                       {doctor.degree} {doctor.doctorName}
                     </h3>
-                    <p className="hiv-doctor-specialty">{getVietnameseSpecialization(doctor.specialization)}</p>
-                    <p className="hiv-doctor-experience">{doctor.experienceYears} năm kinh nghiệm</p>
+                    <p className="hiv-doctor-specialty">
+                      {getVietnameseSpecialization(doctor.specialization)}
+                    </p>
+                    <p className="hiv-doctor-experience">
+                      {doctor.experienceYears} năm kinh nghiệm
+                    </p>
                   </div>
                 </div>
               ))}
@@ -236,7 +235,9 @@ const Home = () => {
                   </div>
                   <div>
                     <h4>Chuyên Nghiệp</h4>
-                    <p>Đội ngũ bác sĩ giàu kinh nghiệm và được đào tạo bài bản</p>
+                    <p>
+                      Đội ngũ bác sĩ giàu kinh nghiệm và được đào tạo bài bản
+                    </p>
                   </div>
                 </div>
               </div>
@@ -244,7 +245,9 @@ const Home = () => {
             <div className="hiv-features-image">
               <div className="hiv-stats-card">
                 <div className="hiv-stat">
-                  <span className="hiv-stat-number">{doctors.length > 0 ? `${doctors.length}+` : "10+"}</span>
+                  <span className="hiv-stat-number">
+                    {doctors.length > 0 ? `${doctors.length}+` : "10+"}
+                  </span>
                   <span className="hiv-stat-label">Bác sĩ chuyên khoa</span>
                 </div>
                 <div className="hiv-stat">
@@ -253,7 +256,9 @@ const Home = () => {
                 </div>
                 <div className="hiv-stat">
                   <span className="hiv-stat-number">
-                    {doctors.length > 0 ? `${Math.max(...doctors.map((d) => d.experienceYears))}+` : "15+"}
+                    {doctors.length > 0
+                      ? `${Math.max(...doctors.map((d) => d.experienceYears))}+`
+                      : "15+"}
                   </span>
                   <span className="hiv-stat-label">Năm kinh nghiệm</span>
                 </div>
@@ -268,19 +273,24 @@ const Home = () => {
         <div className="hiv-container">
           <div className="hiv-cta-content">
             <h2>Bắt Đầu Hành Trình Chăm Sóc Sức Khỏe</h2>
-            <p>Đừng để lo lắng cản trở bạn. Hãy liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí.</p>
+            <p>
+              Đừng để lo lắng cản trở bạn. Hãy liên hệ với chúng tôi ngay hôm
+              nay để được tư vấn miễn phí.
+            </p>
             <div className="hiv-cta-buttons">
-            <Link to="/appointment" className="hiv-btn-primary hiv-large">
-              Đặt Lịch Tư Vấn
-            </Link>
+              <Link to="/appointment" className="hiv-btn-primary hiv-large">
+                Đặt Lịch Tư Vấn
+              </Link>
 
-              <Link to="/blog" className="hiv-btn-outline hiv-large">Các bài viết liên quan</Link>
+              <Link to="/blog" className="hiv-btn-outline hiv-large">
+                Các bài viết liên quan
+              </Link>
             </div>
           </div>
         </div>
       </section>
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
