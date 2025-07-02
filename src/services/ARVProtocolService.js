@@ -64,7 +64,7 @@ export const ARVProtocolService = {
 
   createProtocolWithDetails: async (protocolData) => {
     try {
-      const response = await fetch(`${API_BASE}/create-details`, {
+      const response = await fetch(`${API_BASE}/create-with-details`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
