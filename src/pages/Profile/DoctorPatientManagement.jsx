@@ -7,7 +7,7 @@ import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 10;
 
 export default function DoctorPatientManagement() {
   // States
