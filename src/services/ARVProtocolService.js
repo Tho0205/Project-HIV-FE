@@ -50,6 +50,9 @@ export const ARVProtocolService = {
     try {
       const response = await apiRequest(API_BASE, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(protocolData),
       });
       return await handleResponse(response);
@@ -61,8 +64,11 @@ export const ARVProtocolService = {
 
   createProtocolWithDetails: async (protocolData) => {
     try {
-      const response = await fetch(`${API_BASE}/create-with-details`, {
+      const response = await fetch(`${API_BASE}/create-details`, {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(protocolData),
       });
       return await handleResponse(response);
@@ -129,6 +135,9 @@ export const ARVProtocolService = {
         `${API_BASE}/${protocolId}/details/${detailId}`,
         {
           method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify(detailData),
         }
       );
@@ -157,6 +166,9 @@ export const ARVProtocolService = {
     try {
       const response = await fetch(`${API_BASE}/${id}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
       return await handleResponse(response);
     } catch (error) {

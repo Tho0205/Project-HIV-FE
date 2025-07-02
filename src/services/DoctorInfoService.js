@@ -50,10 +50,13 @@ class DoctorInfoService {
 
   async updateDoctor(doctorId, doctorData) {
     try {
-      const response = await fetch(`${API_BASE}/api/DoctorInfo/${doctorId}`, {
-        method: "PUT",
-        body: JSON.stringify(doctorData),
-      });
+      const response = await apiRequest(
+        `${API_BASE}/api/DoctorInfo/${doctorId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(doctorData),
+        }
+      );
       return await response.json();
     } catch (error) {
       throw error;
