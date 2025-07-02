@@ -1,106 +1,694 @@
-.background {
-  background: #dcd5d5;
+
+
+.hiv-home-container {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.hiv-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+}
+
+/* Hero Section */
+.hiv-hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 80px 0;
+  position: relative;
   overflow: hidden;
   width: 100%;
-  max-width: 1920px;
+}
+
+.hiv-hero-content {
+  max-width: 1200px;
   margin: 0 auto;
-  min-height: 100vh;
-}
-
-.doctor-list-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #111c63;
-  text-align: center;
-}
-
-.doctor-list {
+  padding: 0 20px;
   display: flex;
-  gap: 20px;
   flex-wrap: wrap;
-  justify-content: space-between;
-  margin: 40px 0 24px 0;
+  gap: 40px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
-.doctor {
-  flex: 1 1 22%;
-  min-width: 180px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 16px 8px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.hiv-hero-text {
+  flex: 1;
+  min-width: 300px;
 }
 
-.doctor img {
-  width: 90%;
-  max-width: 180px;
-  border-radius: 10px;
-  object-fit: cover;
-}
-
-.doctor-title {
-  margin-top: 12px;
-  font-weight: 600;
-  font-size: 18px;
-  color: #222;
-}
-
-.app-info {
-  margin: 40px auto 0 auto;
-  max-width: 800px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 32px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  text-align: center;
-}
-
-.app-info-title {
-  font-size: 32px;
-  font-weight: 700;
-  color: #111c63;
-}
-
-.app-info-underline {
-  width: 70px;
-  height: 8px;
-  background: #2320d4;
-  border-radius: 10px;
-  margin: 16px auto;
-}
-
-.app-info-desc {
-  color: #4a4a4a;
-  font-size: 16px;
-  margin-bottom: 24px;
-}
-
-.app-info-actions {
+.hiv-hero-image {
+  flex: 1;
+  min-width: 300px;
   display: flex;
-  gap: 32px;
   justify-content: center;
 }
 
-.action {
+.hiv-hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.hiv-highlight {
+  color: #ffd700;
+}
+
+.hiv-hero-description {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  margin-bottom: 30px;
+  opacity: 0.9;
+  line-height: 1.8;
+}
+
+.hiv-hero-buttons {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.hiv-btn-primary,
+.hiv-btn-secondary,
+.hiv-btn-outline {
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.hiv-btn-primary {
+  background: #ff6b6b;
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+}
+
+.hiv-btn-primary:hover {
+  background: #ff5252;
+  transform: translateY(-2px);
+}
+
+.hiv-btn-secondary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.hiv-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.hiv-btn-outline {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+}
+
+.hiv-btn-outline:hover {
+  background: #667eea;
+  color: white;
+}
+
+.hiv-large {
+  padding: 15px 30px;
+  font-size: 1rem;
+}
+
+.hiv-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.hiv-floating-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: #f1f4f6;
-  border-radius: 25px;
-  padding: 10px 20px;
+  gap: 15px;
+  max-width: 350px;
+  animation: hiv-float 6s ease-in-out infinite;
+}
+
+@keyframes hiv-float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.hiv-card-icon {
+  width: 50px;
+  height: 50px;
+  background: #ffd700;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.hiv-card-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.hiv-card-content h3 {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.hiv-card-content p {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+/* Services Section */
+.hiv-services-section {
+  padding: 80px 0;
+  background: #f8fafc;
+  width: 100%;
+}
+
+.hiv-section-title {
+  text-align: center;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 15px;
+  color: #2d3748;
+}
+
+.hiv-section-subtitle {
+  text-align: center;
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  color: #718096;
+  margin-bottom: 50px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hiv-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.hiv-service-card {
+  background: white;
+  padding: 30px 25px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+  height: 100%;
+}
+
+.hiv-service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.hiv-service-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 25px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.hiv-service-icon.hiv-video {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.hiv-service-icon.hiv-chat {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+}
+
+.hiv-service-icon.hiv-support {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+}
+
+.hiv-service-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.hiv-service-card h3 {
+  font-size: 1.3rem;
   font-weight: 600;
-  color: #2320d4;
-  font-size: 16px;
+  margin-bottom: 12px;
+  color: #2d3748;
+}
+
+.hiv-service-card p {
+  color: #718096;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Doctors Section */
+.hiv-doctors-section {
+  padding: 80px 0;
+  background: white;
+  width: 100%;
+}
+
+.hiv-doctors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+  gap: 30px;
+  margin-top: 50px;
+  justify-content: center;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 1200px) {
+  .hiv-doctors-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 320px));
+    max-width: 1320px;
+  }
+}
+
+@media (min-width: 1400px) {
+  .hiv-doctors-grid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1320px;
+  }
+}
+
+.hiv-doctor-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  max-width: 320px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.hiv-doctor-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.hiv-doctor-image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.hiv-doctor-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hiv-doctor-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(34, 197, 94, 0.9);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hiv-status-dot {
+  width: 6px;
+  height: 6px;
+  background: #ffd700;
+  border-radius: 50%;
+  animation: hiv-pulse 2s infinite;
+}
+
+@keyframes hiv-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.hiv-doctor-info {
+  padding: 25px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hiv-doctor-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2d3748;
+}
+
+.hiv-doctor-specialty {
+  color: #667eea;
+  font-weight: 500;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.hiv-doctor-experience {
+  color: #718096;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  flex-grow: 1;
+}
+
+.hiv-consult-btn {
+  width: 100%;
+  padding: 10px 15px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
 }
 
-.action:hover {
-  background: #e0e6ea;
+.hiv-consult-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.action img {
-  width: 30px;
-  height: 30px;
+/* Features Section */
+.hiv-features-section {
+  padding: 80px 0;
+  background: #f8fafc;
+  width: 100%;
+}
+
+.hiv-features-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
+  align-items: center;
+}
+
+.hiv-features-text {
+  flex: 1;
+  min-width: 300px;
+}
+
+.hiv-features-image {
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  justify-content: right;
+}
+
+.hiv-features-text h2 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #2d3748;
+}
+
+.hiv-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.hiv-feature-item {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.hiv-feature-icon {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.hiv-feature-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.hiv-feature-item h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #2d3748;
+}
+
+.hiv-feature-item p {
+  color: #718096;
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.hiv-stats-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 300px;
+}
+
+.hiv-stat {
+  text-align: center;
+  padding: 15px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+}
+
+.hiv-stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #667eea;
+  margin-bottom: 5px;
+}
+
+.hiv-stat-label {
+  color: #718096;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* CTA Section */
+.hiv-cta-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  color: white;
+  text-align: center;
+  width: 100%;
+}
+
+.hiv-cta-content h2 {
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 700;
+  margin-bottom: 15px;
+}
+
+.hiv-cta-content p {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  margin-bottom: 30px;
+  opacity: 0.9;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hiv-cta-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hiv-hero-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 30px;
+  }
+
+  .hiv-hero-buttons {
+    justify-content: center;
+  }
+
+  .hiv-features-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .hiv-floating-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .hiv-services-grid,
+  .hiv-doctors-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .hiv-feature-item {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .hiv-container {
+    padding: 0 15px;
+  }
+
+  .hiv-hero-section,
+  .hiv-services-section,
+  .hiv-doctors-section,
+  .hiv-features-section,
+  .hiv-cta-section {
+    padding: 50px 0;
+  }
+
+  .hiv-service-card,
+  .hiv-doctor-info,
+  .hiv-stats-card {
+    padding: 20px;
+  }
+
+  .hiv-btn-primary,
+  .hiv-btn-secondary,
+  .hiv-btn-outline {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+  }
+
+  .hiv-hero-buttons,
+  .hiv-cta-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hiv-hero-buttons .hiv-btn-primary,
+  .hiv-hero-buttons .hiv-btn-secondary,
+  .hiv-cta-buttons .hiv-btn-primary,
+  .hiv-cta-buttons .hiv-btn-outline {
+    width: 100%;
+    max-width: 280px;
+  }
+}
+
+/* Loading, Error, No Data States */
+.hiv-loading-container,
+.hiv-error-container,
+.hiv-no-data-container {
+  text-align: center;
+  padding: 60px 20px;
+  margin-top: 40px;
+}
+
+.hiv-loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  animation: hiv-spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes hiv-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.hiv-loading-container p,
+.hiv-no-data-container p {
+  color: #718096;
+  font-size: 1.1rem;
+}
+
+.hiv-error-message {
+  color: #e53e3e;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+}
+
+.hiv-retry-btn {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.hiv-retry-btn:hover {
+  background: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.hiv-consult-btn:disabled {
+  background: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.hiv-consult-btn:disabled:hover {
+  background: #a0aec0;
+  transform: none;
+  box-shadow: none;
 }
