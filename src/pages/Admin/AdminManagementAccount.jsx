@@ -1,17 +1,10 @@
 import { useState, useEffect } from "react";
 import SidebarAdmin from "../../components/Sidebar/SidebarAdmin";
 import AdminAccountService from "../../services/AdminAccountService";
-import Pagination from "../../components/Pagination/Pagination";
 import { toast } from "react-toastify";
 import "./AdminManagementAccount.css";
 
-const PAGE_SIZE = 10;
 export default function AdminManagementAccount() {
-  const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [protocols, setProtocols] = useState([]);
-  const [filteredAccounts, setFilteredAccounts] = useState([]);
-  const [pagedAccounts, setPagedAccounts] = useState([]);
   // States
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,29 +27,6 @@ export default function AdminManagementAccount() {
     loadAccounts();
   }, []);
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm, statusFilter, roleFilter]);
-
-  useEffect(() => {
-    const filtered = accounts.filter((acc) => {
-      const matchesSearch =
-        acc.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        acc.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        acc.user?.fullName?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "ALL" || acc.status === statusFilter;
-      const matchesRole = roleFilter === "ALL" || acc.user?.role === roleFilter;
-      return matchesSearch && matchesStatus && matchesRole;
-    });
-
-    setFilteredAccounts(filtered);
-    setTotalCount(filtered.length);
-
-    const startIndex = (page - 1) * PAGE_SIZE;
-    const paged = filtered.slice(startIndex, startIndex + PAGE_SIZE);
-    setPagedAccounts(paged);
-  }, [accounts, searchTerm, statusFilter, roleFilter, page]);
   // Load all accounts
   const loadAccounts = async () => {
     try {
@@ -65,11 +35,28 @@ export default function AdminManagementAccount() {
       setAccounts(data);
     } catch (error) {
       toast.error("Không thể tải danh sách tài khoản");
-      console.error("Lỗi tải thông tin tài khoản:", error);
+      console.error("Load accounts error:", error);
     } finally {
       setLoading(false);
     }
   };
+
+  // Filter accounts based on search and filters
+  const filteredAccounts = accounts.filter((account) => {
+    const matchesSearch =
+      account.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (account.email &&
+        account.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (account.user?.fullName &&
+        account.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesStatus =
+      statusFilter === "ALL" || account.status === statusFilter;
+    const matchesRole =
+      roleFilter === "ALL" || account.user?.role === roleFilter;
+
+    return matchesSearch && matchesStatus && matchesRole;
+  });
 
   // Open create modal
   const handleCreate = (e) => {
@@ -131,7 +118,7 @@ export default function AdminManagementAccount() {
         };
 
         // Only include password if it's provided
-        if (formData.password) {
+        if (formData.password && formData.password.trim() !== "") {
           updateData.password = formData.password;
         }
 
@@ -212,7 +199,7 @@ export default function AdminManagementAccount() {
   const getRoleBadge = (role) => {
     if (!role)
       return (
-        <span className="a role-badge-admin role-unknown-admin">Chưa có</span>
+        <span className="role-badge-admin role-unknown-admin">Chưa có</span>
       );
 
     const roleLabels = {
@@ -224,7 +211,7 @@ export default function AdminManagementAccount() {
     };
 
     return (
-      <span className={`role-badge-admin role-${role.toLowerCase()}`}>
+      <span className={`role-badge-admin role-${role.toLowerCase()}-admin`}>
         {roleLabels[role] || role}
       </span>
     );
@@ -245,6 +232,12 @@ export default function AdminManagementAccount() {
     document.body.style.overflow = "unset";
   };
 
+  // Handle backdrop click - DO NOTHING (không đóng modal)
+  const handleBackdropClick = (e) => {
+    // Không làm gì cả - modal sẽ không đóng khi click outside
+    e.stopPropagation();
+  };
+
   // Debug logging
   console.log("Modal states:", { showEditModal, showInfoModal });
 
@@ -254,7 +247,7 @@ export default function AdminManagementAccount() {
       <div className="admin-layout">
         <SidebarAdmin active="account" />
         <div className="main-content-admin">
-          <div className="loading">Đang tải dữ liệu...</div>
+          <div className="loading-admin">Đang tải dữ liệu...</div>
         </div>
       </div>
     );
@@ -316,7 +309,7 @@ export default function AdminManagementAccount() {
 
         {/* Table */}
         <div className="accounts-table-container-admin">
-          <table className="accounts-table-admin">
+          <table className="accounts-table-admin-1">
             <thead>
               <tr>
                 <th>ID</th>
@@ -330,14 +323,14 @@ export default function AdminManagementAccount() {
               </tr>
             </thead>
             <tbody>
-              {pagedAccounts.length === 0 ? (
+              {filteredAccounts.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="no-data">
+                  <td colSpan="8" className="no-data-admin">
                     Không tìm thấy tài khoản nào
                   </td>
                 </tr>
               ) : (
-                pagedAccounts.map((account) => (
+                filteredAccounts.map((account) => (
                   <tr key={account.accountId}>
                     <td>{account.accountId}</td>
                     <td className="username-admin">{account.username}</td>
@@ -361,7 +354,7 @@ export default function AdminManagementAccount() {
                         onChange={(e) =>
                           handleStatusChange(account.accountId, e.target.value)
                         }
-                        className="status-select"
+                        className="status-select-admin"
                         title="Thay đổi trạng thái"
                       >
                         <option value="ACTIVE">Hoạt động</option>
@@ -385,18 +378,9 @@ export default function AdminManagementAccount() {
           </table>
         </div>
 
-        {totalCount > PAGE_SIZE && (
-          <Pagination
-            page={page}
-            total={totalCount}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-          />
-        )}
-
         {/* Edit/Create Modal */}
         {showEditModal && (
-          <div className="modal-backdrop-admin" onClick={closeEditModal}>
+          <div className="modal-backdrop-admin" onClick={handleBackdropClick}>
             <div
               className="modal-container-admin"
               onClick={(e) => e.stopPropagation()}
@@ -408,7 +392,7 @@ export default function AdminManagementAccount() {
                     : "Tạo Tài Khoản Mới"}
                 </h2>
                 <button
-                  className="close-btn"
+                  className="close-btn-admin"
                   onClick={closeEditModal}
                   type="button"
                 >
@@ -416,8 +400,8 @@ export default function AdminManagementAccount() {
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="modal-form">
-                <div className="form-group">
+              <form onSubmit={handleSubmit} className="modal-form-admin">
+                <div className="form-group-admin">
                   <label>Tên đăng nhập *</label>
                   <input
                     type="text"
@@ -432,7 +416,7 @@ export default function AdminManagementAccount() {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-admin">
                   <label>Email</label>
                   <input
                     type="email"
@@ -445,7 +429,7 @@ export default function AdminManagementAccount() {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-admin">
                   <label>
                     {selectedAccount
                       ? "Mật khẩu mới (để trống nếu không đổi)"
@@ -467,7 +451,7 @@ export default function AdminManagementAccount() {
                   />
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-admin">
                   <label>Vai trò *</label>
                   <select
                     value={formData.role}
@@ -485,7 +469,7 @@ export default function AdminManagementAccount() {
                   </select>
                 </div>
 
-                <div className="form-group">
+                <div className="form-group-admin">
                   <label>Trạng thái</label>
                   <select
                     value={formData.status}
@@ -518,7 +502,7 @@ export default function AdminManagementAccount() {
 
         {/* Info Modal */}
         {showInfoModal && selectedAccount && (
-          <div className="modal-backdrop-admin" onClick={closeInfoModal}>
+          <div className="modal-backdrop-admin" onClick={handleBackdropClick}>
             <div
               className="modal-container-admin"
               onClick={(e) => e.stopPropagation()}

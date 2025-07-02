@@ -1,106 +1,91 @@
-import axios from "axios";
+import { apiRequest } from "./account";
 
-const API_BASE = "http://localhost:7243";
+const API_BASE = "https://localhost:7243";
 
 class DoctorInfoService {
-  constructor() {
-    this.api = axios.create({
-      baseURL: API_BASE,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // Add request interceptor to include auth token
-    this.api.interceptors.request.use(
-      (config) => {
-        const token =
-          localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-  }
-
-  // Get all doctors
   async getAllDoctors() {
     try {
-      const response = await this.api.get("/api/DoctorInfo");
-      return response.data;
+      console.log("🔍 Fetching all doctors...");
+      const response = await apiRequest(`${API_BASE}/api/DoctorInfo`);
+      const data = await response.json();
+      console.log("✅ Doctors fetched successfully:", data);
+      return data;
     } catch (error) {
-      throw this.handleError(error);
+      console.error("❌ Error in getAllDoctors:", error);
+      throw error;
     }
   }
 
-  // Get active doctors only
   async getActiveDoctors() {
     try {
-      const response = await this.api.get("/api/DoctorInfo/active");
-      return response.data;
+      const response = await apiRequest(`${API_BASE}/api/DoctorInfo/active`);
+      return await response.json();
     } catch (error) {
-      throw this.handleError(error);
+      throw error;
     }
   }
 
-  // Get doctor by ID
   async getDoctorById(doctorId) {
     try {
-      const response = await this.api.get(`/api/DoctorInfo/${doctorId}`);
-      return response.data;
+      const response = await apiRequest(
+        `${API_BASE}/api/DoctorInfo/${doctorId}`
+      );
+      return await response.json();
     } catch (error) {
-      throw this.handleError(error);
+      throw error;
     }
   }
 
-  // Create new doctor info
   async createDoctor(doctorData) {
     try {
-      const response = await this.api.post("/api/DoctorInfo", doctorData);
-      return response.data;
+      const response = await apiRequest(`${API_BASE}/api/DoctorInfo`, {
+        method: "POST",
+        body: JSON.stringify(doctorData),
+      });
+      return await response.json();
     } catch (error) {
-      throw this.handleError(error);
+      throw error;
     }
   }
 
-  // Update doctor info
   async updateDoctor(doctorId, doctorData) {
     try {
-      const response = await this.api.put(
-        `/api/DoctorInfo/${doctorId}`,
-        doctorData
+      const response = await apiRequest(
+        `${API_BASE}/api/DoctorInfo/${doctorId}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(doctorData),
+        }
       );
-      return response.data;
+      return await response.json();
     } catch (error) {
-      throw this.handleError(error);
+      throw error;
     }
   }
 
-  // Delete doctor (soft delete - changes status)
   async deleteDoctor(doctorId) {
     try {
-      const response = await this.api.delete(`/api/DoctorInfo/${doctorId}`);
-      return response.data;
+      const response = await apiRequest(
+        `${API_BASE}/api/DoctorInfo/${doctorId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      return await response.json();
     } catch (error) {
-      throw this.handleError(error);
+      throw error;
     }
   }
 
-  // Get all users (to get users with Doctor role)
   async getAllUsers() {
     try {
-      const response = await this.api.get("/api/Users");
-      return response.data;
+      const response = await apiRequest(`${API_BASE}/api/Users`);
+      return await response.json();
     } catch (error) {
-      throw this.handleError(error);
+      throw error;
     }
   }
 
-  // Get doctors with user information joined
   async getDoctorsWithUserInfo() {
     try {
       const [doctors, users] = await Promise.all([
@@ -108,7 +93,6 @@ class DoctorInfoService {
         this.getAllUsers(),
       ]);
 
-      // Map doctor info with user info
       return doctors.map((doctor) => {
         const user = users.find((u) => u.userId === doctor.doctorId);
         return {
@@ -123,24 +107,6 @@ class DoctorInfoService {
     } catch (error) {
       console.error("Error fetching doctors with user info:", error);
       throw error;
-    }
-  }
-
-  // Error handler
-  handleError(error) {
-    if (error.response) {
-      // Server responded with error status
-      const errorMessage =
-        error.response.data?.message ||
-        error.response.data ||
-        "An error occurred";
-      return new Error(errorMessage);
-    } else if (error.request) {
-      // Request was made but no response received
-      return new Error("Network error: No response from server");
-    } else {
-      // Something else happened
-      return new Error(error.message || "An unexpected error occurred");
     }
   }
 }

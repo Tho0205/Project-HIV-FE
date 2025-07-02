@@ -33,6 +33,7 @@ function App() {
     "/HIV-ExaminationManagement",
     "/Admin-AccountManagement",
     "/DashBoard"
+    "/Staff-DoctorInfo",
   ].includes(location.pathname);
 
   return (

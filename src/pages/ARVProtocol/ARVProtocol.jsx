@@ -166,15 +166,62 @@ export default function ARVProtocol() {
   };
 
   // Update protocol
-  const handleSubmitEdit = async (e) => {
+    const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
       setError("");
 
-      await ARVProtocolService.updateProtocol(editData.protocolId, editData);
+      // 1. Prepare protocol data without details
+      const protocolPayload = {
+        name: editData.name,
+        description: editData.description,
+        status: editData.status,
+      };
+
+      // 2. Update protocol info
+      const updatedProtocol = await ARVProtocolService.updateProtocol(
+        editData.protocolId,
+        protocolPayload
+      );
+
+      // 3. Update ARV details
+
+      const detailUpdates = editData.details.map((detail) => {
+        if (detail.detailId) {
+          // Existing detail - update
+          return ARVProtocolService.updateProtocolDetail(
+            editData.protocolId,
+            detail.detailId,
+            {
+              detailId: detail.detailId,
+              arvId: detail.arvId,
+              dosage: detail.dosage,
+              usageInstruction: detail.usageInstruction,
+              status: detail.status,
+
+            }
+          );
+        } else {
+          // New detail - add
+          return ARVProtocolService.addARVToProtocol(editData.protocolId, {
+            arvId: detail.arvId,
+            dosage: detail.dosage,
+            usageInstruction: detail.usageInstruction,
+            status: detail.status,
+          });
+        }
+      });
+
+      await Promise.all(detailUpdates);
+
+      // 4. Update UI
+      setProtocols((prev) =>
+        prev.map((p) =>
+          p.protocolId === editData.protocolId ? updatedProtocol : p
+        )
+      );
       setShowEditModal(false);
-      await fetchProtocols();
       alert("Protocol updated successfully!");
     } catch (err) {
       setError(err.message || "Failed to update protocol");
@@ -183,7 +230,6 @@ export default function ARVProtocol() {
       setLoading(false);
     }
   };
-
   // Add ARV to create form
   const handleAddARVDetail = () => {
     setNewProtocol((prev) => ({
@@ -337,7 +383,21 @@ export default function ARVProtocol() {
             <div className="modal-container">
               <div className="modal-header">
                 <h3>Create New Protocol</h3>
-                <button onClick={() => setShowCreateModal(false)}>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  style={{
+                    padding: "2px 5px",
+                    fontWeight: "bold",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "red",
+                    background: "none",
+                    fontSize: "30px",
+                    position: "relative",
+                    bottom: "30px",
+                    left: "30px",
+                  }}
+                >
                   &times;
                 </button>
               </div>
@@ -464,14 +524,14 @@ export default function ARVProtocol() {
                   <div className="modal-actions">
                     <button
                       type="submit"
-                      className="btn-green"
+                      className="btn-green-add"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Save"}
                     </button>
                     <button
                       type="button"
-                      className="btn-cancel"
+                      className="btn-cancel-add"
                       onClick={() => setShowCreateModal(false)}
                       disabled={loading}
                     >
@@ -490,7 +550,23 @@ export default function ARVProtocol() {
             <div className="modal-container">
               <div className="modal-header">
                 <h3>Edit Protocol</h3>
-                <button onClick={() => setShowEditModal(false)}>&times;</button>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  style={{
+                    padding: "2px 5px",
+                    fontWeight: "bold",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "red",
+                    background: "none",
+                    fontSize: "30px",
+                    position: "relative",
+                    bottom: "30px",
+                    left: "30px",
+                  }}
+                >
+                  &times;
+                </button>
               </div>
               <div className="modal-body">
                 {error && <div className="error-message">{error}</div>}
@@ -622,14 +698,14 @@ export default function ARVProtocol() {
                   <div className="modal-actions">
                     <button
                       type="submit"
-                      className="btn-green"
+                      className="btn-green-add"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Save"}
                     </button>
                     <button
                       type="button"
-                      className="btn-cancel"
+                      className="btn-cancel-add"
                       onClick={() => setShowEditModal(false)}
                       disabled={loading}
                     >

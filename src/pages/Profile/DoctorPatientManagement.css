@@ -1,5 +1,13 @@
-/* ===== Inherits styles from Profile.css ===== */
-/* Using existing styles: .container, .profile, .card, .modal, .btn-green, .btn-purple */
+/* ===== Doctor Patient Management Styles ===== */
+
+/* Override colors for Doctor theme */
+.btn-doctor {
+  background-color: #4439c7 !important;
+}
+
+.btn-doctor:hover {
+  background-color: #3730a3 !important;
+}
 
 /* ===== Statistics Grid ===== */
 .stats-grid {
@@ -49,90 +57,71 @@
   font-size: 13px;
 }
 
-/* ===== Search Section ===== */
-.search-section {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  display: flex;
-  gap: 15px;
-  align-items: center;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-.search-wrapper {
-  flex: 1;
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px;
-}
-
-.search-input {
+/* ===== Table Container ===== */
+.accounts-table-container-admin {
   width: 100%;
-  padding: 8px 12px 8px 35px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.sort-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sort-wrapper label {
-  color: #555;
-  font-size: 14px;
-}
-
-.sort-select {
-  padding: 6px 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  background: white;
-  font-size: 14px;
-}
-
-/* ===== Table ===== */
-.table-card {
-  background: #f9f9f9;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.patients-table {
+/* ===== Table Styles ===== */
+.accounts-table-admin {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  table-layout: auto;
 }
 
-.patients-table th {
+.accounts-table-admin th,
+.accounts-table-admin td {
+  padding: 12px 8px;
   text-align: left;
-  padding: 10px;
-  color: #888;
-  font-weight: 500;
-  font-size: 12px;
+  vertical-align: middle;
   border-bottom: 1px solid #e5e7eb;
 }
 
-.patients-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #f1f1f1;
+.accounts-table-admin thead {
+  background-color: #f9fafb;
 }
 
-.patients-table tbody tr:hover {
-  background: rgba(0, 0, 0, 0.02);
+.accounts-table-admin th {
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.accounts-table-admin tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.accounts-table-admin tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Column widths */
+.accounts-table-admin th:nth-child(1),
+.accounts-table-admin td:nth-child(1) {
+  width: 50px;
+  text-align: center;
+}
+
+.accounts-table-admin th:nth-child(2),
+.accounts-table-admin td:nth-child(2) {
+  width: 60px;
+  text-align: center;
+}
+
+.accounts-table-admin th:last-child,
+.accounts-table-admin td:last-child {
+  width: 100px;
+  text-align: center;
+}
+
+.text-center {
+  text-align: center;
 }
 
 .patient-avatar {
@@ -140,6 +129,7 @@
   height: 35px;
   border-radius: 50%;
   object-fit: cover;
+  vertical-align: middle;
 }
 
 .patient-name {
@@ -147,73 +137,149 @@
   color: #333;
 }
 
-.text-center {
-  text-align: center;
-}
-
-.badge {
+.appointment-badge {
   background: #e0e7ff;
   color: #4338ca;
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.btn-icon {
-  background: none;
+.actions-admin {
+  text-align: center;
+}
+
+.btn-info-admin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
   border: none;
+  background: #3b82f6;
+  color: white;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 16px;
-  padding: 4px;
-  margin: 0 2px;
-  transition: transform 0.2s;
+  transition: all 0.2s;
 }
 
-.btn-icon:hover {
-  transform: scale(1.1);
+.btn-info-admin:hover {
+  background: #2563eb;
+  transform: scale(1.05);
 }
 
-.action-cell {
-  white-space: nowrap;
+/* ===== Modal Styles ===== */
+.modal-large {
+  max-width: 700px !important;
 }
 
-.loading-cell,
-.empty-cell {
-  text-align: center;
-  padding: 40px;
+.modal-subtitle {
+  margin-bottom: 15px;
   color: #666;
 }
 
-/* ===== History Modal ===== */
-.history-modal {
-  max-width: 700px;
-}
-
-.history-content {
-  max-height: 60vh;
+.patient-selection-list {
+  max-height: 400px;
   overflow-y: auto;
   padding: 10px 0;
 }
 
-.history-section {
-  margin-bottom: 25px;
-}
-
-.history-section h4 {
-  margin: 0 0 15px 0;
-  color: #333;
-  font-size: 16px;
-}
-
-.section-header {
+.patient-selection-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+  background-color: #fff;
+}
+
+.patient-selection-item:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.patient-selection-item.selected {
+  background: #e0e7ff;
+  border-color: #4439c7;
+  box-shadow: 0 0 0 3px rgba(68, 57, 199, 0.1);
+}
+
+.patient-selection-item.selected .patient-name {
+  color: #4439c7;
+  font-weight: 600;
+}
+
+.patient-avatar-small {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.patient-info-selection {
+  flex: 1;
+}
+
+.patient-info-selection p {
+  margin: 2px 0;
+}
+
+.patient-info-selection .patient-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.patient-info-selection .patient-email {
+  color: #666;
+  font-size: 13px;
+}
+
+.patient-info-selection .patient-phone {
+  color: #888;
+  font-size: 12px;
+}
+
+/* ===== History Modal ===== */
+.patient-info-box {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 8px;
   margin-bottom: 15px;
 }
 
-.btn-add {
+.patient-info-box h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  color: #555;
+}
+
+.patient-info-box p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.section-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.btn-add-small {
   background: #4439c7;
   color: white;
   border: none;
@@ -221,17 +287,27 @@
   border-radius: 6px;
   font-size: 13px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
-.appointment-item,
-.exam-item {
+.btn-add-small:hover {
+  background: #3730a3;
+}
+
+.appointment-list,
+.exam-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.history-item {
   background: #f5f5f5;
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 10px;
 }
 
-.appointment-info {
+.history-item-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -241,7 +317,9 @@
 .date {
   font-weight: 500;
   color: #333;
+  font-size: 14px;
 }
+
 
 .status-doctor-patient {
   padding: 3px 10px;
@@ -263,30 +341,25 @@
 .note {
   color: #666;
   font-size: 13px;
-  margin-top: 5px;
+  margin: 4px 0;
 }
 
-.exam-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.exam-actions {
-  display: flex;
-  gap: 5px;
+.history-detail.note {
+  font-style: italic;
 }
 
 .result {
   margin: 8px 0;
   color: #333;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .metrics {
   display: flex;
   gap: 15px;
   margin: 10px 0;
+  flex-wrap: wrap;
 }
 
 .metric {
@@ -298,45 +371,88 @@
   font-weight: 500;
 }
 
-.no-data {
-  text-align: center;
-  color: #666;
-  padding: 20px;
-  background: #f8f8f8;
-  border-radius: 8px;
+.timestamp {
+  color: #999;
+  font-size: 11px;
+  display: block;
+  margin-top: 8px;
+}
+
+.exam-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.btn-icon-small {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  margin: 0 2px;
+  transition: transform 0.2s;
+}
+
+.btn-icon-small:hover {
+  transform: scale(1.1);
 }
 
 .no-data-section {
   text-align: center;
   padding: 30px;
-  background: #f8f8f8;
-  border-radius: 8px;
 }
 
 .no-data-section p {
   margin-bottom: 15px;
-  color: #666;
 }
 
-/* ===== Patient Info in Modal ===== */
-.patient-info {
-  background: #f5f5f5;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  grid-column: 1 / -1;
+/* ===== Status badges ===== */
+.status-scheduled {
+  background-color: #e0f2fe;
+  color: #0284c7;
 }
 
-.patient-info h4 {
-  margin: 0 0 8px 0;
+.status-pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-completed {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
+
+/* No data row */
+.no-data-admin {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+.required-mark {
+  color: #ef4444;
+  margin-left: 2px;
+}
+
+/* Textarea for exam result */
+.exam-result-textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
   font-size: 14px;
-  color: #555;
+  line-height: 1.5;
+  transition: border-color 0.2s;
 }
 
-.patient-info p {
-  margin: 4px 0;
-  font-size: 13px;
+.exam-result-textarea:focus {
+  outline: none;
+  border-color: #4439c7;
 }
+
 
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
@@ -345,34 +461,30 @@
     gap: 10px;
   }
 
-  .search-section {
+  .stat-card {
+    padding: 12px;
+  }
+
+  .patient-selection-item {
     flex-direction: column;
-    gap: 10px;
+    text-align: center;
   }
 
-  .search-wrapper {
-    width: 100%;
-  }
-
-  .table-card {
-    padding: 10px;
-  }
-
-  .patients-table {
-    font-size: 12px;
-  }
-
-  .patients-table th,
-  .patients-table td {
-    padding: 8px 5px;
+  .metrics {
+    flex-direction: column;
+    gap: 8px;
   }
 
   /* Hide some columns on mobile */
-  .patients-table th:nth-child(5),
-  .patients-table td:nth-child(5),
-  .patients-table th:nth-child(6),
-  .patients-table td:nth-child(6) {
+  .accounts-table-admin th:nth-child(5),
+  .accounts-table-admin td:nth-child(5),
+  .accounts-table-admin th:nth-child(7),
+  .accounts-table-admin td:nth-child(7) {
     display: none;
+  }
+
+  .accounts-table-admin {
+    font-size: 14px;
   }
 }
 
@@ -381,7 +493,9 @@
     grid-template-columns: 1fr;
   }
 
-  .stat-card {
-    padding: 12px;
+  .section-header-with-action {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
   }
 }
