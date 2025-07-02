@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./SidebarProfile.css";
 import { tokenManager } from "../../services/account";
-
 const SidebarProfile = () => {
   const location = useLocation();
   const userRole = tokenManager.getCurrentUserRole();
