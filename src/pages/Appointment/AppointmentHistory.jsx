@@ -15,6 +15,7 @@ import appointmentService from "../../services/Appointment";
 import { tokenManager } from '../../services/account';
 import Sidebar from "../../components/SidebarProfile/SidebarProfile";
 
+
 const AppointmentHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -51,7 +52,9 @@ const AppointmentHistory = () => {
     try {
       const patientData = await appointmentService.getPatientInfo(patientId);
       if (!patientData) {
-        throw new Error(`Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`);
+        throw new Error(
+          `Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`
+        );
       }
       setPatientInfo(patientData);
       
@@ -59,10 +62,11 @@ const AppointmentHistory = () => {
       const doctors = await appointmentService.getDoctors();
       
       const patientAppointments = allAppointments
-        .filter(app => {
+        .filter((app) => {
           const appPatientId = app.patientId || app.PatientId;
           return appPatientId === patientId;
         })
+
         .map(appointment => {
           const dateInfo = appointmentService.formatDate(
             appointment.appointmentDate || appointment.createdAt
@@ -99,6 +103,7 @@ const AppointmentHistory = () => {
         );
 
       console.log("Patient appointments:", patientAppointments);
+      
       setAppointments(patientAppointments);
     } catch (err) {
       console.error("Error fetching appointment history:", err);
@@ -208,6 +213,7 @@ const AppointmentHistory = () => {
       pending: "Chờ xác nhận",
     }[displayStatus] || displayStatus);
 
+
   // Style objects for buttons
   const baseButtonStyle = {
     padding: '8px 16px',
@@ -263,6 +269,46 @@ const AppointmentHistory = () => {
           <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
             <div style={{ animation: 'spin 1s linear infinite', borderRadius: '9999px', height: '3rem', width: '3rem', borderBottom: '2px solid #00c497' }}></div>
             <span style={{ marginLeft: '0.75rem', color: '#4b5563' }}>Đang tải lịch sử khám...</span>
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          maxWidth: "1152px",
+          margin: "0 auto",
+          padding: "1.5rem",
+          backgroundColor: "#f9fafb",
+          minHeight: "100vh",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "0.5rem",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            padding: "1.5rem",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: "3rem 0",
+            }}
+          >
+            <div
+              style={{
+                animation: "spin 1s linear infinite",
+                borderRadius: "9999px",
+                height: "3rem",
+                width: "3rem",
+                borderBottom: "2px solid #3b82f6",
+              }}
+            ></div>
+            <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>
+              Đang tải lịch sử khám...
+            </span>
           </div>
         </section>
       </div>

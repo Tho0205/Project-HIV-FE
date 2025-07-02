@@ -16,9 +16,12 @@ import DoctorPatientManagement from "../pages/Profile/DoctorPatientManagement";
 import AdminManagementAccount from "../pages/Admin/AdminManagementAccount";
 import DoctorInfoView from "../pages/DoctorInfo/DoctorInfoView";
 import ManagementDoctorInfo from "../pages/Staff/ManagementDoctorInfo";
+import ARVProtocolManagement from "../pages/ARVProtocol/ARVProtocolManagement";
 import AppointmentHistory from "../pages/Appointment/AppointmentHistory";
 import StaffDoctorSchedule from "../pages/Staff/StaffDoctorSchedule";
 import AppointmentManagement from "../pages/Appointment/AppointmentManagement"; // New import
+import DoctorMedicalRecordPage from "../pages/MedicalRecord/DoctorMedicalRecordPage";
+import PatientMedicalRecordPage from "../pages/MedicalRecord/PatientMedicalRecordPage";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -39,7 +42,12 @@ export const routes = [
   { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
   { path: "/Doctor-Info", element: <DoctorInfoView /> },
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
-  { path: "/Appointment-History", element: <AppointmentHistory /> },
   { path: "/Staff-DoctorSchedule", element: <StaffDoctorSchedule /> },
   { path: "/Appointment-Management", element: <AppointmentManagement /> }, // New route
+  { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage/>},
+  { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
+  { path: "/Protocol-management", element: <ARVProtocolManagement /> },
+  {path: "/Appointment-History", element: <AppointmentHistory />},
+
 ];
+

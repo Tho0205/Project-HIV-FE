@@ -54,7 +54,13 @@ const Header = () => {
     <>
       <header className="custom-header">
         <div className="logo">
-          <Link to="/">Logo HIV</Link>
+          <Link to="/">
+            <img
+              src="/assets/image/Logo/LogoHIV.jpg"
+              width={"90px"}
+              height={"70px"}
+            />
+          </Link>
         </div>
 
         <nav className="nav-links">
@@ -101,7 +107,14 @@ const Header = () => {
                   setLoading(false);
                 }}
               >
-                <img src={avatarUrl} alt="Avatar" />
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/assets/image/patient/patient.png";
+                  }}
+                />
               </button>
             </>
           )}

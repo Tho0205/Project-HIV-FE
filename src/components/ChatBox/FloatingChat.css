@@ -117,35 +117,8 @@
   font-weight: 600;
 }
 
-.hiv-chat-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  opacity: 0.9;
-}
 
-.hiv-status-dot {
-  width: 8px;
-  height: 8px;
-  background: #2ed573;
-  border-radius: 50%;
-  animation: hiv-pulse-dot 2s infinite;
-}
 
-.hiv-status-dot.active {
-  background: #2ed573;
-}
-
-@keyframes hiv-pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
 
 .hiv-chat-close-btn {
   width: 32px;

@@ -231,7 +231,7 @@ export default function ManagementDoctorInfo() {
                       </td>
                       <td>
                         <span
-                          className={`status ${doctor.status.toLowerCase()}`}
+                          className={`status-doctor ${doctor.status.toLowerCase()}`}
                         >
                           {doctor.status === "ACTIVE" ? "Hoạt động" : "Ngừng"}
                         </span>

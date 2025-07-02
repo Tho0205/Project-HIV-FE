@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./SidebarProfile.css";
 import { tokenManager } from "../../services/account";
-
 const SidebarProfile = () => {
   const location = useLocation();
   const userRole = tokenManager.getCurrentUserRole();
@@ -10,6 +9,7 @@ const SidebarProfile = () => {
   // Xác định active item dựa trên pathname
   const getActiveItem = () => {
     if (location.pathname === "/Profile-Patient") return "general";
+    if (location.pathname === "/Docter-MedicalRecord") return "medical";
     if (location.pathname === "/Blog-Management") return "blog";
     // if (location.pathname === "/Doctor-Patient-Management")
     //   return "patient-management";
@@ -25,6 +25,12 @@ const SidebarProfile = () => {
         className={`sidebar-link ${activeItem === "general" ? "active" : ""}`}
       >
         Thông tin chung
+      </Link>
+      <Link
+        to={userRole === "Doctor" ? "/Docter-MedicalRecord" : "/Patient-MedicalRecord"}
+        className={`sidebar-link ${activeItem === "medical" ? "active" : ""}`}
+      >
+        Hồ sơ bệnh án
       </Link>
       <Link
         to="/Appointment-History"
