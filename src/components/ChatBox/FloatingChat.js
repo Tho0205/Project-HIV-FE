@@ -215,7 +215,7 @@ const FloatingChat = () => {
                     <h4>{chatPartner.name}</h4>
                     <span className="hiv-chat-status">
                       <span className="hiv-status-dot"></span>
-                      {isConnected ? "Đang hoạt động" : "Offline"}
+                      {isConnected ? "Hỗ trợ 24/7" : "Offline"}
                     </span>
                   </div>
                 </>
@@ -300,9 +300,6 @@ const FloatingChat = () => {
                             <div className="hiv-staff-info">
                               <h4>{patient.name}</h4>
                               <span>Bệnh nhân</span>
-                            </div>
-                            <div className="hiv-staff-status">
-                              <span className="hiv-status-dot active"></span>
                             </div>
                           </div>
                         ))}

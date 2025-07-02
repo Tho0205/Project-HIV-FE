@@ -130,7 +130,7 @@ export default function BlogDetail() {
             </button>
           </div>
         ) : (
-          <p>
+          <p className="comment-accept">
             Vui lòng <a href="/login">đăng nhập</a> để bình luận.
           </p>
         )}

@@ -1,14 +1,14 @@
 /* BlogStaff.css */
 
 /* Reset và font chung */
-* {
+/* * {
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
 }
 
 body {
   background: #f5f7fa;
-}
+} */
 
 /* Layout chính */
 .blog-staff-container {
@@ -137,7 +137,6 @@ body {
 .blog-table td:nth-child(8) {
   width: 16%;
 }
-
 
 /* Ảnh thumbnail */
 .blog-image-thumbnail {
@@ -268,17 +267,17 @@ body {
   .blog-staff-container > div:last-child {
     padding: 20px 15px;
   }
-  
-  .blog-table th, 
+
+  .blog-table th,
   .blog-table td {
     padding: 8px 10px;
     font-size: 13px;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .action-buttons button {
     padding: 4px 8px;
     font-size: 12px;
@@ -445,7 +444,7 @@ body {
     width: 95%;
     padding: 15px;
   }
-  
+
   .form-actions {
     justify-content: center;
   }

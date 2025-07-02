@@ -9,17 +9,17 @@ const CustomArvProtocolsService = {
    */
   getPatientsWithProtocols: async (doctorId) => {
     try {
-      const response = await apiRequest(
+      const response = await fetch(
         `${backendBaseUrl}/api/CustomArvProtocols/doctor/${doctorId}/patients`
       );
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch patients with protocols');
+        throw new Error("Failed to fetch patients with protocols");
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('Error in getPatientsWithProtocols:', error);
+      console.error("Error in getPatientsWithProtocols:", error);
       throw error;
     }
   },
@@ -31,21 +31,21 @@ const CustomArvProtocolsService = {
    */
   getPatientCurrentProtocol: async (patientId) => {
     try {
-      const response = await apiRequest(
+      const response = await fetch(
         `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/current-protocol`
       );
-      
+
       if (response.status === 404) {
         return null;
       }
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch patient current protocol');
+        throw new Error("Failed to fetch patient current protocol");
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('Error in getPatientCurrentProtocol:', error);
+      console.error("Error in getPatientCurrentProtocol:", error);
       throw error;
     }
   },
@@ -59,22 +59,24 @@ const CustomArvProtocolsService = {
    */
   createCustomProtocol: async (doctorId, patientId, request) => {
     try {
-      const response = await apiRequest(
+      const response = await fetch(
         `${backendBaseUrl}/api/CustomArvProtocols/doctor/${doctorId}/patient/${patientId}`,
         {
-          method: 'POST',
-          body: JSON.stringify(request)
+          method: "POST",
+          body: JSON.stringify(request),
         }
       );
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create custom protocol');
+        throw new Error(
+          errorData.message || "Failed to create custom protocol"
+        );
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('Error in createCustomProtocol:', error);
+      console.error("Error in createCustomProtocol:", error);
       throw error;
     }
   },
@@ -87,22 +89,24 @@ const CustomArvProtocolsService = {
    */
   updatePatientProtocol: async (patientId, request) => {
     try {
-      const response = await apiRequest(
+      const response = await fetch(
         `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/update-protocol`,
         {
-          method: 'PUT',
-          body: JSON.stringify(request)
+          method: "PUT",
+          body: JSON.stringify(request),
         }
       );
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update patient protocol');
+        throw new Error(
+          errorData.message || "Failed to update patient protocol"
+        );
       }
-      
+
       return true;
     } catch (error) {
-      console.error('Error in updatePatientProtocol:', error);
+      console.error("Error in updatePatientProtocol:", error);
       throw error;
     }
   },
@@ -114,17 +118,17 @@ const CustomArvProtocolsService = {
    */
   getPatientProtocolHistory: async (patientId) => {
     try {
-      const response = await apiRequest(
+      const response = await fetch(
         `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/history`
       );
-      
+
       if (!response.ok) {
-        throw new Error('Failed to fetch patient protocol history');
+        throw new Error("Failed to fetch patient protocol history");
       }
-      
+
       return await response.json();
     } catch (error) {
-      console.error('Error in getPatientProtocolHistory:', error);
+      console.error("Error in getPatientProtocolHistory:", error);
       throw error;
     }
   },
@@ -135,7 +139,7 @@ const CustomArvProtocolsService = {
    */
   isCurrentUserDoctor: () => {
     const role = tokenManager.getCurrentUserRole();
-    return role === 'Doctor';
+    return role === "Doctor";
   },
 
   /**
@@ -149,23 +153,26 @@ const CustomArvProtocolsService = {
       // For example, check if the current user is the patient's doctor
       const currentUserId = tokenManager.getCurrentUserId();
       const currentUserRole = tokenManager.getCurrentUserRole();
-      
-      if (currentUserRole === 'Admin') {
+
+      if (currentUserRole === "Admin") {
         return true;
       }
-      
-      if (currentUserRole === 'Patient' && currentUserId === patientId.toString()) {
+
+      if (
+        currentUserRole === "Patient" &&
+        currentUserId === patientId.toString()
+      ) {
         return true;
       }
-      
-      if (currentUserRole === 'Doctor') {
+
+      if (currentUserRole === "Doctor") {
         // You might need an additional API call to verify doctor-patient relationship
         return true;
       }
-      
+
       return false;
     } catch (error) {
-      console.error('Error in checkPatientAccessPermission:', error);
+      console.error("Error in checkPatientAccessPermission:", error);
       return false;
     }
   },
@@ -176,8 +183,8 @@ const CustomArvProtocolsService = {
    */
   checkProtocolModificationPermission: () => {
     const role = tokenManager.getCurrentUserRole();
-    return role === 'Doctor' || role === 'Admin';
-  }
+    return role === "Doctor" || role === "Admin";
+  },
 };
 
 export default CustomArvProtocolsService;

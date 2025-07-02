@@ -382,7 +382,21 @@ export default function ARVProtocol() {
             <div className="modal-container">
               <div className="modal-header">
                 <h3>Create New Protocol</h3>
-                <button onClick={() => setShowCreateModal(false)}>
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  style={{
+                    padding: "2px 5px",
+                    fontWeight: "bold",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "red",
+                    background: "none",
+                    fontSize: "30px",
+                    position: "relative",
+                    bottom: "30px",
+                    left: "30px",
+                  }}
+                >
                   &times;
                 </button>
               </div>
@@ -509,14 +523,14 @@ export default function ARVProtocol() {
                   <div className="modal-actions">
                     <button
                       type="submit"
-                      className="btn-green"
+                      className="btn-green-add"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Save"}
                     </button>
                     <button
                       type="button"
-                      className="btn-cancel"
+                      className="btn-cancel-add"
                       onClick={() => setShowCreateModal(false)}
                       disabled={loading}
                     >
@@ -535,7 +549,23 @@ export default function ARVProtocol() {
             <div className="modal-container">
               <div className="modal-header">
                 <h3>Edit Protocol</h3>
-                <button onClick={() => setShowEditModal(false)}>&times;</button>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  style={{
+                    padding: "2px 5px",
+                    fontWeight: "bold",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "red",
+                    background: "none",
+                    fontSize: "30px",
+                    position: "relative",
+                    bottom: "30px",
+                    left: "30px",
+                  }}
+                >
+                  &times;
+                </button>
               </div>
               <div className="modal-body">
                 {error && <div className="error-message">{error}</div>}
@@ -667,14 +697,14 @@ export default function ARVProtocol() {
                   <div className="modal-actions">
                     <button
                       type="submit"
-                      className="btn-green"
+                      className="btn-green-add"
                       disabled={loading}
                     >
                       {loading ? "Processing..." : "Save"}
                     </button>
                     <button
                       type="button"
-                      className="btn-cancel"
+                      className="btn-cancel-add"
                       onClick={() => setShowEditModal(false)}
                       disabled={loading}
                     >
