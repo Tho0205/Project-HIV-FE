@@ -227,7 +227,7 @@ export default function DoctorPatientManagement() {
 
   return (
     <div className="container">
-      <SidebarDoctor />
+      <SidebarDoctor active={"Doctor-Patient-Manager"} />
 
       <section className="profile">
         <h2>Quản lý bệnh nhân</h2>

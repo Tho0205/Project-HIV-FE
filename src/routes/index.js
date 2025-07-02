@@ -40,7 +40,6 @@ export const routes = [
   { path: "/Admin-AccountManagement", element: <AdminManagementAccount /> },
   { path: "/Doctor-Info", element: <DoctorInfoView /> },
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
-  { path: "/Appointment-History", element: <AppointmentHistory />},
   { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage/>},
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },

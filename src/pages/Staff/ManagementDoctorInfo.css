@@ -20,6 +20,7 @@
   flex: 1;
   padding: 30px;
   overflow-y: auto;
+  background-color: #f9f9f9;
 }
 
 .title {
