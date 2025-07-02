@@ -48,7 +48,7 @@ export const routes = [
   { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage /> },
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage /> },
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
-  {path: "/Appointment-History", element: <AppointmentHistory />},
+  { path: "/Appointment-History", element: <AppointmentHistory />},
   { path: "/DashBoard", element: <Dashboard />}
 
 ];
