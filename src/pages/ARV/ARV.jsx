@@ -95,7 +95,7 @@ export default function ARV() {
 
   // Authorization check
   useEffect(() => {
-    const role = localStorage.getItem("role");
+    const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
       alert("You are not authorized to access this page");
       navigate("/login");
@@ -137,7 +137,7 @@ export default function ARV() {
               });
               setShowModal(true);
             }}
-          > 
+          >
             ➕ Thêm Mới ARV
           </button>
         </div>
