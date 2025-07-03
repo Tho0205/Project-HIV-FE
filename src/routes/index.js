@@ -22,6 +22,7 @@ import StaffDoctorSchedule from "../pages/Staff/StaffDoctorSchedule";
 import AppointmentManagement from "../pages/Appointment/AppointmentManagement"; // New import
 import DoctorMedicalRecordPage from "../pages/MedicalRecord/DoctorMedicalRecordPage";
 import PatientMedicalRecordPage from "../pages/MedicalRecord/PatientMedicalRecordPage";
+import Dashboard from "../pages/Staff/DashBoard";
 
 export const routes = [
   { path: "/", element: <Home /> },
@@ -43,9 +44,10 @@ export const routes = [
   { path: "/Doctor-Info", element: <DoctorInfoView /> },
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
   { path: "/Staff-DoctorSchedule", element: <StaffDoctorSchedule /> },
-  { path: "/Appointment-Management", element: <AppointmentManagement /> }, // New route
+  { path: "/Appointment-Management", element: <AppointmentManagement /> }, 
   { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage /> },
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage /> },
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
-  { path: "/Appointment-History", element: <AppointmentHistory /> },
+  { path: "/Appointment-History", element: <AppointmentHistory />},
+  { path: "/DashBoard", element: <Dashboard />}
 ];

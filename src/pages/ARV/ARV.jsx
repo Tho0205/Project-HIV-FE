@@ -196,14 +196,6 @@ export default function ARV() {
                       >
                         ✏️
                       </button>
-                      <button
-                        className="arvpage-action-btn delete"
-                        onClick={() => handleDelete(arv.arvId)}
-                        title="Delete"
-                        disabled={arv.status === "DELETED"}
-                      >
-                        🗑️
-                      </button>
                     </td>
                   </tr>
                 ))

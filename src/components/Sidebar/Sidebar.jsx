@@ -19,13 +19,19 @@ export default function Sidebar({ active }) {
         <div className="logo">Logo HIV</div>
         <div className="welcome">Chào Mừng Nhân Viên</div>
         <ul className="nav">
+          <li className={active === "static" ? "active" : ""}>
+            <Link to="/DashBoard">
+              <span className="icon">📈</span>
+              <span> Thống kê</span>
+            </Link>
+          </li>
           <li className={active === "blog" ? "active" : ""}>
             <Link to="/Staff-Blog">
               <span className="icon">📝</span>
               <span> Quản Lí Bài Viết</span>
             </Link>
           </li>
-          <li className={active === "calendar" ? "active" : ""}>
+          <li className={active === "appointment" ? "active" : ""}>
             <Link to="/Appointment-Management">
               <span className="icon">📅</span>
               <span>Quản Lí Lịch Đặt Khám</span>
