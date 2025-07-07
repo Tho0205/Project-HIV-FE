@@ -4,7 +4,7 @@ import "./Login.css";
 import { loginApi, tokenManager } from "../../services/account";
 import LoadingOverlay from "../../components/Loading/Loading";
 import { toast } from "react-toastify";
-
+const backendBaseUrl = "https://localhost:7243";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +13,20 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check if user is already logged in
+  //login bằng google
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    if (token) {
+      tokenManager.setToken(token, 60);
+      const role = tokenManager.getCurrentUserRole();
+      if (role === "Patient" || role === "Doctor") navigate("/");
+      else if (role === "Staff" || role === "Manager")
+        navigate("/Staff-ManagerPatient");
+      else if (role === "Admin") navigate("/Admin-AccountManagement");
+    }
+  }, []);
+
   useEffect(() => {
     if (tokenManager.isAuthenticated()) {
       const role = tokenManager.getCurrentUserRole();
@@ -100,29 +113,28 @@ const Login = () => {
     }, 400);
   };
 
-  // const handleGoogleLogin = async () => {
-  //   try {
-  //     setLoading(true);
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
 
-  //     // Clear any existing authentication data
-  //     tokenManager.removeToken();
-  //     document.cookie =
-  //       "HIV.Auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
-  //     document.cookie =
+      // Clear any existing authentication data
+      tokenManager.removeToken();
+      document.cookie =
+        "HIV.Auth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
+      document.cookie =
+        "Google.Correlation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
+      const currentUrl = window.location.origin + window.location.pathname;
+      const returnUrl = encodeURIComponent(currentUrl);
+      const googleAuthUrl = `${backendBaseUrl}/api/Account/login/google?returnUrl=${returnUrl}`;
 
-  //       "Google.Correlation=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax";
-  //     const currentUrl = window.location.origin + window.location.pathname;
-  //     const returnUrl = encodeURIComponent(currentUrl);
-  //     const googleAuthUrl = `${backendBaseUrl}/api/Account/login/google?returnUrl=${returnUrl}`;
-
-  //     console.log("Starting Google OAuth...", googleAuthUrl);
-  //     window.location.replace(googleAuthUrl);
-  //   } catch (error) {
-  //     console.error("Error starting Google login:", error);
-  //     toast.error("Failed to start Google login. Please try again.");
-  //     setLoading(false);
-  //   }
-  // };
+      console.log("Starting Google OAuth...", googleAuthUrl);
+      window.location.replace(googleAuthUrl);
+    } catch (error) {
+      console.error("Error starting Google login:", error);
+      toast.error("Failed to start Google login. Please try again.");
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="login-container">
@@ -197,7 +209,7 @@ const Login = () => {
           <button
             type="button"
             className="login-social-btn login-google"
-            // onClick={handleGoogleLogin}
+            onClick={handleGoogleLogin}
             disabled={loading}
           >
             <img

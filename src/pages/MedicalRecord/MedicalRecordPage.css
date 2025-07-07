@@ -1,0 +1,169 @@
+.medi-management-page {
+  display: flex;
+  gap: 20px;
+}
+
+.medi-content {
+  flex: 1;
+}
+
+/* Header */
+.medi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.medi-title {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Medical Records list */
+.medi-list {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Medical Record card */
+.medi-card {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  background: white;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.medi-card:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.medi-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.medi-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.medi-patient-name {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+.medi-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.medi-status {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.medi-datetime {
+  font-size: 14px;
+  color: #666;
+  margin: 5px 0;
+}
+
+.medi-exam-date {
+  font-weight: 500;
+  color: #333;
+}
+
+.medi-exam-time {
+  color: #888;
+  margin-left: 10px;
+}
+
+.medi-summary {
+  font-size: 14px;
+  color: #555;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.medi-no-summary {
+  font-style: italic;
+  color: #999;
+}
+
+/* Loading và empty states */
+.medi-loading,
+.medi-empty-message {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+}
+
+.medi-loading {
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.medi-empty-message {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+}
+
+/* Status variants */
+.medi-status.completed {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.medi-status.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.medi-status.cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .medi-management-page {
+    flex-direction: column;
+  }
+
+  .medi-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .medi-datetime {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .medi-exam-time {
+    margin-left: 0;
+    margin-top: 2px;
+  }
+}

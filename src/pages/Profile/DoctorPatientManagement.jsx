@@ -7,7 +7,8 @@ import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
 
-const PAGE_SIZE = 8;
+
+const PAGE_SIZE = 10;
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
 
 // Utility functions
@@ -303,9 +304,9 @@ export default function DoctorPatientManagement() {
   };
 
   return (
-    <div className="admin-layout">
-      <SidebarDoctor />
 
+    <div className="container">
+      <SidebarDoctor active={"Doctor-Patient-Manager"} />
       <div className="main-content-admin">
         {/* Header */}
         <div className="content-header-admin">
@@ -465,6 +466,7 @@ export default function DoctorPatientManagement() {
         />
 
         {/* History Modal */}
+
         <Modal
           show={modals.history}
           onClose={() => closeModal("history")}

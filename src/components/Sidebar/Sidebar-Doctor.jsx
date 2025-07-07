@@ -14,18 +14,32 @@ export default function SidebarAdmin({ active }) {
   }
 
   return (
-    <aside className="sidebar">
+    <aside
+      className="sidebar"
+      style={{
+        background: "none",
+        borderRight: "2px solid rgba(0, 0, 0, 0.05);",
+        boxShadow: "none",
+      }}
+    >
       <div className="sidebar-top">
-        <div className="logo">Logo HIV</div>
-        <div className="welcome">Chào mừng Bác Sĩ</div>
+        <div className="welcome" style={{ fontSize: "20px" }}>
+          Dashboard
+        </div>
         <ul className="nav">
           <Link
             to="/Doctor-Patient-Management"
             style={{ textDecoration: "none" }}
           >
-            <li className={active === "account" ? "active" : ""}>
+            <li className={active === "Doctor-Patient-Manager" ? "active" : ""}>
               <span className="icon">👤</span>
               <span>Quản Lý Bệnh Nhân</span>
+            </li>
+          </Link>
+          <Link to="/Protocol-management" style={{ textDecoration: "none" }}>
+            <li className={active === "Protocol-Manager" ? "active" : ""}>
+              <span className="icon">👤</span>
+              <span>Quản Lý Phác đồ</span>
             </li>
           </Link>
         </ul>

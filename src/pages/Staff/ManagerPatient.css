@@ -5,9 +5,9 @@
   padding: 0;
 } */
 
-body {
+/* body {
   background: #f5f7fa;
-}
+} */
 
 .wrapper {
   display: flex;
@@ -78,7 +78,7 @@ body {
   cursor: pointer;
 }
 
-.content {
+.content-patient {
   flex: 1;
   padding: 30px;
   background: #f5f7fa;

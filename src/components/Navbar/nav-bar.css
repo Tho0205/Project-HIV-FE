@@ -1,22 +1,12 @@
 .custom-header {
   background-color: #fff;
-  padding: 16px 60px;
+  padding: 10px 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   font-family: "Roboto", sans-serif;
   height: auto;
-}
-
-.logo {
-  font-weight: bold;
-  font-size: 20px;
-  color: #000;
-}
-
-.logo a {
-  text-decoration: none;
 }
 
 .nav-links {
