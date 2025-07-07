@@ -95,18 +95,18 @@ export default function DoctorPatientManagement() {
     controlledPatients: 0,
     unstablePatients: 0,
   });
+  const [viewMode, setViewMode] = useState("myPatients"); // "myPatients" hoặc "allPatients"
+  const [scheduleDate, setScheduleDate] = useState(null);
+  const [hasScheduleOnly, setHasScheduleOnly] = useState(false);
 
   // Modal states
   const [modals, setModals] = useState({
-    add: false,
     history: false,
     exam: false,
   });
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
-  const [availablePatients, setAvailablePatients] = useState([]);
-  const [selectedNewPatient, setSelectedNewPatient] = useState(null);
 
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
@@ -119,20 +119,36 @@ export default function DoctorPatientManagement() {
     }
   }, [navigate]);
 
-  // Load patients
+  // Load patients với chế độ xem
   const loadPatients = useCallback(async () => {
-    if (!doctorId) return;
+    if (!doctorId && viewMode === "myPatients") return;
 
     setLoading(true);
     try {
       const [sortBy, order] = sort.split("_");
-      const result = await doctorPatientService.getDoctorPatients(
-        doctorId,
-        page,
-        PAGE_SIZE,
-        sortBy,
-        order
-      );
+      let result;
+
+      if (viewMode === "allPatients") {
+        // Lấy toàn bộ bệnh nhân
+        result = await doctorPatientService.getAllPatients(
+          searchTerm,
+          page,
+          PAGE_SIZE,
+          sortBy,
+          order
+        );
+      } else {
+        // Lấy bệnh nhân của bác sĩ với filter
+        result = await doctorPatientService.getDoctorPatients(
+          doctorId,
+          page,
+          PAGE_SIZE,
+          sortBy,
+          order,
+          scheduleDate,
+          hasScheduleOnly
+        );
+      }
 
       if (result.success) {
         setPatients(result.data.data || []);
@@ -146,7 +162,15 @@ export default function DoctorPatientManagement() {
     } finally {
       setLoading(false);
     }
-  }, [doctorId, page, sort]);
+  }, [
+    doctorId,
+    page,
+    sort,
+    searchTerm,
+    viewMode,
+    scheduleDate,
+    hasScheduleOnly,
+  ]);
 
   useEffect(() => {
     loadPatients();
@@ -174,44 +198,6 @@ export default function DoctorPatientManagement() {
   const handleExamClose = () => {
     closeModal("exam");
     openModal("history");
-  };
-
-  const handleAddPatient = async () => {
-    try {
-      const result = await doctorPatientService.getAvailablePatients();
-      if (result.success) {
-        setAvailablePatients(result.data || []);
-        openModal("add");
-      } else {
-        toast.error("Không thể tải danh sách bệnh nhân khả dụng");
-      }
-    } catch (error) {
-      toast.error("Lỗi kết nối server");
-    }
-  };
-
-  const handleAssignPatient = async () => {
-    if (!selectedNewPatient || !doctorId) {
-      toast.error("Thiếu thông tin bác sĩ hoặc bệnh nhân");
-      return;
-    }
-
-    try {
-      const result = await doctorPatientService.assignPatientToDoctor(
-        doctorId,
-        selectedNewPatient
-      );
-      if (result.success) {
-        toast.success("Thêm bệnh nhân thành công");
-        closeModal("add");
-        setSelectedNewPatient(null);
-        loadPatients();
-      } else {
-        toast.error(result.message || "Không thể thêm bệnh nhân");
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra");
-    }
   };
 
   const handleViewHistory = async (patient) => {
@@ -324,12 +310,6 @@ export default function DoctorPatientManagement() {
         {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
-          <button
-            className="btn-primary-admin btn-doctor"
-            onClick={handleAddPatient}
-          >
-            <span>➕</span> Thêm bệnh nhân mới
-          </button>
         </div>
 
         {/* Statistics */}
@@ -354,6 +334,30 @@ export default function DoctorPatientManagement() {
           </div>
         </div>
 
+        {/* View Mode Tabs */}
+        <div className="view-mode-tabs">
+          <button
+            className={`tab-btn ${viewMode === "myPatients" ? "active" : ""}`}
+            onClick={() => {
+              setViewMode("myPatients");
+              setPage(1);
+            }}
+          >
+            Bệnh nhân của tôi
+          </button>
+          <button
+            className={`tab-btn ${viewMode === "allPatients" ? "active" : ""}`}
+            onClick={() => {
+              setViewMode("allPatients");
+              setPage(1);
+              setScheduleDate(null);
+              setHasScheduleOnly(false);
+            }}
+          >
+            Tất cả bệnh nhân
+          </button>
+        </div>
+
         {/* Filters */}
         <div className="filters-admin">
           <div className="search-box-admin">
@@ -365,6 +369,35 @@ export default function DoctorPatientManagement() {
               className="search-input-admin"
             />
           </div>
+
+          {/* Schedule filters - chỉ hiện khi xem "Bệnh nhân của tôi" */}
+          {viewMode === "myPatients" && (
+            <>
+              <input
+                type="date"
+                value={scheduleDate || ""}
+                onChange={(e) => {
+                  setScheduleDate(e.target.value || null);
+                  setPage(1);
+                }}
+                className="date-filter-admin"
+                title="Lọc theo ngày hẹn"
+              />
+
+              <label className="checkbox-filter">
+                <input
+                  type="checkbox"
+                  checked={hasScheduleOnly}
+                  onChange={(e) => {
+                    setHasScheduleOnly(e.target.checked);
+                    setPage(1);
+                  }}
+                />
+                <span>Chỉ bệnh nhân có lịch hẹn</span>
+              </label>
+            </>
+          )}
+
           <select
             value={sort}
             onChange={(e) => {
@@ -430,71 +463,6 @@ export default function DoctorPatientManagement() {
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
         />
-
-        {/* Add Patient Modal */}
-        <Modal
-          show={modals.add}
-          onClose={() => closeModal("add")}
-          title="Thêm Bệnh Nhân Mới"
-        >
-          <div className="modal-form-admin">
-            {availablePatients.length === 0 ? (
-              <div className="no-data-admin">
-                <p>Không có bệnh nhân nào chưa được phân công</p>
-              </div>
-            ) : (
-              <>
-                <p className="modal-subtitle">
-                  Chọn bệnh nhân từ danh sách dưới đây:
-                </p>
-                <div className="patient-selection-list">
-                  {availablePatients.map((patient) => (
-                    <div
-                      key={patient.accountId}
-                      className={`patient-selection-item ${
-                        selectedNewPatient === patient.userId ? "selected" : ""
-                      }`}
-                      onClick={() => setSelectedNewPatient(patient.userId)}
-                    >
-                      <img
-                        src={doctorPatientService.getAvatarUrl(
-                          patient.userAvatar
-                        )}
-                        alt="avatar"
-                        className="patient-avatar-small"
-                        onError={(e) => {
-                          e.target.src = DEFAULT_AVATAR;
-                        }}
-                      />
-                      <div className="patient-info-selection">
-                        <p className="patient-name">{patient.fullName}</p>
-                        <p className="patient-email">{patient.email}</p>
-                        <p className="patient-phone">
-                          {patient.phone || "Chưa có SĐT"}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            <div className="modal-actions-admin">
-              <button
-                className="btn-cancel-admin"
-                onClick={() => closeModal("add")}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn-save-admin"
-                onClick={handleAssignPatient}
-                disabled={!selectedNewPatient}
-              >
-                Thêm
-              </button>
-            </div>
-          </div>
-        </Modal>
 
         {/* History Modal */}
         <Modal

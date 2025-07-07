@@ -479,3 +479,109 @@
     align-items: flex-start;
   }
 }
+
+/* ===== View Mode Tabs ===== */
+.view-mode-tabs {
+  display: flex;
+  gap: 10px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.tab-btn:hover {
+  color: #4439c7;
+}
+
+.tab-btn.active {
+  color: #4439c7;
+  border-bottom: 2px solid #4439c7;
+}
+
+/* ===== Date & Checkbox Filters ===== */
+.date-filter-admin {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.date-filter-admin:focus {
+  outline: none;
+  border-color: #4439c7;
+}
+
+.checkbox-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.checkbox-filter input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.checkbox-filter:hover {
+  color: #4439c7;
+}
+
+/* ===== Update Filters Layout ===== */
+.filters-admin {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* ===== Responsive cho filter mới ===== */
+@media (max-width: 768px) {
+  .view-mode-tabs {
+    margin-bottom: 15px;
+  }
+  
+  .tab-btn {
+    font-size: 14px;
+    padding: 8px 15px;
+  }
+  
+  .filters-admin {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .date-filter-admin,
+  .checkbox-filter {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .view-mode-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  
+  .tab-btn {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}
