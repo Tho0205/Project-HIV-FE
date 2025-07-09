@@ -46,14 +46,13 @@ export const deleteMedicalRecord = async (id) => {
 
 
 export const getMedicalRecordsByDoctor = async (doctorId) => {
-  const response = await fetch(`${API_BASE}/doctor/${doctorId}`);
-  if (response.status === 204) return null;
-  return await response.json().catch(() => null);
+  const response = await apiRequest(`${API_BASE}/doctor/${doctorId}`);
+  if (response.status === 204) return [];
+  return await response.json().catch(() => []);
 };
 
-
 export const getMedicalRecordsByPatient = async (patientId) => {
-  const response = await fetch(`${API_BASE}/patient/${patientId}`);
-  if (response.status === 204) return null;
-  return await response.json().catch(() => null);
+  const response = await apiRequest(`${API_BASE}/patient/${patientId}`);
+  if (response.status === 204) return [];
+  return await response.json().catch(() => []);
 };

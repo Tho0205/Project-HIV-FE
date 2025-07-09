@@ -7,7 +7,6 @@ import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
 
-
 const PAGE_SIZE = 10;
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
 
@@ -304,35 +303,12 @@ export default function DoctorPatientManagement() {
   };
 
   return (
-
     <div className="container">
       <SidebarDoctor active={"Doctor-Patient-Manager"} />
       <div className="main-content-admin">
         {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
-        </div>
-
-        {/* Statistics */}
-        <div className="stats-grid">
-          <div className="stats-grid">
-            <StatCard
-              icon="👥"
-              value={stats.totalPatients}
-              label="Tổng số bệnh nhân"
-            />
-            <StatCard
-              icon="📍"
-              value={stats.todayAppointments}
-              label="Lịch hẹn hôm nay"
-            />
-            <StatCard
-              icon="✅"
-              value={stats.controlledPatients}
-              label="Đã kiểm soát"
-            />
-            <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
-          </div>
         </div>
 
         {/* View Mode Tabs */}
@@ -358,6 +334,28 @@ export default function DoctorPatientManagement() {
             Tất cả bệnh nhân
           </button>
         </div>
+
+        {/* Statistics - Chỉ hiển thị khi ở tab "Bệnh nhân của tôi" */}
+        {viewMode === "myPatients" && (
+          <div className="stats-grid">
+            <StatCard
+              icon="👥"
+              value={stats.totalPatients}
+              label="Tổng số bệnh nhân"
+            />
+            <StatCard
+              icon="📍"
+              value={stats.todayAppointments}
+              label="Lịch hẹn hôm nay"
+            />
+            <StatCard
+              icon="✅"
+              value={stats.controlledPatients}
+              label="Đã kiểm soát"
+            />
+            <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
+          </div>
+        )}
 
         {/* Filters */}
         <div className="filters-admin">
@@ -466,7 +464,6 @@ export default function DoctorPatientManagement() {
         />
 
         {/* History Modal */}
-
         <Modal
           show={modals.history}
           onClose={() => closeModal("history")}

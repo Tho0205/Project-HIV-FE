@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { getMedicalRecordsByPatient } from "../../services/medicalRecordService";
 import { tokenManager } from "../../services/account";
@@ -29,7 +27,7 @@ const PatientMedicalRecordPage = () => {
         </div>
 
         <div className="medi-list">
-          {records.length === 0 ? (
+          {!records || records.length === 0 ? (
             <div className="medi-empty-message">Không có hồ sơ nào.</div>
           ) : (
             records.map((r) => (
