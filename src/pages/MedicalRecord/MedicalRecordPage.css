@@ -108,6 +108,294 @@
   color: #999;
 }
 
+/* Detail button */
+.medi-detail-button {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.medi-detail-button:hover {
+  background: #1565c0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.medi-detail-button:active {
+  transform: translateY(0);
+}
+
+/* Modal styles */
+.record-detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.record-detail-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Modal Header */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-button:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Tabs */
+.detail-tabs {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f9f9f9;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  color: #666;
+}
+
+.tab-button:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.tab-button.active {
+  color: #1976d2;
+  font-weight: 600;
+}
+
+.tab-button.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #1976d2;
+}
+
+/* Detail body */
+.detail-body {
+  padding: 20px;
+}
+
+.detail-loading {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Examination detail */
+.examination-detail h3,
+.arv-detail h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+.detail-info {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #666;
+  min-width: 150px;
+}
+
+.info-value {
+  color: #333;
+  text-align: right;
+  flex: 1;
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-badge.inactive {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-badge.completed {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+/* ARV Protocol info */
+.protocol-info {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.protocol-header h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.protocol-desc {
+  color: #666;
+  margin: 5px 0;
+}
+
+.base-protocol {
+  color: #888;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* ARV List */
+.arv-list {
+  margin-top: 20px;
+}
+
+.arv-list h5 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.arv-cards {
+  display: grid;
+  gap: 15px;
+}
+
+.arv-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.2s;
+}
+
+.arv-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.arv-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.arv-info {
+  font-size: 14px;
+}
+
+.arv-desc {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.arv-dosage,
+.arv-instruction {
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.arv-dosage strong,
+.arv-instruction strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.arv-status {
+  margin-top: 10px;
+}
+
+/* No data message */
+.no-data {
+  text-align: center;
+  color: #999;
+  padding: 40px;
+  font-style: italic;
+}
+
 /* Loading và empty states */
 .medi-loading,
 .medi-empty-message {
@@ -130,6 +418,11 @@
 }
 
 /* Status variants */
+.medi-status.active {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
 .medi-status.completed {
   background: #e8f5e8;
   color: #2e7d32;
@@ -140,9 +433,15 @@
   color: #f57c00;
 }
 
-.medi-status.cancelled {
+.medi-status.cancelled,
+.medi-status.deleted {
   background: #ffebee;
   color: #c62828;
+}
+
+.medi-status.inactive {
+  background: #f5f5f5;
+  color: #757575;
 }
 
 /* Responsive */
@@ -165,5 +464,53 @@
   .medi-exam-time {
     margin-left: 0;
     margin-top: 2px;
+  }
+
+  .medi-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .medi-detail-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  /* Modal responsive */
+  .record-detail-content {
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .detail-header {
+    padding: 15px;
+  }
+
+  .detail-header h2 {
+    font-size: 20px;
+  }
+
+  .tab-button {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .detail-body {
+    padding: 15px;
+  }
+
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-value {
+    text-align: left;
+    margin-top: 5px;
+  }
+
+  .arv-card {
+    padding: 12px;
   }
 }

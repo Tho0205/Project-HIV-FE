@@ -16,6 +16,13 @@ export const getMedicalRecordById = async (id) => {
   return await response.json().catch(() => null);
 };
 
+// Hàm mới để lấy thông tin chi tiết của medical record
+export const getMedicalRecordDetail = async (id) => {
+  const response = await apiRequest(`${API_BASE}/${id}/detail`);
+  if (response.status === 204) return null;
+  return await response.json().catch(() => null);
+};
+
 
 export const createMedicalRecord = async (data) => {
   const response = await apiRequest(`${API_BASE}`, {
