@@ -50,21 +50,6 @@ const SidebarProfile = () => {
       )}
       
       <Link
-        to={userRole === "Doctor" ? "/Docter-MedicalRecord" : "/Patient-MedicalRecord"}
-        className={`sidebar-link ${activeItem === "medical" ? "active" : ""}`}
-      >
-        Hồ sơ bệnh án
-      </Link>
-      <Link
-        to={userRole === "Doctor" ? "/Doctor-Appointment-History" : "/Appointment-History"}
-        className={`sidebar-link ${
-          activeItem === "consultation" ? "active" : ""
-        }`}
-      >
-        Tài liệu
-      </Link>
-      
-      <Link
         to="/Blog-Management"
         className={`sidebar-link ${activeItem === "blog" ? "active" : ""}`}
       >
