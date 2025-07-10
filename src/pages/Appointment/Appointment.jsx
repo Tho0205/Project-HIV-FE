@@ -115,15 +115,87 @@ const Appointment = () => {
     }
   };
 
-  // Load schedules for selected doctor
+  // Fixed Load schedules for selected doctor
   const loadSchedules = async (doctorId) => {
     try {
       setLoading(true);
+      console.log("Loading schedules for doctor:", doctorId); // Debug log
+      
       const schedulesData = await getDoctorSchedulesApi(doctorId);
-      setSchedules(schedulesData);
+      console.log("Raw schedules data:", schedulesData); // Debug log
+      
+      // Ensure schedulesData is an array
+      const schedulesArray = Array.isArray(schedulesData) ? schedulesData : [];
+      
+      if (schedulesArray.length === 0) {
+        console.log("No schedules found for doctor:", doctorId);
+        setSchedules([]);
+        setSelectedScheduleId(null);
+        return;
+      }
+
+      // Map and normalize the data - handle both possible field names
+      const normalizedSchedules = schedulesArray.map(schedule => ({
+        // Handle different possible field names from API
+        scheduleId: schedule.scheduleId || schedule.ScheduleId || schedule.id,
+        scheduledTime: schedule.scheduledTime || schedule.ScheduledTime,
+        room: schedule.room || schedule.Room,
+        status: schedule.status || schedule.Status || "ACTIVE",
+        // Add any other fields that might be needed
+        doctorId: schedule.doctorId || schedule.DoctorId || doctorId
+      }));
+
+      console.log("Normalized schedules:", normalizedSchedules); // Debug log
+
+      // Filter schedules: only show future schedules and past schedules within 3 days
+      const now = new Date();
+      const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
+      
+      const filteredSchedules = normalizedSchedules.filter(schedule => {
+        // Check if schedule has required fields
+        if (!schedule.scheduleId || !schedule.scheduledTime) {
+          console.warn("Schedule missing required fields:", schedule);
+          return false;
+        }
+
+        const scheduleDate = new Date(schedule.scheduledTime);
+        
+        // Check if date is valid
+        if (isNaN(scheduleDate.getTime())) {
+          console.warn("Invalid schedule date:", schedule.scheduledTime);
+          return false;
+        }
+
+        // Show if schedule is in the future OR within the last 3 days
+        // Also check if status is ACTIVE (if status field exists)
+        const isInTimeRange = scheduleDate >= threeDaysAgo;
+        const isActive = !schedule.status || schedule.status === "ACTIVE" || schedule.status === "Active";
+        
+        console.log("Schedule filter check:", {
+          scheduleId: schedule.scheduleId,
+          scheduledTime: schedule.scheduledTime,
+          status: schedule.status,
+          isInTimeRange,
+          isActive,
+          willShow: isInTimeRange && isActive
+        });
+
+        return isInTimeRange && isActive;
+      });
+
+      console.log("Filtered schedules:", filteredSchedules); // Debug log
+      
+      setSchedules(filteredSchedules);
       setSelectedScheduleId(null);
+
+      // Show info message if no schedules after filtering
+      if (schedulesArray.length > 0 && filteredSchedules.length === 0) {
+        console.log("All schedules were filtered out");
+        showError("Bác sĩ hiện không có lịch khám khả dụng trong thời gian này.");
+      }
+
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Error loading schedules:", error);
       showError("Không thể tải lịch khám. Vui lòng thử lại.");
       setSchedules([]);
     } finally {
@@ -168,7 +240,19 @@ const Appointment = () => {
     const selectedSchedule = schedules.find(
       (s) => s.scheduleId === selectedScheduleId
     );
+    
+    if (!selectedSchedule) {
+      showError("Lịch khám đã chọn không hợp lệ");
+      return;
+    }
+
     const appointmentDate = new Date(selectedSchedule.scheduledTime);
+
+    // Additional check: prevent booking past appointments
+    if (isSchedulePast(selectedSchedule.scheduledTime)) {
+      showError("Không thể đặt lịch cho thời gian đã qua");
+      return;
+    }
 
     const formData = {
       patientId: parseInt(userId),
@@ -241,8 +325,22 @@ const Appointment = () => {
     return new Date(dateString) < new Date();
   };
 
+  // Helper function to check if schedule is within the last 3 days
+  const isScheduleWithinLast3Days = (dateString) => {
+    const scheduleDate = new Date(dateString);
+    const now = new Date();
+    const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
+    return scheduleDate >= threeDaysAgo && scheduleDate <= now;
+  };
+
   const selectedDoctor = doctors.find((d) => d.userId === selectedDoctorId);
-  console.warn(doctors);
+  
+  // Separate schedules into future and past (within 3 days)
+  const futureSchedules = schedules.filter(schedule => !isSchedulePast(schedule.scheduledTime));
+  const pastSchedules = schedules.filter(schedule => 
+    isSchedulePast(schedule.scheduledTime) && isScheduleWithinLast3Days(schedule.scheduledTime)
+  );
+
   return (
     <div
       style={{
@@ -517,7 +615,7 @@ const Appointment = () => {
                   )}
                 </div>
 
-                {/* Time Selection */}
+                                  {/* Time Selection */}
                 <div style={{ marginBottom: "2rem" }}>
                   <label
                     style={{
@@ -531,172 +629,275 @@ const Appointment = () => {
                     Thời gian khám*
                   </label>
 
-                  {/* Available Schedule Count */}
-                  {schedules.length > 0 && (
-                    <div
-                      style={{
-                        marginBottom: "0.75rem",
-                        fontSize: "0.875rem",
-                        color: "#4b5563",
-                        display: "flex",
-                        alignItems: "center",
-                      }}
-                    >
-                      <CheckCircle
-                        style={{
-                          color: "#10b981",
-                          marginRight: "0.25rem",
-                          width: "1rem",
-                          height: "1rem",
-                        }}
-                      />
-                      Có{" "}
-                      <span style={{ fontWeight: "600" }}>
-                        {schedules.length}
-                      </span>{" "}
-                      lịch khám còn trống
-                    </div>
-                  )}
-
-                  {/* Schedule Buttons Container */}
+                  {/* Schedule Buttons Container - Added scroll container */}
                   <div
                     style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        window.innerWidth >= 768 ? "1fr 1fr 1fr" : "1fr 1fr",
-                      gap: "0.75rem",
+                      maxHeight: "400px", // Giới hạn chiều cao
+                      overflowY: "auto", // Thêm scroll dọc
+                      overflowX: "hidden", // Ẩn scroll ngang
+                      padding: "0.5rem",
+                      border: "1px solid #e5e7eb",
+                      borderRadius: "0.75rem",
+                      backgroundColor: "#fafafa",
                       marginBottom: "1rem",
+                      // Custom scrollbar
+                      scrollbarWidth: "thin",
+                      scrollbarColor: "#cbd5e1 #f1f5f9"
                     }}
                   >
-                    {!selectedDoctorId ? (
-                      <div
-                        style={{
-                          gridColumn: "1 / -1",
-                          textAlign: "center",
-                          color: "#6b7280",
-                          padding: "2rem",
-                        }}
-                      >
-                        <Calendar
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          window.innerWidth >= 768 ? "1fr 1fr 1fr" : "1fr 1fr",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      {!selectedDoctorId ? (
+                        <div
                           style={{
-                            margin: "0 auto 0.5rem",
-                            width: "4rem",
-                            height: "4rem",
+                            gridColumn: "1 / -1",
+                            textAlign: "center",
+                            color: "#6b7280",
+                            padding: "2rem",
                           }}
-                        />
-                        <p>Vui lòng chọn bác sĩ trước</p>
-                      </div>
-                    ) : schedules.length === 0 ? (
-                      <div
-                        style={{
-                          gridColumn: "1 / -1",
-                          textAlign: "center",
-                          color: "#6b7280",
-                          padding: "2rem",
-                        }}
-                      >
-                        <Calendar
-                          style={{
-                            margin: "0 auto 0.5rem",
-                            width: "4rem",
-                            height: "4rem",
-                          }}
-                        />
-                        <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
-                          Bác sĩ hiện không có lịch khám còn trống
-                        </p>
-                        <p
-                          style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}
                         >
-                          Vui lòng chọn bác sĩ khác hoặc quay lại sau
-                        </p>
-                      </div>
-                    ) : (
-                      schedules.map((schedule) => {
-                        const { date, dayName, time } = formatScheduleTime(
-                          schedule.scheduledTime
-                        );
-                        const isPast = isSchedulePast(schedule.scheduledTime);
-                        const isSelected =
-                          selectedScheduleId === schedule.scheduleId;
-
-                        return (
-                          <button
-                            key={schedule.scheduleId}
-                            type="button"
-                            disabled={isPast}
-                            onClick={() =>
-                              setSelectedScheduleId(schedule.scheduleId)
-                            }
+                          <Calendar
                             style={{
-                              padding: "0.75rem 1rem",
-                              borderRadius: "0.5rem",
-                              fontWeight: "500",
-                              textAlign: "center",
-                              border: isSelected
-                                ? "2px solid #14b8a6"
-                                : "2px solid transparent",
-                              cursor: isPast ? "not-allowed" : "pointer",
-                              backgroundColor: isPast
-                                ? "#f3f4f6"
-                                : isSelected
-                                ? "#14b8a6"
-                                : "#f3f4f6",
-                              color: isPast
-                                ? "#6b7280"
-                                : isSelected
-                                ? "white"
-                                : "#374151",
-                              opacity: isPast ? 0.5 : 1,
-                              fontSize: "0.875rem",
-                              transition: "all 0.2s",
+                              margin: "0 auto 0.5rem",
+                              width: "4rem",
+                              height: "4rem",
                             }}
+                          />
+                          <p>Vui lòng chọn bác sĩ trước</p>
+                        </div>
+                      ) : schedules.length === 0 ? (
+                        <div
+                          style={{
+                            gridColumn: "1 / -1",
+                            textAlign: "center",
+                            color: "#6b7280",
+                            padding: "2rem",
+                          }}
+                        >
+                          <Calendar
+                            style={{
+                              margin: "0 auto 0.5rem",
+                              width: "4rem",
+                              height: "4rem",
+                            }}
+                          />
+                          <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
+                            Bác sĩ hiện không có lịch khám còn trống
+                          </p>
+                          <p
+                            style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}
                           >
-                            <div
-                              style={{
-                                fontSize: "1.125rem",
-                                fontWeight: "bold",
-                                textDecoration: isPast
-                                  ? "line-through"
-                                  : "none",
-                              }}
-                            >
-                              {date.getDate()}/{date.getMonth() + 1}
+                            Vui lòng chọn bác sĩ khác hoặc quay lại sau
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Section header for future schedules */}
+                          {futureSchedules.length > 0 && (
+                            <div style={{
+                              gridColumn: "1 / -1",
+                              padding: "0.5rem 0",
+                              borderBottom: "2px solid #e5e7eb",
+                              marginBottom: "0.75rem"
+                            }}>
+                              <h4 style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "600",
+                                color: "#059669",
+                                margin: 0,
+                                display: "flex",
+                                alignItems: "center"
+                              }}>
+                                <CheckCircle style={{ 
+                                  width: "1rem", 
+                                  height: "1rem", 
+                                  marginRight: "0.5rem" 
+                                }} />
+                                Lịch khám khả dụng ({futureSchedules.length})
+                              </h4>
                             </div>
-                            <div style={{ fontSize: "0.875rem" }}>
-                              {dayName}
+                          )}
+
+                          {/* Render future schedules first */}
+                          {futureSchedules.map((schedule) => {
+                            const { date, dayName, time } = formatScheduleTime(
+                              schedule.scheduledTime
+                            );
+                            const isSelected =
+                              selectedScheduleId === schedule.scheduleId;
+
+                            return (
+                              <button
+                                key={schedule.scheduleId}
+                                type="button"
+                                onClick={() =>
+                                  setSelectedScheduleId(schedule.scheduleId)
+                                }
+                                style={{
+                                  padding: "0.75rem 1rem",
+                                  borderRadius: "0.5rem",
+                                  fontWeight: "500",
+                                  textAlign: "center",
+                                  border: isSelected
+                                    ? "2px solid #14b8a6"
+                                    : "2px solid transparent",
+                                  cursor: "pointer",
+                                  backgroundColor: isSelected
+                                    ? "#14b8a6"
+                                    : "#ffffff",
+                                  color: isSelected ? "white" : "#374151",
+                                  fontSize: "0.875rem",
+                                  transition: "all 0.2s",
+                                  boxShadow: isSelected 
+                                    ? "0 4px 12px rgba(20, 184, 166, 0.4)" 
+                                    : "0 1px 3px rgba(0, 0, 0, 0.1)",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: "1.125rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
+                                  {date.getDate()}/{date.getMonth() + 1}
+                                </div>
+                                <div style={{ fontSize: "0.875rem" }}>
+                                  {dayName}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    marginTop: "0.25rem",
+                                  }}
+                                >
+                                  {time}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    color: isSelected
+                                      ? "rgba(255,255,255,0.8)"
+                                      : "#6b7280",
+                                  }}
+                                >
+                                  Phòng {schedule.room || "N/A"}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    marginTop: "0.25rem",
+                                    color: isSelected ? "rgba(255,255,255,0.9)" : "#059669",
+                                    fontWeight: "600"
+                                  }}
+                                >
+                                  Còn trống
+                                </div>
+                              </button>
+                            );
+                          })}
+                          
+                          {/* Section header for past schedules */}
+                          {pastSchedules.length > 0 && (
+                            <div style={{
+                              gridColumn: "1 / -1",
+                              padding: "0.5rem 0",
+                              borderBottom: "2px solid #e5e7eb",
+                              marginTop: futureSchedules.length > 0 ? "1rem" : "0",
+                              marginBottom: "0.75rem"
+                            }}>
+                              <h4 style={{
+                                fontSize: "0.875rem",
+                                fontWeight: "600",
+                                color: "#6b7280",
+                                margin: 0,
+                                display: "flex",
+                                alignItems: "center"
+                              }}>
+                                <Clock style={{ 
+                                  width: "1rem", 
+                                  height: "1rem", 
+                                  marginRight: "0.5rem" 
+                                }} />
+                                Lịch khám đã qua ({pastSchedules.length})
+                              </h4>
                             </div>
-                            <div
-                              style={{
-                                fontSize: "0.75rem",
-                                marginTop: "0.25rem",
-                              }}
-                            >
-                              {time}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "0.75rem",
-                                color: isSelected
-                                  ? "rgba(255,255,255,0.8)"
-                                  : "#6b7280",
-                              }}
-                            >
-                              Phòng {schedule.room || "N/A"}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: "0.75rem",
-                                marginTop: "0.25rem",
-                                color: isPast ? "#dc2626" : "#059669",
-                              }}
-                            >
-                              {isPast ? "Đã qua" : "Còn trống"}
-                            </div>
-                          </button>
-                        );
-                      })
-                    )}
+                          )}
+
+                          {/* Show past schedules (within 3 days) with disabled state */}
+                          {pastSchedules.map((schedule) => {
+                            const { date, dayName, time } = formatScheduleTime(
+                              schedule.scheduledTime
+                            );
+
+                            return (
+                              <button
+                                key={schedule.scheduleId}
+                                type="button"
+                                disabled={true}
+                                style={{
+                                  padding: "0.75rem 1rem",
+                                  borderRadius: "0.5rem",
+                                  fontWeight: "500",
+                                  textAlign: "center",
+                                  border: "2px solid transparent",
+                                  cursor: "not-allowed",
+                                  backgroundColor: "#f3f4f6",
+                                  color: "#6b7280",
+                                  opacity: 0.6,
+                                  fontSize: "0.875rem",
+                                  transition: "all 0.2s",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    fontSize: "1.125rem",
+                                    fontWeight: "bold",
+                                    textDecoration: "line-through",
+                                  }}
+                                >
+                                  {date.getDate()}/{date.getMonth() + 1}
+                                </div>
+                                <div style={{ fontSize: "0.875rem" }}>
+                                  {dayName}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    marginTop: "0.25rem",
+                                  }}
+                                >
+                                  {time}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    color: "#6b7280",
+                                  }}
+                                >
+                                  Phòng {schedule.room || "N/A"}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    marginTop: "0.25rem",
+                                    color: "#dc2626",
+                                    fontWeight: "600"
+                                  }}
+                                >
+                                  Đã qua
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </>
+                      )}
+                    </div>
                   </div>
 
                   <p
@@ -1202,6 +1403,25 @@ const Appointment = () => {
           @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+          }
+
+          /* Custom scrollbar styles for WebKit browsers */
+          div::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          div::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+          }
+          
+          div::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+          }
+          
+          div::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
           }
         `}
       </style>

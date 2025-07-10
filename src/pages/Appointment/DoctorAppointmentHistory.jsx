@@ -1,190 +1,184 @@
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Calendar,
-  Clock,
-  User,
-  Search,
-  Filter,
-  ChevronLeft,
-  ChevronRight,
-  AlertCircle,
-  FileText,
-} from "lucide-react";
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from "../../services/account";
 import Sidebar from "../../components/SidebarProfile/SidebarProfile";
-import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 
-const AppointmentHistory = () => {
+const DoctorAppointmentHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
-  const [patientInfo, setPatientInfo] = useState(null);
+  const [doctorInfo, setDoctorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [patientId, setPatientId] = useState(null);
+  const [doctorId, setDoctorId] = useState(null);
   const itemsPerPage = 5;
 
   useEffect(() => {
     const userId = tokenManager.getCurrentUserId();
+    const userRole = tokenManager.getCurrentUserRole();
+    
     if (!userId) {
-      setError("Vui lòng đăng nhập để xem lịch sử khám");
+      setError("Vui lòng đăng nhập để xem lịch hẹn");
       setLoading(false);
       return;
     }
+
+    if (userRole !== "Doctor") {
+      setError("Chỉ bác sĩ mới có thể xem lịch hẹn của mình");
+      setLoading(false);
+      return;
+    }
+
     const numericUserId = parseInt(userId, 10);
     if (isNaN(numericUserId)) {
       setError("ID người dùng không hợp lệ");
       setLoading(false);
       return;
     }
-    setPatientId(numericUserId);
+    setDoctorId(numericUserId);
   }, []);
 
-  const fetchAppointmentHistory = useCallback(async () => {
-    if (!patientId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const patientData = await appointmentService.getPatientInfo(patientId);
-      if (!patientData) {
-        throw new Error(
-          `Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`
-        );
-      }
-      setPatientInfo(patientData);
+  // Thay thế function fetchDoctorAppointments trong component
 
-      const allAppointments = await appointmentService.getAppointments();
-      const doctors = await appointmentService.getDoctors();
+const fetchDoctorAppointments = useCallback(async () => {
+  if (!doctorId) return;
+  setLoading(true);
+  setError(null);
+  
+  try {
+    // Get doctor information
+    const doctorData = await appointmentService.getPatientInfo(doctorId);
+    if (!doctorData) {
+      throw new Error(`Không tìm thấy thông tin bác sĩ cho doctorId: ${doctorId}`);
+    }
+    setDoctorInfo(doctorData);
 
-      const patientAppointments = allAppointments
-        .filter((app) => {
-          const appPatientId = app.patientId || app.PatientId;
-          return appPatientId === patientId;
-        })
-        .map((appointment) => {
-          const dateInfo = appointmentService.formatDate(
-            appointment.appointmentDate || appointment.createdAt
-          );
-          const isPast = appointmentService.isPast(
-            appointment.appointmentDate || appointment.createdAt
-          );
+    // Get all appointments
+    const allAppointments = await appointmentService.getAppointments();
+    
+    // Filter appointments for this doctor
+    const doctorAppointments = allAppointments.filter(appointment => {
+      const appointmentDoctorId = appointment.doctorId || appointment.DoctorId;
+      return appointmentDoctorId === doctorId;
+    });
+    
+    console.log("Filtered doctor appointments:", doctorAppointments);
+    
+    const allDoctorSchedules = await appointmentService.getAllSchedulesOfDoctor(doctorId);
+    console.log("All doctor schedules from new API:", allDoctorSchedules);
+    
+    const scheduleRoomMap = {};
+    allDoctorSchedules.forEach(schedule => {
 
-          // Get doctor information
-          let doctorName = "Bác sĩ không xác định";
-          let doctorSpecialty = "";
-          const doctorId = appointment.doctorId || appointment.DoctorId;
-          if (doctorId && doctors) {
-            const doctor = doctors.find((d) => d.userId === doctorId);
-            if (doctor) {
-              doctorName = doctor.fullName || doctor.name || doctorName;
-              doctorSpecialty = doctor.specialty || "";
+      const scheduleId = schedule.scheduleId || schedule.ScheduleId || schedule.id;
+      const room = schedule.room || schedule.Room || schedule.roomName || schedule.RoomName;
+      const status = schedule.status || schedule.Status;
+      
+      console.log(`🗺️ Mapping Schedule ID: ${scheduleId} -> Room: ${room} (Status: ${status})`);
+      scheduleRoomMap[scheduleId] = room || "Chưa xác định";
+    });
+    
+    console.log("📋 Complete scheduleRoomMap from all schedules:", scheduleRoomMap);
+    
+ 
+    const confirmedAppointments = await Promise.all(
+      doctorAppointments
+        .filter(appointment => appointment.status === "CONFIRMED")
+        .map(async (appointment) => {
+          const dateInfo = appointmentService.formatDate(appointment.appointmentDate);
+          const isPast = appointmentService.isPast(appointment.appointmentDate);
+          
+          // 🔧 Get room from comprehensive schedule map
+          const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
+          const room = scheduleRoomMap[appointmentScheduleId] || "Phòng không xác định";
+          
+          console.log(`🏥 Appointment ID: ${appointment.appointmentId}, Schedule ID: ${appointmentScheduleId}, Room: ${room}`);
+          
+          let patientInfo = {
+            fullName: "Bệnh nhân ẩn danh",
+            phone: "***",
+            gender: "***",
+            birthdate: "***"
+          };
+
+          // Only get patient info if not anonymous
+          if (!appointment.isAnonymous) {
+            try {
+              const patientData = await appointmentService.getPatientInfo(appointment.patientId);
+              if (patientData) {
+                patientInfo = {
+                  fullName: patientData.fullName || "Chưa cập nhật",
+                  phone: patientData.phone || "Chưa cập nhật",
+                  gender: patientData.gender === "Male" ? "Nam" : patientData.gender === "Female" ? "Nữ" : "Chưa cập nhật",
+                  birthdate: patientData.birthdate || "Chưa cập nhật"
+                };
+              }
+            } catch (error) {
+              console.warn(`Could not fetch patient info for ID: ${appointment.patientId}`, error);
             }
           }
 
           return {
             ...appointment,
-            doctorName,
-            doctorSpecialty,
+            doctorName: doctorData.fullName || "Bác sĩ",
+            doctorSpecialty: "",
+            patientInfo,
+            room, 
             formattedDate: dateInfo,
             isPast,
-            displayStatus: getDisplayStatus(appointment.status, isPast),
+            displayStatus: isPast ? "completed" : "upcoming"
           };
         })
-        .sort(
-          (a, b) =>
-            new Date(b.appointmentDate || b.createdAt) -
-            new Date(a.appointmentDate || a.createdAt)
-        );
+    );
 
-      console.log("Patient appointments:", patientAppointments);
-      setAppointments(patientAppointments);
-    } catch (err) {
-      console.error("Error fetching appointment history:", err);
-      setError(
-        err.message || "Có lỗi xảy ra khi tải lịch sử khám. Vui lòng thử lại."
-      );
-    } finally {
-      setLoading(false);
-    }
-  }, [patientId]);
+    confirmedAppointments.sort((a, b) => 
+      new Date(b.appointmentDate) - new Date(a.appointmentDate)
+    );
+
+    console.log("🎯 Final confirmed appointments with rooms:", confirmedAppointments.map(apt => ({
+      id: apt.appointmentId,
+      scheduleId: apt.scheduleId,
+      room: apt.room,
+      status: apt.status
+    })));
+    
+    setAppointments(confirmedAppointments);
+    
+  } catch (err) {
+    console.error("Error fetching doctor appointments:", err);
+    setError(err.message || "Có lỗi xảy ra khi tải lịch hẹn. Vui lòng thử lại.");
+  } finally {
+    setLoading(false);
+  }
+}, [doctorId]);
 
   useEffect(() => {
-    fetchAppointmentHistory();
-  }, [fetchAppointmentHistory]);
+    fetchDoctorAppointments();
+  }, [fetchDoctorAppointments]);
 
-  const getDisplayStatus = (status, isPast) => {
-    if (status === "Cancel" || status === "CANCELLED") return "cancelled";
-    if (status === "COMPLETED") return "completed";
-    if (status === "CONFIRMED" && isPast) return "completed";
-    if (status === "CONFIRMED" && !isPast) return "upcoming";
-    if (status === "SCHEDULED") return "pending";
-    return "pending";
-  };
-
-  const handleCancelClick = (appointment) => {
-    const appointmentTime = new Date(
-      appointment.appointmentDate || appointment.createdAt
-    ).getTime();
-    const now = new Date().getTime();
-    const timeDifference = (appointmentTime - now) / (1000 * 60 * 60);
-    if (timeDifference <= 1) {
-      alert("Không thể hủy lịch hẹn vì chỉ còn dưới 1 giờ nữa!");
-      return;
-    }
+  const handleViewDetails = (appointment) => {
     setSelectedAppointment(appointment);
-    setShowCancelModal(true);
+    setShowDetailsModal(true);
   };
 
-  const handleConfirmCancel = async () => {
-    if (!selectedAppointment?.appointmentId) {
-      alert("Không thể hủy lịch hẹn: ID không hợp lệ");
-      return;
-    }
-    try {
-      const result = await appointmentService.cancelAppointment(
-        selectedAppointment.appointmentId
-      );
-      console.log("Cancel result:", result);
-      setAppointments(
-        appointments.map((app) =>
-          app.appointmentId === selectedAppointment.appointmentId
-            ? { ...app, status: "Cancel", displayStatus: "cancelled" }
-            : app
-        )
-      );
-      setShowCancelModal(false);
-      setSelectedAppointment(null);
-      // Removed alert for success message
-    } catch (err) {
-      console.error("Error canceling appointment:", err);
-      alert(`Lỗi khi hủy lịch hẹn: ${err.message || "Vui lòng thử lại sau"}`);
-    }
-  };
-
-  const handleCancelModalClose = () => {
-    setShowCancelModal(false);
+  const handleCloseModal = () => {
+    setShowDetailsModal(false);
     setSelectedAppointment(null);
   };
 
   const filteredAppointments = appointments.filter((appointment) => {
-    const matchesSearch =
-      appointment.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (appointment.note &&
-        appointment.note.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesSearch = 
+      appointment.patientInfo.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (appointment.note && appointment.note.toLowerCase().includes(searchTerm.toLowerCase()));
 
     let matchesFilter = true;
     if (filterStatus === "completed")
       matchesFilter = appointment.displayStatus === "completed";
     else if (filterStatus === "upcoming")
       matchesFilter = appointment.displayStatus === "upcoming";
-    else if (filterStatus === "cancelled")
-      matchesFilter = appointment.displayStatus === "cancelled";
-    else if (filterStatus === "pending")
-      matchesFilter = appointment.displayStatus === "pending";
 
     return matchesSearch && matchesFilter;
   });
@@ -198,19 +192,15 @@ const AppointmentHistory = () => {
     ({
       completed: { backgroundColor: "#dcfce7", color: "#15803d" },
       upcoming: { backgroundColor: "#dbeafe", color: "#1e40af" },
-      cancelled: { backgroundColor: "#fee2e2", color: "#b91c1c" },
-      pending: { backgroundColor: "#fef9c3", color: "#a16207" },
     }[displayStatus] || { backgroundColor: "#f3f4f6", color: "#1f2937" });
 
   const getStatusText = (displayStatus) =>
     ({
       completed: "Đã khám",
       upcoming: "Sắp tới",
-      cancelled: "Đã hủy",
-      pending: "Chờ xác nhận",
     }[displayStatus] || displayStatus);
 
-  // Style objects for cancel button only
+  // Style objects for buttons
   const baseButtonStyle = {
     padding: "8px 16px",
     minWidth: "100px",
@@ -229,17 +219,17 @@ const AppointmentHistory = () => {
     outline: "none",
   };
 
-  const cancelButtonStyle = {
+  const viewButtonStyle = {
     ...baseButtonStyle,
-    backgroundColor: "#ef4444",
+    backgroundColor: "#2563eb",
     color: "#ffffff",
-    borderColor: "#ef4444",
+    borderColor: "#2563eb",
   };
 
-  const cancelButtonHoverStyle = {
-    ...cancelButtonStyle,
-    backgroundColor: "#dc2626",
-    borderColor: "#dc2626",
+  const viewButtonHoverStyle = {
+    ...viewButtonStyle,
+    backgroundColor: "#1d4ed8",
+    borderColor: "#1d4ed8",
   };
 
   if (loading) {
@@ -249,34 +239,6 @@ const AppointmentHistory = () => {
           <Sidebar />
         </div>
         <section className="profile">
-          <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
-            <div style={{ animation: 'spin 1s linear infinite', borderRadius: '9999px', height: '3rem', width: '3rem', borderBottom: '2px solid #00c497' }}></div>
-            <span style={{ marginLeft: '0.75rem', color: '#4b5563' }}>Đang tải lịch sử khám...</span>
-            </div>
-      </section>
-    </div>
-  );
-}
-
-  if (loading) {
-    return (
-      <div
-        style={{
-          maxWidth: "1152px",
-          margin: "0 auto",
-          padding: "1.5rem",
-          backgroundColor: "#f9fafb",
-          minHeight: "100vh",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#ffffff",
-            borderRadius: "0.5rem",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            padding: "1.5rem",
-          }}
-        >
           <div
             className="card"
             style={{
@@ -296,10 +258,10 @@ const AppointmentHistory = () => {
               }}
             ></div>
             <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>
-              Đang tải lịch sử khám...
+              Đang tải lịch hẹn...
             </span>
           </div>
-         </div>
+        </section>
       </div>
     );
   }
@@ -321,16 +283,10 @@ const AppointmentHistory = () => {
               color: "#dc2626",
             }}
           >
-            <AlertCircle
-              style={{
-                width: "1.5rem",
-                height: "1.5rem",
-                marginRight: "0.5rem",
-              }}
-            />
+            <span style={{ marginRight: "0.5rem" }}>⚠️</span>
             <span>{error}</span>
             <button
-              onClick={fetchAppointmentHistory}
+              onClick={fetchDoctorAppointments}
               className="btn-green"
               style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
             >
@@ -345,23 +301,23 @@ const AppointmentHistory = () => {
   return (
     <div className="container">
       <div className="sidebar-Profile">
-        <SidebarDoctor active="Appointment-History" />
+        <Sidebar />
       </div>
       <section className="profile">
-        <h2>Lịch sử Đặt Lịch Khám</h2>
-        {patientInfo && (
+        <h2>Lịch Hẹn Đã Xác Nhận</h2>
+        {doctorInfo && (
           <div className="card profile-header">
             <div className="profile-photo">
               <img src="/assets/image/patient/patient.png" alt="Avatar" />
             </div>
             <div className="profile-info">
-              <strong>{patientInfo.fullName || "Chưa cập nhật"}</strong>
-              <p>#{patientInfo.userId}</p>
-              <p>{patientInfo.phone || "Chưa cập nhật"}</p>
+              <strong>BS. {doctorInfo.fullName || "Chưa cập nhật"}</strong>
+              <p>#{doctorInfo.userId}</p>
+              <p>{doctorInfo.phone || "Chưa cập nhật"}</p>
               <p>
-                {patientInfo.gender === "Male"
+                {doctorInfo.gender === "Male"
                   ? "Nam"
-                  : patientInfo.gender === "Female"
+                  : doctorInfo.gender === "Female"
                   ? "Nữ"
                   : "Chưa cập nhật"}
               </p>
@@ -378,20 +334,21 @@ const AppointmentHistory = () => {
             }}
           >
             <div style={{ flex: "1", position: "relative" }}>
-              <Search
+              <span
                 style={{
                   position: "absolute",
                   left: "0.75rem",
                   top: "50%",
                   transform: "translateY(-50%)",
                   color: "#999",
-                  width: "1.25rem",
-                  height: "1.25rem",
+                  fontSize: "1.25rem",
                 }}
-              />
+              >
+                🔍
+              </span>
               <input
                 type="text"
-                placeholder="Tìm kiếm theo tên bác sĩ hoặc ghi chú..."
+                placeholder="Tìm kiếm theo tên bệnh nhân hoặc ghi chú..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -406,9 +363,7 @@ const AppointmentHistory = () => {
             <div
               style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
-              <Filter
-                style={{ color: "#999", width: "1.25rem", height: "1.25rem" }}
-              />
+              <span style={{ color: "#999", fontSize: "1.25rem" }}>🔽</span>
               <select
                 value={filterStatus}
                 onChange={(e) => {
@@ -439,22 +394,6 @@ const AppointmentHistory = () => {
                   }
                   )
                 </option>
-                <option value="pending">
-                  Chờ xác nhận (
-                  {
-                    appointments.filter((a) => a.displayStatus === "pending")
-                      .length
-                  }
-                  )
-                </option>
-                <option value="cancelled">
-                  Đã hủy (
-                  {
-                    appointments.filter((a) => a.displayStatus === "cancelled")
-                      .length
-                  }
-                  )
-                </option>
               </select>
             </div>
           </div>
@@ -467,15 +406,20 @@ const AppointmentHistory = () => {
                   color: "#6b7280",
                 }}
               >
-                <Calendar
+                <span
                   style={{
-                    width: "3rem",
-                    height: "3rem",
+                    fontSize: "3rem",
+                    display: "block",
                     margin: "0 auto 0.75rem",
                     color: "#d1d5db",
                   }}
-                />
+                >
+                  📅
+                </span>
                 <p>Không tìm thấy lịch hẹn nào</p>
+                <p style={{ fontSize: "0.875rem" }}>
+                  Chỉ hiển thị các lịch hẹn đã được xác nhận
+                </p>
               </div>
             ) : (
               currentAppointments.map((appointment) => (
@@ -501,13 +445,9 @@ const AppointmentHistory = () => {
                           marginBottom: "0.5rem",
                         }}
                       >
-                        <User
-                          style={{
-                            width: "1.25rem",
-                            height: "1.25rem",
-                            color: "#4b5563",
-                          }}
-                        />
+                        <span style={{ fontSize: "1.25rem" }}>
+                          {appointment.isAnonymous ? "🛡️" : "👤"}
+                        </span>
                         <h3
                           style={{
                             fontSize: "1.125rem",
@@ -515,13 +455,20 @@ const AppointmentHistory = () => {
                             color: "#1f2937",
                           }}
                         >
-                          {appointment.doctorName}
+                          {appointment.patientInfo.fullName}
                         </h3>
-                        {appointment.doctorSpecialty && (
+                        {appointment.isAnonymous && (
                           <span
-                            style={{ fontSize: "0.875rem", color: "#6b7280" }}
+                            style={{ 
+                              fontSize: "0.75rem", 
+                              color: "#f59e0b",
+                              fontStyle: "italic",
+                              backgroundColor: "#fef3c7",
+                              padding: "2px 6px",
+                              borderRadius: "4px"
+                            }}
                           >
-                            • {appointment.doctorSpecialty}
+                            Ẩn danh
                           </span>
                         )}
                       </div>
@@ -539,18 +486,12 @@ const AppointmentHistory = () => {
                             gap: "0.5rem",
                           }}
                         >
-                          <Calendar style={{ width: "1rem", height: "1rem" }} />
+                          <span>📅</span>
                           <span>
                             {appointment.formattedDate.dayName},{" "}
                             {appointment.formattedDate.date}
                           </span>
-                          <Clock
-                            style={{
-                              width: "1rem",
-                              height: "1rem",
-                              marginLeft: "0.5rem",
-                            }}
-                          />
+                          <span style={{ marginLeft: "0.5rem" }}>🕐</span>
                           <span>{appointment.formattedDate.time}</span>
                         </div>
                         {appointment.note && (
@@ -562,13 +503,7 @@ const AppointmentHistory = () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            <FileText
-                              style={{
-                                width: "1rem",
-                                height: "1rem",
-                                marginTop: "0.125rem",
-                              }}
-                            />
+                            <span>📝</span>
                             <span>{appointment.note}</span>
                           </div>
                         )}
@@ -582,12 +517,8 @@ const AppointmentHistory = () => {
                             marginTop: "0.25rem",
                           }}
                         >
-                          {/* <span>Mã lịch hẹn: #{appointment.appointmentId}</span> */}
-                          {appointment.isAnonymous && (
-                            <span style={{ fontStyle: "italic" }}>
-                              • Đặt lịch ẩn danh
-                            </span>
-                          )}
+                          <span>Mã lịch hẹn: #{appointment.appointmentId}</span>
+                          <span>🏥 Phòng: {appointment.room}</span>
                         </div>
                       </div>
                     </div>
@@ -610,35 +541,19 @@ const AppointmentHistory = () => {
                       >
                         {getStatusText(appointment.displayStatus)}
                       </span>
-                      {appointment.displayStatus === "upcoming" && (
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => handleCancelClick(appointment)}
-                            style={cancelButtonStyle}
-                            onMouseEnter={(e) => {
-                              Object.assign(
-                                e.target.style,
-                                cancelButtonHoverStyle
-                              );
-                            }}
-                            onMouseLeave={(e) => {
-                              Object.assign(e.target.style, cancelButtonStyle);
-                            }}
-                          >
-                            Hủy lịch
-                          </button>
-                        </div>
-                      )}
-                      {appointment.displayStatus === "pending" && (
-                        <div style={{
-                           fontSize: "0.75rem",
-                           color: "#6b7280",
-                           fontStyle: "italic",
-                          textAlign: "right"
-                        }}>
-                          Đang chờ xác nhận từ phía bệnh viện
-                        </div>
-                      )}
+                      <button
+                        onClick={() => handleViewDetails(appointment)}
+                        style={viewButtonStyle}
+                        onMouseEnter={(e) => {
+                          Object.assign(e.target.style, viewButtonHoverStyle);
+                        }}
+                        onMouseLeave={(e) => {
+                          Object.assign(e.target.style, viewButtonStyle);
+                        }}
+                      >
+                        <span>👁️</span>
+                        Xem chi tiết
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -667,7 +582,7 @@ const AppointmentHistory = () => {
                   backgroundColor: "#ffffff",
                 }}
               >
-                <ChevronLeft style={{ width: "1.25rem", height: "1.25rem" }} />
+                ⬅️
               </button>
               <div style={{ display: "flex", gap: "0.25rem" }}>
                 {[...Array(totalPages)].map((_, index) => {
@@ -725,46 +640,91 @@ const AppointmentHistory = () => {
                   backgroundColor: "#ffffff",
                 }}
               >
-                <ChevronRight style={{ width: "1.25rem", height: "1.25rem" }} />
+                ➡️
               </button>
             </div>
           )}
         </div>
-        {showCancelModal && selectedAppointment && (
+
+        {/* Details Modal */}
+        {showDetailsModal && selectedAppointment && (
           <div className="modal" style={{ display: "flex" }}>
             <div className="modal-content">
-              <h3>Xác nhận hủy lịch khám</h3>
+              <h3>Chi tiết lịch hẹn</h3>
               <div style={{ marginBottom: "1rem", color: "#4b5563" }}>
-                <p style={{ marginBottom: "0.5rem" }}>
-                  Bạn có chắc chắn muốn hủy lịch khám?
-                </p>
                 <div
                   style={{
                     backgroundColor: "#f3f4f6",
                     padding: "0.75rem",
                     borderRadius: "0.375rem",
+                    marginBottom: "1rem",
                   }}
                 >
-                  <p style={{ fontWeight: "500", color: "#1f2937" }}>
-                    {selectedAppointment.doctorName}
+                  <p style={{ fontWeight: "500", color: "#1f2937", marginBottom: "0.5rem" }}>
+                    📅 Thông tin lịch hẹn
                   </p>
                   <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                    {selectedAppointment.formattedDate.dayName},{" "}
-                    {selectedAppointment.formattedDate.date} -{" "}
-                    {selectedAppointment.formattedDate.time}
+                    <strong>Mã:</strong> #{selectedAppointment.appointmentId}
                   </p>
-                  {selectedAppointment.note && (
-                    <p
-                      style={{
-                        fontSize: "0.875rem",
-                        marginTop: "0.25rem",
-                        fontStyle: "italic",
-                      }}
-                    >
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Ngày giờ:</strong> {selectedAppointment.formattedDate.dayName}, {selectedAppointment.formattedDate.date} - {selectedAppointment.formattedDate.time}
+                  </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Phòng:</strong> {selectedAppointment.room}
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    backgroundColor: "#f0f9ff",
+                    padding: "0.75rem",
+                    borderRadius: "0.375rem",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <p style={{ fontWeight: "500", color: "#1f2937", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {selectedAppointment.isAnonymous ? (
+                      <>
+                        <span>🛡️</span>
+                        Thông tin bệnh nhân (Ẩn danh)
+                      </>
+                    ) : (
+                      <>
+                        <span>👤</span>
+                        Thông tin bệnh nhân
+                      </>
+                    )}
+                  </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Họ tên:</strong> {selectedAppointment.patientInfo.fullName}
+                  </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Điện thoại:</strong> {selectedAppointment.patientInfo.phone}
+                  </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Giới tính:</strong> {selectedAppointment.patientInfo.gender}
+                  </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Ngày sinh:</strong> {selectedAppointment.patientInfo.birthdate}
+                  </p>
+                </div>
+
+                {selectedAppointment.note && (
+                  <div
+                    style={{
+                      backgroundColor: "#fef3c7",
+                      padding: "0.75rem",
+                      borderRadius: "0.375rem",
+                    }}
+                  >
+                    <p style={{ fontWeight: "500", color: "#1f2937", marginBottom: "0.5rem" }}>
+                      📝 Ghi chú từ bệnh nhân
+                    </p>
+                    <p style={{ fontSize: "0.875rem" }}>
                       {selectedAppointment.note}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
               <div
                 style={{
@@ -774,18 +734,7 @@ const AppointmentHistory = () => {
                 }}
               >
                 <button
-                  onClick={handleCancelModalClose}
-                  className="btn-purple"
-                  style={{
-                    padding: "8px 16px",
-                    minWidth: "80px",
-                    height: "36px",
-                  }}
-                >
-                  Không
-                </button>
-                <button
-                  onClick={handleConfirmCancel}
+                  onClick={handleCloseModal}
                   className="btn-green"
                   style={{
                     padding: "8px 16px",
@@ -793,7 +742,7 @@ const AppointmentHistory = () => {
                     height: "36px",
                   }}
                 >
-                  Xác nhận hủy
+                  Đóng
                 </button>
               </div>
             </div>
@@ -804,4 +753,4 @@ const AppointmentHistory = () => {
   );
 };
 
-export default AppointmentHistory;
+export default DoctorAppointmentHistory;

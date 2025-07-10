@@ -63,40 +63,51 @@ class ScheduleService {
    * @param {number} doctorId - Doctor ID
    * @returns {Promise<Object>} API response
    */
-  async createSchedule(scheduleData, doctorId) {
-    try {
-      console.log('🚀 ScheduleService: Creating schedule', { scheduleData, doctorId });
-      
-      const apiData = this.convertToApiFormat(scheduleData, doctorId);
-      console.log('📤 API Format:', apiData);
-      
-      const response = await apiRequest(`${this.baseUrl}`, {
-        method: 'POST',
-        body: JSON.stringify(apiData)
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Create schedule error:', errorText);
-        
-        try {
-          const errorJson = JSON.parse(errorText);
-          throw new Error(errorJson.message || `HTTP ${response.status}: ${response.statusText}`);
-        } catch (parseError) {
-          throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
-        }
-      }
-      
-      const result = await response.json();
-      console.log('✅ Schedule created successfully:', result);
-      return result;
-      
-    } catch (error) {
-      console.error('💥 ScheduleService createSchedule error:', error);
-      this.handleApiError(error);
-      throw error;
+ // Trong ScheduleService.js - method createSchedule
+async createSchedule(scheduleData, doctorId) {
+  try {
+    console.log('🚀 ScheduleService: Creating schedule', { scheduleData, doctorId });
+    
+    const apiData = this.convertToApiFormat(scheduleData, doctorId);
+    console.log('📤 API Format:', apiData);
+    
+    const response = await apiRequest(`${this.baseUrl}`, {
+      method: 'POST',
+      body: JSON.stringify(apiData)
+    });
+    
+    console.log('📡 HTTP Response:', {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ HTTP Error Response:', errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
     }
+    
+    const result = await response.json();
+    
+    // 🔍 CRITICAL: Log exact response structure
+    console.log('🔍 Parsed JSON Response:', {
+      fullResult: result,
+      isSuccess: result?.isSuccess,
+      hasData: !!result?.data,
+      dataScheduleId: result?.data?.scheduleId,
+      message: result?.message,
+      resultType: typeof result,
+      dataType: typeof result?.data
+    });
+    
+    return result;
+    
+  } catch (error) {
+    console.error('💥 ScheduleService createSchedule error:', error);
+    throw error;
   }
+}
 
   /**
    * Create multiple schedules
@@ -104,36 +115,31 @@ class ScheduleService {
    * @param {number} doctorId - Doctor ID
    * @returns {Promise<Array>} Array of API responses
    */
-  async createMultipleSchedules(schedulesData, doctorId) {
-    try {
-      console.log('🚀 ScheduleService: Creating multiple schedules', { schedulesData, doctorId });
-      
-      const apiDataArray = schedulesData.map(schedule => 
-        this.convertToApiFormat(schedule, doctorId)
-      );
-      console.log('📤 API Format Array:', apiDataArray);
-      
-      const response = await apiRequest(`${this.baseUrl}/bulk`, {
-        method: 'POST',
-        body: JSON.stringify(apiDataArray)
-      });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Bulk create error:', errorText);
-        throw new Error(`HTTP ${response.status}: ${errorText}`);
+  // Trong ScheduleService.js, sửa method createMultipleSchedules
+async createMultipleSchedules(schedulesData, doctorId) {
+  try {
+    console.log('🚀 Creating multiple schedules one by one...');
+    
+    const results = [];
+    
+    // Tạo từng schedule một thay vì bulk
+    for (const scheduleData of schedulesData) {
+      try {
+        const result = await this.createSchedule(scheduleData, doctorId);
+        results.push(result);
+      } catch (error) {
+        results.push({ isSuccess: false, message: error.message });
       }
-      
-      const result = await response.json();
-      console.log('✅ Multiple schedules created successfully:', result);
-      return result;
-      
-    } catch (error) {
-      console.error('💥 ScheduleService createMultipleSchedules error:', error);
-      this.handleApiError(error);
-      throw error;
     }
+    
+    console.log('✅ Multiple schedules processed:', results);
+    return results;
+    
+  } catch (error) {
+    console.error('💥 Error creating multiple schedules:', error);
+    throw error;
   }
+}
 
   /**
    * Get doctor's schedules

@@ -23,7 +23,7 @@ import AppointmentManagement from "../pages/Appointment/AppointmentManagement"; 
 import DoctorMedicalRecordPage from "../pages/MedicalRecord/DoctorMedicalRecordPage";
 import PatientMedicalRecordPage from "../pages/MedicalRecord/PatientMedicalRecordPage";
 import Dashboard from "../pages/Staff/DashBoard";
-
+import DoctorAppointmentHistory from "../pages/Appointment/DoctorAppointmentHistory";
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
@@ -49,5 +49,6 @@ export const routes = [
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
   { path: "/Appointment-History", element: <AppointmentHistory />},
-  { path: "/DashBoard", element: <Dashboard />}
+  { path: "/DashBoard", element: <Dashboard />},
+  {path: "/Doctor-Appointment-History", element: <DoctorAppointmentHistory /> }
 ];
