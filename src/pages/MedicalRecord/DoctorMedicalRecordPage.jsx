@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getMedicalRecordsByDoctor, getMedicalRecordDetail } from "../../services/medicalRecordService";
 import { tokenManager } from "../../services/account";
 import "./MedicalRecordPage.css";
-import SidebarProfile from "../../components/SidebarProfile/SidebarProfile";
+import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 
 const DoctorMedicalRecordPage = () => {
   const [records, setRecords] = useState([]);
@@ -59,7 +59,7 @@ const DoctorMedicalRecordPage = () => {
 
   return (
     <div className="container">
-      <SidebarProfile />
+      <SidebarDoctor active="Doctor-MedicalRecord"/>
       <div className="medi-content">
         <div className="medi-header">
           <h2 className="medi-title">Hồ sơ bệnh nhân bạn phụ trách</h2>

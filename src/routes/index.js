@@ -44,7 +44,7 @@ export const routes = [
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
   { path: "/Staff-DoctorSchedule", element: <StaffDoctorSchedule /> },
   { path: "/Appointment-Management", element: <AppointmentManagement /> }, // New route
-  { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage/>},
+  { path: "/Doctor-MedicalRecord", element: <DoctorMedicalRecordPage/>},
   { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
   {path: "/Appointment-History", element: <AppointmentHistory />},

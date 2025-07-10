@@ -14,6 +14,7 @@ import {
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from '../../services/account';
 import Sidebar from "../../components/SidebarProfile/SidebarProfile";
+import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 
 
 const AppointmentHistory = () => {
@@ -342,7 +343,7 @@ const AppointmentHistory = () => {
   return (
     <div className="container">
       <div className="sidebar-Profile">
-        <Sidebar />
+        <SidebarDoctor active="Appointment-History" />
       </div>
       <section className="profile">
         <h2>Lịch sử Đặt Lịch Khám</h2>
