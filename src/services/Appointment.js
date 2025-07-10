@@ -1,4 +1,4 @@
-// import { apiRequest } from "./account";
+
 const API_BASE_URL = "https://localhost:7243/api";
 
 // Get patient information by ID
@@ -79,9 +79,11 @@ export const getDoctorsApi = async () => {
   }
 };
 
-// Get doctor schedules by doctor ID
+// Fixed: Get doctor schedules by doctor ID
 export const getDoctorSchedulesApi = async (doctorId) => {
   try {
+    console.log("🚀 getDoctorSchedulesApi called with doctorId:", doctorId);
+    
     const response = await fetch(`${API_BASE_URL}/Appointment/${doctorId}`, {
       method: "GET",
       headers: {
@@ -89,25 +91,55 @@ export const getDoctorSchedulesApi = async (doctorId) => {
       },
     });
 
+    console.log("📡 Response status:", response.status);
+    console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
-      throw new Error("Không thể tải lịch khám");
+      const errorText = await response.text();
+      console.error("❌ API Error Response:", errorText);
+      throw new Error(`HTTP ${response.status}: Không thể tải lịch khám`);
     }
 
     const schedules = await response.json();
+    console.log("✅ Raw API Response:", schedules);
+    
+    // Ensure we return an array
+    if (!Array.isArray(schedules)) {
+      console.warn("⚠️ API returned non-array data:", schedules);
+      return [];
+    }
+
+    // Log each schedule to debug structure
+    schedules.forEach((schedule, index) => {
+      console.log(`📅 Schedule ${index}:`, {
+        scheduleId: schedule.scheduleId || schedule.ScheduleId,
+        scheduledTime: schedule.scheduledTime || schedule.ScheduledTime,
+        room: schedule.room || schedule.Room,
+        status: schedule.status || schedule.Status,
+        rawData: schedule
+      });
+    });
 
     // Filter only available schedules if status field exists
-    const availableSchedules = schedules.filter(
-      (s) => !s.status || s.status === "Active" || s.status === "active"
-    );
+    const availableSchedules = schedules.filter((s) => {
+      const status = s.status || s.Status;
+      return !status || status === "ACTIVE" || status === "Active" || status === "active";
+    });
+
+    console.log(`🔍 Filtered ${availableSchedules.length} available schedules from ${schedules.length} total`);
 
     // Sort schedules by date
-    availableSchedules.sort(
-      (a, b) => new Date(a.scheduledTime) - new Date(b.scheduledTime)
-    );
+    const sortedSchedules = availableSchedules.sort((a, b) => {
+      const dateA = new Date(a.scheduledTime || a.ScheduledTime);
+      const dateB = new Date(b.scheduledTime || b.ScheduledTime);
+      return dateA - dateB;
+    });
 
-    return availableSchedules;
+    console.log("📊 Final sorted schedules:", sortedSchedules);
+    return sortedSchedules;
+
   } catch (error) {
-    console.error("Error fetching doctor schedules:", error);
+    console.error("💥 Error in getDoctorSchedulesApi:", error);
     throw error;
   }
 };
@@ -115,6 +147,8 @@ export const getDoctorSchedulesApi = async (doctorId) => {
 // Create new appointment
 export const createAppointmentApi = async (appointmentData) => {
   try {
+    console.log("🚀 Creating appointment with data:", appointmentData);
+    
     const response = await fetch(`${API_BASE_URL}/Appointment/create`, {
       method: "POST",
       headers: {
@@ -123,16 +157,20 @@ export const createAppointmentApi = async (appointmentData) => {
       body: JSON.stringify(appointmentData),
     });
 
+    console.log("📡 Create appointment response status:", response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error("❌ Create appointment error:", errorText);
       throw new Error(errorText || "Không thể tạo lịch hẹn");
     }
 
     // Backend returns text "create success", not JSON
     const result = await response.text();
+    console.log("✅ Appointment created successfully:", result);
     return result;
   } catch (error) {
-    console.error("Error creating appointment:", error);
+    console.error("💥 Error creating appointment:", error);
     throw error;
   }
 };
@@ -188,9 +226,6 @@ export const cancelAppointmentApi = async (appointmentId) => {
   }
 };
 
-// NEW STATUS MANAGEMENT METHODS (using existing endpoints)
-
-// Update appointment status using the available endpoint
 export const updateAppointmentStatusApi = async (appointmentId, status, note = null) => {
   try {
     const requestBody = {
@@ -227,7 +262,6 @@ export const updateAppointmentStatusApi = async (appointmentId, status, note = n
   }
 };
 
-// Confirm appointment using the available endpoint
 export const confirmAppointmentApi = async (appointmentId, note = null) => {
   try {
     const response = await fetch(`${API_BASE_URL}/Appointment/confirm/${appointmentId}`, {
@@ -257,8 +291,6 @@ export const confirmAppointmentApi = async (appointmentId, note = null) => {
     throw error;
   }
 };
-
-// Complete appointment using the available endpoint
 export const completeAppointmentApi = async (appointmentId, note = null) => {
   try {
     const response = await fetch(`${API_BASE_URL}/Appointment/complete/${appointmentId}`, {
@@ -289,7 +321,6 @@ export const completeAppointmentApi = async (appointmentId, note = null) => {
   }
 };
 
-// Get appointment by ID using the available endpoint
 export const getAppointmentByIdApi = async (appointmentId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/Appointment/${appointmentId}`, {
@@ -359,12 +390,61 @@ export const isAppointmentPast = (dateString) => {
   return appointmentDate < now;
 };
 
+export const getAllSchedulesOfDoctorApi = async (doctorId) => {
+  try {
+    console.log("🚀 getAllSchedulesOfDoctorApi called with doctorId:", doctorId);
+    
+    const response = await fetch(`${API_BASE_URL}/Appointment/GetAllSchedule/${doctorId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("📡 Response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("❌ API Error Response:", errorText);
+      throw new Error(`HTTP ${response.status}: Không thể tải tất cả lịch khám`);
+    }
+
+    const schedules = await response.json();
+    console.log("✅ Raw API Response from GetAllSchedule:", schedules);
+    
+    // Ensure we return an array
+    if (!Array.isArray(schedules)) {
+      console.warn("⚠️ API returned non-array data:", schedules);
+      return [];
+    }
+
+    // Log each schedule to debug structure
+    schedules.forEach((schedule, index) => {
+      console.log(`📅 All Schedule ${index}:`, {
+        scheduleId: schedule.scheduleId || schedule.ScheduleId,
+        scheduledTime: schedule.scheduledTime || schedule.ScheduledTime,
+        room: schedule.room || schedule.Room,
+        status: schedule.status || schedule.Status,
+        rawData: schedule
+      });
+    });
+
+    console.log("📊 Total schedules returned:", schedules.length);
+    return schedules;
+
+  } catch (error) {
+    console.error("💥 Error in getAllSchedulesOfDoctorApi:", error);
+    throw error;
+  }
+};
+
 // Main appointmentService object
 export const appointmentService = {
   getPatientInfo: getPatientInfoApi,
   getDoctorInfo: getDoctorInfoApi,
   getDoctors: getDoctorsApi,
   getDoctorSchedules: getDoctorSchedulesApi,
+  getAllSchedulesOfDoctor: getAllSchedulesOfDoctorApi,
   createAppointment: createAppointmentApi,
   getAppointments: getAppointmentsApi,
   cancelAppointment: cancelAppointmentApi,

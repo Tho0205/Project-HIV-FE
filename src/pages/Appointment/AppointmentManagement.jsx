@@ -8,28 +8,151 @@ import appointmentService from "../../services/Appointment";
 
 const PAGE_SIZE = 8;
 
+// Custom Popup Component
+const CustomPopup = ({ isOpen, onClose, onConfirm, title, message, type = 'info', confirmText = 'Xác nhận', cancelText = 'Hủy' }) => {
+  if (!isOpen) return null;
+
+  const getPopupStyle = () => {
+    const baseStyle = {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 2000
+    };
+    return baseStyle;
+  };
+
+  const getIconAndColor = () => {
+    switch(type) {
+      case 'success':
+        return { icon: '✅', color: '#10b981', bgColor: '#d1fae5' };
+      case 'error':
+        return { icon: '❌', color: '#ef4444', bgColor: '#fee2e2' };
+      case 'warning':
+        return { icon: '⚠️', color: '#f59e0b', bgColor: '#fef3c7' };
+      case 'confirm':
+        return { icon: '❓', color: '#3b82f6', bgColor: '#dbeafe' };
+      default:
+        return { icon: 'ℹ️', color: '#6b7280', bgColor: '#f3f4f6' };
+    }
+  };
+
+  const { icon, color, bgColor } = getIconAndColor();
+
+  return (
+    <div style={getPopupStyle()}>
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '12px',
+        padding: '24px',
+        width: '90%',
+        maxWidth: '400px',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        textAlign: 'center'
+      }}>
+        <div style={{
+          width: '60px',
+          height: '60px',
+          backgroundColor: bgColor,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 16px',
+          fontSize: '24px'
+        }}>
+          {icon}
+        </div>
+        
+        <h3 style={{
+          fontSize: '18px',
+          fontWeight: 'bold',
+          color: '#1f2937',
+          marginBottom: '12px',
+          margin: '0 0 12px 0'
+        }}>
+          {title}
+        </h3>
+        
+        <p style={{
+          color: '#6b7280',
+          marginBottom: '24px',
+          lineHeight: '1.5',
+          margin: '0 0 24px 0'
+        }}>
+          {message}
+        </p>
+        
+        <div style={{
+          display: 'flex',
+          gap: '12px',
+          justifyContent: 'center'
+        }}>
+          {type === 'confirm' && (
+            <button
+              onClick={onClose}
+              style={{
+                padding: '10px 20px',
+                border: '1px solid #d1d5db',
+                borderRadius: '8px',
+                backgroundColor: 'white',
+                color: '#374151',
+                cursor: 'pointer',
+                fontWeight: '500'
+              }}
+            >
+              {cancelText}
+            </button>
+          )}
+          
+          <button
+            onClick={type === 'confirm' ? onConfirm : onClose}
+            style={{
+              padding: '10px 20px',
+              border: 'none',
+              borderRadius: '8px',
+              backgroundColor: color,
+              color: 'white',
+              cursor: 'pointer',
+              fontWeight: '500'
+            }}
+          >
+            {type === 'confirm' ? confirmText : 'Đóng'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const AppointmentManagement = () => {
   // Hide navbar and footer with CSS
   React.useEffect(() => {
-    // Hide navbar and footer
     const navbar = document.querySelector('nav, .navbar, header');
     const footer = document.querySelector('footer, .footer');
     
     if (navbar) navbar.style.display = 'none';
     if (footer) footer.style.display = 'none';
     
-    // Show them back when component unmounts
     return () => {
       if (navbar) navbar.style.display = '';
       if (footer) footer.style.display = '';
     };
   }, []);
+
   // State
   const [appointments, setAppointments] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("date_desc");
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all'); // New status filter
   const [showModal, setShowModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [error, setError] = useState("");
@@ -39,10 +162,40 @@ const AppointmentManagement = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [statusNote, setStatusNote] = useState('');
   const [updating, setUpdating] = useState(false);
+  
+  // Custom popup state
+  const [popup, setPopup] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+    onConfirm: null
+  });
 
   const navigate = useNavigate();
 
-  // Styles
+  // Show custom popup function
+  const showPopup = (title, message, type = 'info', onConfirm = null) => {
+    setPopup({
+      isOpen: true,
+      title,
+      message,
+      type,
+      onConfirm
+    });
+  };
+
+  const closePopup = () => {
+    setPopup({
+      isOpen: false,
+      title: '',
+      message: '',
+      type: 'info',
+      onConfirm: null
+    });
+  };
+
+  // Styles (keeping existing styles)
   const wrapperStyle = {
     display: 'flex',
     height: '100vh',
@@ -65,13 +218,15 @@ const AppointmentManagement = () => {
 
   const headerStyle = {
     display: 'flex',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: '20px',
     backgroundColor: 'white',
     padding: '15px',
     borderRadius: '8px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+    gap: '15px',
+    flexWrap: 'wrap'
   };
 
   const searchStyle = {
@@ -79,14 +234,18 @@ const AppointmentManagement = () => {
     border: '1px solid #ddd',
     borderRadius: '6px',
     fontSize: '14px',
-    width: '400px',
+    flex: '1',
+    minWidth: '250px',
     outline: 'none'
   };
 
-  const userStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px'
+  const filterStyle = {
+    padding: '10px 15px',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    fontSize: '14px',
+    minWidth: '180px',
+    outline: 'none'
   };
 
   const titleStyle = {
@@ -97,14 +256,7 @@ const AppointmentManagement = () => {
   };
 
   const sortBarStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '10px',
-    marginBottom: '20px',
-    backgroundColor: 'white',
-    padding: '15px',
-    borderRadius: '8px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+    display: 'none' // Ẩn sort bar riêng biệt vì đã gộp vào header
   };
 
   const selectStyle = {
@@ -171,6 +323,14 @@ const AppointmentManagement = () => {
     minWidth: '150px'
   };
 
+  const anonymousPatientStyle = {
+    ...tdStyle,
+    fontWeight: 'bold',
+    color: '#6b7280',
+    minWidth: '150px',
+    fontStyle: 'italic'
+  };
+
   const dateStyle = {
     ...tdStyle,
     minWidth: '110px',
@@ -229,6 +389,12 @@ const AppointmentManagement = () => {
     cursor: 'pointer',
     fontSize: '12px',
     transition: 'all 0.2s ease'
+  };
+
+  const approveButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#10b981',
+    color: 'white'
   };
 
   const editButtonStyle = {
@@ -345,21 +511,63 @@ const AppointmentManagement = () => {
     fontWeight: '500'
   };
 
+  // Helper function to get patient display info
+  const getPatientDisplayInfo = (appointment) => {
+    if (appointment.isAnonymous) {
+      return {
+        name: "🔒 Bệnh nhân ẩn danh",
+        id: "***",
+        style: anonymousPatientStyle
+      };
+    }
+    return {
+      name: appointment.patientName,
+      id: `#${appointment.patientId}`,
+      style: patientNameStyle
+    };
+  };
+
+  // Get status counts for filter labels
+  const getStatusCounts = () => {
+    const counts = {
+      all: appointments.length,
+      SCHEDULED: 0,
+      CONFIRMED: 0,
+      COMPLETED: 0,
+      CANCELLED: 0
+    };
+    
+    appointments.forEach(appointment => {
+      if (counts.hasOwnProperty(appointment.status)) {
+        counts[appointment.status]++;
+      }
+    });
+    
+    return counts;
+  };
+
   // Fetch appointments
   useEffect(() => {
-    fetchAppointments(page, sort, searchTerm);
-  }, [page, sort, searchTerm]);
+    fetchAppointments(page, sort, searchTerm, statusFilter);
+  }, [page, sort, searchTerm, statusFilter]);
 
   // Check authorization
   useEffect(() => {
     const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff" && role !== "Manager" && role !== "Doctor") {
-      toast.error("Bạn không có quyền truy cập trang này", { autoClose: 1000 });
-      navigate("/");
+      showPopup(
+        'Không có quyền truy cập',
+        'Bạn không có quyền truy cập trang này',
+        'error',
+        () => {
+          closePopup();
+          navigate("/");
+        }
+      );
     }
   }, [navigate]);
 
-  async function fetchAppointments(page, sort, search) {
+  async function fetchAppointments(page, sort, search, statusFilter) {
     setLoading(true);
     try {
       const [appointmentsData, doctorsData, statusesData] = await Promise.all([
@@ -375,13 +583,17 @@ const AppointmentManagement = () => {
         const doctor = doctorsData.find(d => d.userId === doctorId);
         const dateInfo = appointmentService.formatDate(appointment.appointmentDate || appointment.createdAt);
         
-        // Get patient information
+        // Get patient information - chỉ lấy nếu không phải ẩn danh
         let patientName = "Bệnh nhân không xác định";
-        try {
-          const patientInfo = await appointmentService.getPatientInfo(patientId);
-          patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
-        } catch (error) {
-          patientName = `Bệnh nhân #${patientId}`;
+        if (!appointment.isAnonymous) {
+          try {
+            const patientInfo = await appointmentService.getPatientInfo(patientId);
+            patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
+          } catch (error) {
+            patientName = `Bệnh nhân #${patientId}`;
+          }
+        } else {
+          patientName = "Bệnh nhân ẩn danh";
         }
         
         return {
@@ -395,15 +607,28 @@ const AppointmentManagement = () => {
         };
       }));
 
+      // Apply status filter
+      if (statusFilter && statusFilter !== 'all') {
+        mappedAppointments = mappedAppointments.filter(appointment => 
+          appointment.status === statusFilter
+        );
+      }
+
       // Apply search filter
       if (search) {
-        mappedAppointments = mappedAppointments.filter(appointment =>
-          appointment.doctorName.toLowerCase().includes(search.toLowerCase()) ||
-          appointment.appointmentId.toString().includes(search) ||
-          appointment.patientName.toLowerCase().includes(search.toLowerCase()) ||
-          appointment.patientId.toString().includes(search) ||
-          (appointment.note && appointment.note.toLowerCase().includes(search.toLowerCase()))
-        );
+        mappedAppointments = mappedAppointments.filter(appointment => {
+          const matchesDoctor = appointment.doctorName.toLowerCase().includes(search.toLowerCase());
+          const matchesId = appointment.appointmentId.toString().includes(search);
+          const matchesNote = appointment.note && appointment.note.toLowerCase().includes(search.toLowerCase());
+          
+          let matchesPatient = false;
+          if (!appointment.isAnonymous) {
+            matchesPatient = appointment.patientName.toLowerCase().includes(search.toLowerCase()) ||
+                             appointment.patientId.toString().includes(search);
+          }
+          
+          return matchesDoctor || matchesId || matchesNote || matchesPatient;
+        });
       }
 
       // Apply sorting
@@ -437,7 +662,11 @@ const AppointmentManagement = () => {
     } catch (err) {
       setAppointments([]);
       setTotal(0);
-      toast.error(err.message || 'Có lỗi xảy ra khi tải dữ liệu');
+      showPopup(
+        'Lỗi tải dữ liệu',
+        err.message || 'Có lỗi xảy ra khi tải dữ liệu',
+        'error'
+      );
     } finally {
       setLoading(false);
     }
@@ -455,6 +684,12 @@ const AppointmentManagement = () => {
     setPage(1);
   }
 
+  // Handle status filter change
+  function handleStatusFilterChange(e) {
+    setStatusFilter(e.target.value);
+    setPage(1);
+  }
+
   // Handle open status modal
   async function openStatusModal(appointment) {
     setSelectedAppointment(appointment);
@@ -467,7 +702,11 @@ const AppointmentManagement = () => {
       setValidTransitions(transitions);
       setShowModal(true);
     } catch (err) {
-      toast.error(`Lỗi khi tải danh sách chuyển đổi: ${err.message}`);
+      showPopup(
+        'Lỗi',
+        `Lỗi khi tải danh sách chuyển đổi: ${err.message}`,
+        'error'
+      );
     }
   }
 
@@ -499,8 +738,12 @@ const AppointmentManagement = () => {
       );
 
       closeModal();
-      toast.success("Cập nhật trạng thái thành công", { autoClose: 1000 });
-      fetchAppointments(page, sort, searchTerm);
+      showPopup(
+        'Thành công',
+        'Cập nhật trạng thái thành công!',
+        'success'
+      );
+      fetchAppointments(page, sort, searchTerm, statusFilter);
     } catch (err) {
       setError(err.message || "Cập nhật trạng thái thất bại");
     } finally {
@@ -510,19 +753,33 @@ const AppointmentManagement = () => {
 
   // Quick status change
   async function handleQuickStatusChange(appointment, newStatus) {
-    if (window.confirm(`Bạn có chắc chắn muốn chuyển trạng thái thành "${getStatusText(newStatus)}"?`)) {
-      try {
-        await appointmentService.updateAppointmentStatus(
-          appointment.appointmentId,
-          newStatus,
-          null
-        );
-        toast.success('Cập nhật trạng thái thành công!', { autoClose: 1000 });
-        fetchAppointments(page, sort, searchTerm);
-      } catch (err) {
-        toast.error(`Lỗi khi cập nhật trạng thái: ${err.message}`);
+    showPopup(
+      'Xác nhận thay đổi',
+      `Bạn có chắc chắn muốn chuyển trạng thái thành "${getStatusText(newStatus)}"?`,
+      'confirm',
+      async () => {
+        closePopup();
+        try {
+          await appointmentService.updateAppointmentStatus(
+            appointment.appointmentId,
+            newStatus,
+            null
+          );
+          showPopup(
+            'Thành công',
+            'Cập nhật trạng thái thành công!',
+            'success'
+          );
+          fetchAppointments(page, sort, searchTerm, statusFilter);
+        } catch (err) {
+          showPopup(
+            'Lỗi',
+            `Lỗi khi cập nhật trạng thái: ${err.message}`,
+            'error'
+          );
+        }
       }
-    }
+    );
   }
 
   // Get status badge style
@@ -543,7 +800,7 @@ const AppointmentManagement = () => {
       case 'CANCELLED':
         return { ...baseStyle, backgroundColor: '#fee2e2', color: '#b91c1c' };
       case 'SCHEDULED':
-        return { ...baseStyle, backgroundColor: '#fef9c3', color: '#a16207' };
+        return { ...baseStyle, backgroundColor: '#fef3c7', color: '#d97706' };
       default:
         return { ...baseStyle, backgroundColor: '#f3f4f6', color: '#1f2937' };
     }
@@ -555,7 +812,7 @@ const AppointmentManagement = () => {
       'CONFIRMED': 'Đã xác nhận',
       'COMPLETED': 'Đã hoàn thành', 
       'CANCELLED': 'Đã hủy',
-      'SCHEDULED': 'Đã lên lịch'
+      'SCHEDULED': 'Chờ xét duyệt'
     };
     return texts[status] || status;
   };
@@ -583,6 +840,8 @@ const AppointmentManagement = () => {
       
       {/* Main Content */}
       <main style={contentStyle}>
+        <h1 style={titleStyle}>Quản Lý Lịch Đặt Khám</h1>
+        
         <div style={headerStyle}>
           <input 
             type="text" 
@@ -591,21 +850,68 @@ const AppointmentManagement = () => {
             value={searchTerm}
             onChange={handleSearchChange}
           />
-        </div>
-
-        <h1 style={titleStyle}>Quản Lý Lịch Đặt Khám</h1>
-
-        <div style={sortBarStyle}>
-          <label style={{ fontWeight: 'bold', color: '#374151' }}>Xắp Xếp:</label>
-          <select value={sort} onChange={handleSortChange} style={selectStyle}>
-            <option value="date_desc">Theo Ngày: Mới nhất</option>
-            <option value="date_asc">Theo Ngày: Cũ nhất</option>
-            <option value="doctor_asc">Theo Bác sĩ: A - Z</option>
-            <option value="doctor_desc">Theo Bác sĩ: Z - A</option>
-            <option value="status_asc">Theo Trạng thái: A - Z</option>
-            <option value="status_desc">Theo Trạng thái: Z - A</option>
+          
+          {/* Status Filter */}
+          <select 
+            value={statusFilter} 
+            onChange={handleStatusFilterChange} 
+            style={filterStyle}
+          >
+            <option value="all">Tất cả trạng thái ({total})</option>
+            <option value="SCHEDULED">Chờ xét duyệt</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="COMPLETED">Đã hoàn thành</option>
+            <option value="CANCELLED">Đã hủy</option>
           </select>
+
+          {/* Sort Control */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <label style={{ fontWeight: 'bold', color: '#374151', whiteSpace: 'nowrap' }}>Sắp Xếp:</label>
+            <select value={sort} onChange={handleSortChange} style={selectStyle}>
+              <option value="date_desc">Theo Ngày: Mới nhất</option>
+              <option value="date_asc">Theo Ngày: Cũ nhất</option>
+              <option value="doctor_asc">Theo Bác sĩ: A - Z</option>
+              <option value="doctor_desc">Theo Bác sĩ: Z - A</option>
+              <option value="status_asc">Theo Trạng thái: A - Z</option>
+              <option value="status_desc">Theo Trạng thái: Z - A</option>
+            </select>
+          </div>
+
+          {/* Filter summary */}
+          <div style={{ fontSize: '14px', color: '#6b7280', whiteSpace: 'nowrap' }}>
+            Hiển thị {appointments.length} / {total} lịch hẹn
+            {statusFilter !== 'all' && (
+              <div style={{ fontWeight: 'bold', color: '#3b82f6', marginTop: '2px' }}>
+                Lọc: {getStatusText(statusFilter)}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Ẩn sort bar cũ */}
+        {false && (
+          <div style={sortBarStyle}>
+            <label style={{ fontWeight: 'bold', color: '#374151' }}>Sắp Xếp:</label>
+            <select value={sort} onChange={handleSortChange} style={selectStyle}>
+              <option value="date_desc">Theo Ngày: Mới nhất</option>
+              <option value="date_asc">Theo Ngày: Cũ nhất</option>
+              <option value="doctor_asc">Theo Bác sĩ: A - Z</option>
+              <option value="doctor_desc">Theo Bác sĩ: Z - A</option>
+              <option value="status_asc">Theo Trạng thái: A - Z</option>
+              <option value="status_desc">Theo Trạng thái: Z - A</option>
+            </select>
+            
+            {/* Filter summary */}
+            <div style={{ marginLeft: 'auto', fontSize: '14px', color: '#6b7280' }}>
+              Hiển thị {appointments.length} / {total} lịch hẹn
+              {statusFilter !== 'all' && (
+                <span style={{ fontWeight: 'bold', color: '#3b82f6' }}>
+                  {' '}• Lọc: {getStatusText(statusFilter)}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
 
         <table style={tableStyle}>
           <thead style={theadStyle}>
@@ -613,7 +919,7 @@ const AppointmentManagement = () => {
               <th style={thStyle}>STT</th>
               <th style={thStyle}>ID Lịch Hẹn</th>
               <th style={thStyle}>Bác Sĩ</th>
-              <th style={thStyle}>Tên Bệnh Nhân</th>
+              <th style={thStyle}>Thông Tin Bệnh Nhân</th>
               <th style={thStyle}>Ngày Khám</th>
               <th style={thStyle}>Giờ Khám</th>
               <th style={thStyle}>Ghi Chú</th>
@@ -632,86 +938,117 @@ const AppointmentManagement = () => {
             ) : appointments.length === 0 ? (
               <tr>
                 <td colSpan={10} style={{ ...tdStyle, textAlign: "center", padding: '40px' }}>
-                  Không có dữ liệu
+                  {statusFilter !== 'all' 
+                    ? `Không có lịch hẹn nào với trạng thái "${getStatusText(statusFilter)}"` 
+                    : 'Không có dữ liệu'
+                  }
                 </td>
               </tr>
             ) : (
-              appointments.map((appointment, idx) => (
-                <tr key={appointment.appointmentId} style={{ backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
-                  <td style={sttStyle}>{(page - 1) * PAGE_SIZE + idx + 1}</td>
-                  <td style={appointmentIdStyle}>#{appointment.appointmentId}</td>
-                  <td style={doctorNameStyle}>
-                    <div>
-                      <div style={{ fontWeight: 'bold', color: '#1f2937' }}>
-                        {appointment.doctorName}
-                      </div>
-                      {appointment.doctorSpecialty && (
-                        <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                          {appointment.doctorSpecialty}
+              appointments.map((appointment, idx) => {
+                const patientInfo = getPatientDisplayInfo(appointment);
+                return (
+                  <tr key={appointment.appointmentId} style={{ backgroundColor: idx % 2 === 0 ? '#fafafa' : 'white' }}>
+                    <td style={sttStyle}>{(page - 1) * PAGE_SIZE + idx + 1}</td>
+                    <td style={appointmentIdStyle}>#{appointment.appointmentId}</td>
+                    <td style={doctorNameStyle}>
+                      <div>
+                        <div style={{ fontWeight: 'bold', color: '#1f2937' }}>
+                          {appointment.doctorName}
                         </div>
+                        {appointment.doctorSpecialty && (
+                          <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                            {appointment.doctorSpecialty}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td style={patientInfo.style}>
+                      <div>
+                        <div style={{ fontWeight: 'bold', color: appointment.isAnonymous ? '#6b7280' : '#059669' }}>
+                          {patientInfo.name}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+                          ID: {patientInfo.id}
+                        </div>
+                        {appointment.isAnonymous && (
+                          <div style={{ fontSize: '11px', color: '#ef4444', marginTop: '2px', fontWeight: 'bold' }}>
+                            🔒 Thông tin được bảo mật
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td style={dateStyle}>{formatDate(appointment.appointmentDate)}</td>
+                    <td style={timeStyle}>{formatTime(appointment.appointmentDate)}</td>
+                    <td style={noteStyle} title={appointment.note || '-'}>
+                      {appointment.note || '-'}
+                    </td>
+                    <td style={statusStyle}>
+                      <span style={getStatusBadgeStyle(appointment.status)}>
+                        {getStatusText(appointment.status)}
+                      </span>
+                    </td>
+                    <td style={typeStyle}>
+                      {appointment.isAnonymous ? (
+                        <span style={{ color: '#ef4444', fontWeight: 'bold' }}>🔒 Ẩn danh</span>
+                      ) : (
+                        'Thường'
                       )}
-                    </div>
-                  </td>
-                  <td style={patientNameStyle}>
-                    <div>
-                      <div style={{ fontWeight: 'bold', color: '#059669' }}>
-                        {appointment.patientName}
-                      </div>
-                      <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
-                        ID: #{appointment.patientId}
-                      </div>
-                    </div>
-                  </td>
-                  <td style={dateStyle}>{formatDate(appointment.appointmentDate)}</td>
-                  <td style={timeStyle}>{formatTime(appointment.appointmentDate)}</td>
-                  <td style={noteStyle} title={appointment.note || '-'}>
-                    {appointment.note || '-'}
-                  </td>
-                  <td style={statusStyle}>
-                    <span style={getStatusBadgeStyle(appointment.status)}>
-                      {getStatusText(appointment.status)}
-                    </span>
-                  </td>
-                  <td style={typeStyle}>
-                    {appointment.isAnonymous ? 'Ẩn danh' : 'Thường'}
-                  </td>
-                  <td style={actionsStyle}>
-                    <div style={actionButtonsStyle}>
-                      {appointment.status === 'CONFIRMED' && (
-                        <>
+                    </td>
+                    <td style={actionsStyle}>
+                      <div style={actionButtonsStyle}>
+                        {/* Nút duyệt cho trạng thái SCHEDULED */}
+                        {appointment.status === 'SCHEDULED' && (
                           <button
-                            style={completeButtonStyle}
-                            onClick={() => handleQuickStatusChange(appointment, 'COMPLETED')}
-                            title="Hoàn thành"
+                            style={approveButtonStyle}
+                            onClick={() => handleQuickStatusChange(appointment, 'CONFIRMED')}
+                            title="Duyệt lịch hẹn"
                             onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
                             onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                           >
                             ✓
                           </button>
-                          <button
-                            style={cancelButtonStyle}
-                            onClick={() => handleQuickStatusChange(appointment, 'CANCELLED')}
-                            title="Hủy"
-                            onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-                            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                          >
-                            ✗
-                          </button>
-                        </>
-                      )}
-                      <button
-                        style={editButtonStyle}
-                        onClick={() => openStatusModal(appointment)}
-                        title="Chỉnh sửa"
-                        onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-                        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-                      >
-                        ✏️
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                        )}
+                        
+                        {/* Nút hoàn thành và hủy cho trạng thái CONFIRMED */}
+                        {appointment.status === 'CONFIRMED' && (
+                          <>
+                            <button
+                              style={completeButtonStyle}
+                              onClick={() => handleQuickStatusChange(appointment, 'COMPLETED')}
+                              title="Hoàn thành"
+                              onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                            >
+                              ✓
+                            </button>
+                            <button
+                              style={cancelButtonStyle}
+                              onClick={() => handleQuickStatusChange(appointment, 'CANCELLED')}
+                              title="Hủy"
+                              onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                            >
+                              ✗
+                            </button>
+                          </>
+                        )}
+                        
+                        {/* Nút chỉnh sửa cho tất cả trạng thái */}
+                        <button
+                          style={editButtonStyle}
+                          onClick={() => openStatusModal(appointment)}
+                          title="Chỉnh sửa"
+                          onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                        >
+                          ✏️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -740,10 +1077,25 @@ const AppointmentManagement = () => {
                   <strong>Bác Sĩ:</strong> {selectedAppointment.doctorName}
                 </div>
                 <div style={{ marginBottom: '8px' }}>
-                  <strong>Bệnh Nhân:</strong> {selectedAppointment.patientName} (ID: #{selectedAppointment.patientId})
+                  <strong>Bệnh Nhân:</strong> 
+                  {selectedAppointment.isAnonymous ? (
+                    <span style={{ color: '#6b7280', fontStyle: 'italic' }}>
+                      🔒 Bệnh nhân ẩn danh (ID: ***)
+                    </span>
+                  ) : (
+                    `${selectedAppointment.patientName} (ID: #${selectedAppointment.patientId})`
+                  )}
                 </div>
                 <div style={{ marginBottom: '8px' }}>
                   <strong>Ngày & Giờ:</strong> {formatDate(selectedAppointment.appointmentDate)} - {formatTime(selectedAppointment.appointmentDate)}
+                </div>
+                <div style={{ marginBottom: '8px' }}>
+                  <strong>Loại hẹn:</strong> 
+                  {selectedAppointment.isAnonymous ? (
+                    <span style={{ color: '#ef4444', fontWeight: 'bold' }}> 🔒 Ẩn danh</span>
+                  ) : (
+                    <span style={{ color: '#059669' }}> Thường</span>
+                  )}
                 </div>
                 <div>
                   <strong>Trạng Thái Hiện Tại:</strong>
@@ -815,6 +1167,16 @@ const AppointmentManagement = () => {
             </div>
           </div>
         )}
+
+        {/* Custom Popup */}
+        <CustomPopup
+          isOpen={popup.isOpen}
+          onClose={closePopup}
+          onConfirm={popup.onConfirm}
+          title={popup.title}
+          message={popup.message}
+          type={popup.type}
+        />
       </main>
     </div>
   );

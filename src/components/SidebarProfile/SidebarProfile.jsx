@@ -33,7 +33,7 @@ const SidebarProfile = () => {
         Hồ sơ bệnh án
       </Link>
       <Link
-        to="/Appointment-History"
+        to={userRole === "Doctor" ? "/Doctor-Appointment-History" : "/Appointment-History"}
         className={`sidebar-link ${
           activeItem === "consultation" ? "active" : ""
         }`}
