@@ -286,7 +286,11 @@ const BlogManagement = () => {
                 {(imagePreview || formData.imageUrl) && (
                   <div className="image-preview">
                     <img
-                      src={getImageUrl(imagePreview || formData.imageUrl)}
+                      src={
+                        imagePreview && imagePreview.startsWith("blob:")
+                          ? imagePreview
+                          : getImageUrl(formData.imageUrl)
+                      }
                       alt="Preview"
                       style={{ maxWidth: "100%", maxHeight: "200px" }}
                     />

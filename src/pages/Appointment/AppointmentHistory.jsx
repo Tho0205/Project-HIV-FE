@@ -13,6 +13,7 @@ import {
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from "../../services/account";
 import Sidebar from "../../components/SidebarProfile/SidebarProfile";
+import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 
 const AppointmentHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -248,6 +249,34 @@ const AppointmentHistory = () => {
           <Sidebar />
         </div>
         <section className="profile">
+          <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
+            <div style={{ animation: 'spin 1s linear infinite', borderRadius: '9999px', height: '3rem', width: '3rem', borderBottom: '2px solid #00c497' }}></div>
+            <span style={{ marginLeft: '0.75rem', color: '#4b5563' }}>Đang tải lịch sử khám...</span>
+            </div>
+      </section>
+    </div>
+  );
+}
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          maxWidth: "1152px",
+          margin: "0 auto",
+          padding: "1.5rem",
+          backgroundColor: "#f9fafb",
+          minHeight: "100vh",
+        }}
+      >
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            borderRadius: "0.5rem",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            padding: "1.5rem",
+          }}
+        >
           <div
             className="card"
             style={{
@@ -270,7 +299,7 @@ const AppointmentHistory = () => {
               Đang tải lịch sử khám...
             </span>
           </div>
-        </section>
+         </div>
       </div>
     );
   }
@@ -316,7 +345,7 @@ const AppointmentHistory = () => {
   return (
     <div className="container">
       <div className="sidebar-Profile">
-        <Sidebar />
+        <SidebarDoctor active="Appointment-History" />
       </div>
       <section className="profile">
         <h2>Lịch sử Đặt Lịch Khám</h2>

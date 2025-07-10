@@ -7,7 +7,6 @@ import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
 
-
 const PAGE_SIZE = 10;
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
 
@@ -99,15 +98,12 @@ export default function DoctorPatientManagement() {
 
   // Modal states
   const [modals, setModals] = useState({
-    add: false,
     history: false,
     exam: false,
   });
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
-  const [availablePatients, setAvailablePatients] = useState([]);
-  const [selectedNewPatient, setSelectedNewPatient] = useState(null);
 
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
@@ -120,15 +116,15 @@ export default function DoctorPatientManagement() {
     }
   }, [navigate]);
 
-  // Load patients
+  // Load all patients
   const loadPatients = useCallback(async () => {
-    if (!doctorId) return;
-
     setLoading(true);
     try {
       const [sortBy, order] = sort.split("_");
-      const result = await doctorPatientService.getDoctorPatients(
-        doctorId,
+      
+      // Luôn lấy tất cả bệnh nhân
+      const result = await doctorPatientService.getAllPatients(
+        searchTerm,
         page,
         PAGE_SIZE,
         sortBy,
@@ -138,7 +134,10 @@ export default function DoctorPatientManagement() {
       if (result.success) {
         setPatients(result.data.data || []);
         setTotal(result.data.total || 0);
-        if (result.data.stats) setStats(result.data.stats);
+        // Cập nhật stats từ response
+        if (result.data.stats) {
+          setStats(result.data.stats);
+        }
       } else {
         toast.error(result.message || "Không thể tải danh sách bệnh nhân");
       }
@@ -147,7 +146,7 @@ export default function DoctorPatientManagement() {
     } finally {
       setLoading(false);
     }
-  }, [doctorId, page, sort]);
+  }, [page, sort, searchTerm]);
 
   useEffect(() => {
     loadPatients();
@@ -177,51 +176,11 @@ export default function DoctorPatientManagement() {
     openModal("history");
   };
 
-  const handleAddPatient = async () => {
-    try {
-      const result = await doctorPatientService.getAvailablePatients();
-      if (result.success) {
-        setAvailablePatients(result.data || []);
-        openModal("add");
-      } else {
-        toast.error("Không thể tải danh sách bệnh nhân khả dụng");
-      }
-    } catch (error) {
-      toast.error("Lỗi kết nối server");
-    }
-  };
-
-  const handleAssignPatient = async () => {
-    if (!selectedNewPatient || !doctorId) {
-      toast.error("Thiếu thông tin bác sĩ hoặc bệnh nhân");
-      return;
-    }
-
-    try {
-      const result = await doctorPatientService.assignPatientToDoctor(
-        doctorId,
-        selectedNewPatient
-      );
-      if (result.success) {
-        toast.success("Thêm bệnh nhân thành công");
-        closeModal("add");
-        setSelectedNewPatient(null);
-        loadPatients();
-      } else {
-        toast.error(result.message || "Không thể thêm bệnh nhân");
-      }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra");
-    }
-  };
-
   const handleViewHistory = async (patient) => {
     setSelectedPatient(patient);
     try {
-      const result = await doctorPatientService.getPatientHistory(
-        patient.userId,
-        doctorId
-      );
+      // Lấy thông tin lịch sử - không cần doctorId
+      const result = await doctorPatientService.getPatientHistory(patient.userId);
 
       if (result.success && result.data) {
         setPatientHistory(result.data);
@@ -266,13 +225,15 @@ export default function DoctorPatientManagement() {
 
         // Reload history
         const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.userId,
-          doctorId
+          selectedPatient.userId
         );
         if (historyResult.success) {
           setPatientHistory(historyResult.data);
           openModal("history");
         }
+        
+        // Reload patients to update stats
+        loadPatients();
       }
     } catch (error) {
       toast.error("Có lỗi xảy ra");
@@ -292,10 +253,12 @@ export default function DoctorPatientManagement() {
       if (result.success) {
         toast.success("Xóa thành công");
         const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.userId,
-          doctorId
+          selectedPatient.userId
         );
         if (historyResult.success) setPatientHistory(historyResult.data);
+        
+        // Reload patients to update stats
+        loadPatients();
       } else {
         toast.error(result.message || "Có lỗi xảy ra khi xóa");
       }
@@ -318,41 +281,32 @@ export default function DoctorPatientManagement() {
   };
 
   return (
-
     <div className="container">
       <SidebarDoctor active={"Doctor-Patient-Manager"} />
       <div className="main-content-admin">
         {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
-          <button
-            className="btn-primary-admin btn-doctor"
-            onClick={handleAddPatient}
-          >
-            <span>➕</span> Thêm bệnh nhân mới
-          </button>
         </div>
 
-        {/* Statistics */}
+        {/* Statistics - Hiển thị thống kê chung */}
         <div className="stats-grid">
-          <div className="stats-grid">
-            <StatCard
-              icon="👥"
-              value={stats.totalPatients}
-              label="Tổng số bệnh nhân"
-            />
-            <StatCard
-              icon="📍"
-              value={stats.todayAppointments}
-              label="Lịch hẹn hôm nay"
-            />
-            <StatCard
-              icon="✅"
-              value={stats.controlledPatients}
-              label="Đã kiểm soát"
-            />
-            <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
-          </div>
+          <StatCard
+            icon="👥"
+            value={stats.totalPatients}
+            label="Tổng số bệnh nhân"
+          />
+          <StatCard
+            icon="📍"
+            value={stats.todayAppointments}
+            label="Lịch hẹn hôm nay"
+          />
+          <StatCard
+            icon="✅"
+            value={stats.controlledPatients}
+            label="Đã kiểm soát"
+          />
+          <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
         </div>
 
         {/* Filters */}
@@ -366,6 +320,7 @@ export default function DoctorPatientManagement() {
               className="search-input-admin"
             />
           </div>
+
           <select
             value={sort}
             onChange={(e) => {
@@ -432,82 +387,43 @@ export default function DoctorPatientManagement() {
           onPageChange={setPage}
         />
 
-        {/* Add Patient Modal */}
-        <Modal
-          show={modals.add}
-          onClose={() => closeModal("add")}
-          title="Thêm Bệnh Nhân Mới"
-        >
-          <div className="modal-form-admin">
-            {availablePatients.length === 0 ? (
-              <div className="no-data-admin">
-                <p>Không có bệnh nhân nào chưa được phân công</p>
-              </div>
-            ) : (
-              <>
-                <p className="modal-subtitle">
-                  Chọn bệnh nhân từ danh sách dưới đây:
-                </p>
-                <div className="patient-selection-list">
-                  {availablePatients.map((patient) => (
-                    <div
-                      key={patient.accountId}
-                      className={`patient-selection-item ${
-                        selectedNewPatient === patient.userId ? "selected" : ""
-                      }`}
-                      onClick={() => setSelectedNewPatient(patient.userId)}
-                    >
-                      <img
-                        src={doctorPatientService.getAvatarUrl(
-                          patient.userAvatar
-                        )}
-                        alt="avatar"
-                        className="patient-avatar-small"
-                        onError={(e) => {
-                          e.target.src = DEFAULT_AVATAR;
-                        }}
-                      />
-                      <div className="patient-info-selection">
-                        <p className="patient-name">{patient.fullName}</p>
-                        <p className="patient-email">{patient.email}</p>
-                        <p className="patient-phone">
-                          {patient.phone || "Chưa có SĐT"}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            <div className="modal-actions-admin">
-              <button
-                className="btn-cancel-admin"
-                onClick={() => closeModal("add")}
-              >
-                Hủy
-              </button>
-              <button
-                className="btn-save-admin"
-                onClick={handleAssignPatient}
-                disabled={!selectedNewPatient}
-              >
-                Thêm
-              </button>
-            </div>
-          </div>
-        </Modal>
-
-        {/* History Modal */}
-
+        {/* History Modal - giữ nguyên như cũ */}
         <Modal
           show={modals.history}
           onClose={() => closeModal("history")}
           title={`Lịch Sử Khám Bệnh - ${selectedPatient?.fullName}`}
-          className="modal-large"
+          className="modal-standard"
         >
           <div className="modal-info-body-admin">
             {patientHistory ? (
               <>
+                {/* Patient Info */}
+                <div className="patient-info-section">
+                  <h3>📋 Thông Tin Bệnh Nhân</h3>
+                  <div className="patient-detail-grid">
+                    <div className="info-item">
+                      <span className="info-label">Họ tên:</span>
+                      <span className="info-value">{selectedPatient?.fullName || "Chưa có"}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Email:</span>
+                      <span className="info-value">{selectedPatient?.email}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Số điện thoại:</span>
+                      <span className="info-value">{selectedPatient?.phone || "Chưa có"}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Ngày sinh:</span>
+                      <span className="info-value">{formatDate(selectedPatient?.birthdate)}</span>
+                    </div>
+                    <div className="info-item">
+                      <span className="info-label">Giới tính:</span>
+                      <span className="info-value">{selectedPatient?.gender || "Other"}</span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Appointments */}
                 <div className="info-section-admin">
                   <h3>📅 Lịch Hẹn Khám</h3>
@@ -524,6 +440,11 @@ export default function DoctorPatientManagement() {
                             </span>
                             {getStatusBadge(appointment.status)}
                           </div>
+                          {appointment.doctorName && (
+                            <p className="history-detail">
+                              Bác sĩ: {appointment.doctorName}
+                            </p>
+                          )}
                           {appointment.room && (
                             <p className="history-detail">
                               Phòng: {appointment.room}
@@ -544,7 +465,7 @@ export default function DoctorPatientManagement() {
 
                 {/* Examinations */}
                 <div className="info-section-admin">
-                  <div className="section-header-with-action">
+                  <div className="section-header-no-border">
                     <h3>🔬 Kết Quả Xét Nghiệm</h3>
                     <button
                       className="btn-add-small"
@@ -578,6 +499,11 @@ export default function DoctorPatientManagement() {
                               </button>
                             </div>
                           </div>
+                          {exam.doctorName && (
+                            <p className="history-detail">
+                              Bác sĩ khám: {exam.doctorName}
+                            </p>
+                          )}
                           <p className="result">{exam.result}</p>
                           <div className="metrics">
                             {exam.cd4Count && (
@@ -626,7 +552,7 @@ export default function DoctorPatientManagement() {
           </div>
         </Modal>
 
-        {/* Exam Modal */}
+        {/* Exam Modal - giữ nguyên */}
         <Modal
           show={modals.exam}
           onClose={() => closeModal("exam")}
@@ -635,6 +561,7 @@ export default function DoctorPatientManagement() {
               ? "Chỉnh Sửa Kết Quả Xét Nghiệm"
               : "Thêm Kết Quả Xét Nghiệm"
           }
+          className="modal-standard"
         >
           <form onSubmit={handleExamSubmit} className="modal-form-admin">
             <div className="patient-info-box">

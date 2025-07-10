@@ -59,10 +59,10 @@
 .container {
   display: flex;
   margin: 30px auto;
-  max-width: 1200px;
+  max-width: 2000px;
   border-radius: 12px;
   padding: 20px;
-  width: 80%;
+  width: 90%;
   height: auto;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }

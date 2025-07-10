@@ -44,9 +44,9 @@ export const routes = [
   { path: "/Doctor-Info", element: <DoctorInfoView /> },
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
   { path: "/Staff-DoctorSchedule", element: <StaffDoctorSchedule /> },
-  { path: "/Appointment-Management", element: <AppointmentManagement /> }, 
-  { path: "/Docter-MedicalRecord", element: <DoctorMedicalRecordPage /> },
-  { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage /> },
+  { path: "/Appointment-Management", element: <AppointmentManagement /> }, // New route
+  { path: "/Doctor-MedicalRecord", element: <DoctorMedicalRecordPage/>},
+  { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
   { path: "/Appointment-History", element: <AppointmentHistory />},
   { path: "/DashBoard", element: <Dashboard />},
