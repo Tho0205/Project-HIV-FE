@@ -59,27 +59,6 @@ class DoctorPatientService {
   }
 
   // API Methods
-  async getDoctorPatients(
-    doctorId,
-    page = 1,
-    pageSize = 8,
-    sortBy = "full_name",
-    order = "asc",
-    scheduleDate = null,
-    hasScheduleOnly = false
-  ) {
-    let url = `/api/Doctor/Patients?doctorId=${doctorId}&page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&order=${order}`;
-
-    if (scheduleDate) {
-      url += `&scheduleDate=${scheduleDate}`;
-    }
-
-    if (hasScheduleOnly) {
-      url += `&hasScheduleOnly=true`;
-    }
-
-    return this.apiCall(url);
-  }
 
   async getAllPatients(
     searchTerm = null,
@@ -112,16 +91,8 @@ class DoctorPatientService {
     });
   }
 
-  async getPatientHistory(patientId, doctorId) {
-    return this.apiCall(
-      `/api/Doctor/PatientHistory/${patientId}?doctorId=${doctorId}`
-    );
-  }
-
-  async getPatientDetail(patientId, doctorId) {
-    return this.apiCall(
-      `/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`
-    );
+  async getPatientHistory(patientId) {
+    return this.apiCall(`/api/Doctor/PatientHistory/${patientId}`);
   }
 
   async saveExamination(examData) {
