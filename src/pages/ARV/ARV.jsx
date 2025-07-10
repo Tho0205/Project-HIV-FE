@@ -11,7 +11,6 @@ const PAGE_SIZE = 10;
 
 export default function ARV() {
   const [arvs, setArvs] = useState([]);
-  const [page, setPage] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [editData, setEditData] = useState(null);
   const [error, setError] = useState("");
@@ -38,22 +37,12 @@ export default function ARV() {
     }
   }
 
-  // Reset page về 1 mỗi khi tìm kiếm
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm]);
-
-  // Lọc ARV theo tìm kiếm
+  // Filter ARVs based on search term
   const filteredArvs = arvs.filter(
     (arv) =>
       arv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       arv.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Phân trang từ dữ liệu lọc
-  const startIndex = (page - 1) * PAGE_SIZE;
-  const endIndex = startIndex + PAGE_SIZE;
-  const pagedArvs = filteredArvs.slice(startIndex, endIndex);
 
   function openEditModal(arv) {
     setEditData(arv);
@@ -93,7 +82,7 @@ export default function ARV() {
   }
 
   async function handleDelete(id) {
-    if (window.confirm("Bạn có chắc chắn muốn xóa ARV này?")) {
+    if (window.confirm("Are you sure you want to delete this ARV?")) {
       try {
         await ARVService.deleteARV(id);
         await fetchArvs();
@@ -108,22 +97,28 @@ export default function ARV() {
   useEffect(() => {
     const role = tokenManager.getCurrentUserRole();
     if (role !== "Staff") {
-      toast.error("Bạn không có quyền truy cập");
-      navigate("/");
+      alert("You are not authorized to access this page");
+      navigate("/login");
     }
   }, [navigate]);
+
+  function handleLogout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    navigate("/login");
+  }
 
   return (
     <div className="arvpage-wrapper">
       {/* Sidebar */}
       <Sidebar active="arv" />
-
+      {/* Main Content */}
       <main className="arvpage-content">
         <div className="arvpage-header">
           <input
             type="text"
             placeholder="Tìm Kiếm ARVs..."
-            className="arvpage-search-input"
+            className="arvpage-search-input" // Sửa lại
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -142,7 +137,7 @@ export default function ARV() {
               });
               setShowModal(true);
             }}
-          >
+          > 
             ➕ Thêm Mới ARV
           </button>
         </div>
@@ -166,7 +161,7 @@ export default function ARV() {
                     Đang Tải Dữ Liệu ARV...
                   </td>
                 </tr>
-              ) : pagedArvs.length === 0 ? (
+              ) : filteredArvs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="arvpage-no-data">
                     {arvs.length === 0
@@ -175,7 +170,7 @@ export default function ARV() {
                   </td>
                 </tr>
               ) : (
-                pagedArvs.map((arv) => (
+                filteredArvs.map((arv) => (
                   <tr key={arv.arvId}>
                     <td>{arv.arvId}</td>
                     <td>{arv.name}</td>
@@ -201,14 +196,6 @@ export default function ARV() {
                       >
                         ✏️
                       </button>
-                      <button
-                        className="arvpage-action-btn delete"
-                        onClick={() => handleDelete(arv.arvId)}
-                        title="Delete"
-                        disabled={arv.status === "DELETED"}
-                      >
-                        🗑️
-                      </button>
                     </td>
                   </tr>
                 ))
@@ -217,17 +204,6 @@ export default function ARV() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {filteredArvs.length > PAGE_SIZE && (
-          <Pagination
-            page={page}
-            total={filteredArvs.length}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-          />
-        )}
-
-        {/* Modal Form */}
         {showModal && (
           <div className="arvpage-modal">
             <div className="arvpage-modal-content">

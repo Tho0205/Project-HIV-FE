@@ -1,5 +1,5 @@
 body:has(.admin-layout) header,
-body:has(.admin-layout) .header,
+More actions body:has(.admin-layout) .header,
 body:has(.admin-layout) nav {
   display: none !important;
 }
@@ -29,6 +29,7 @@ body:has(.admin-layout) nav {
 
 .content-header-admin h1 {
   color: #d32f2f;
+  color: #257df4;
   font-size: 24px;
   font-weight: bold;
   margin: 0;
@@ -37,6 +38,7 @@ body:has(.admin-layout) nav {
 /* ===== BUTTONS ===== */
 .btn-primary-admin {
   background-color: #d32f2f;
+  background-color: #4caf50;
   color: white;
   border: none;
   padding: 10px 16px;
@@ -160,37 +162,38 @@ body:has(.admin-layout) nav {
   overflow: hidden;
 }
 
-.accounts-table-admin {
+.accounts-table-admin-1 {
   width: 100%;
   border-collapse: collapse;
   margin: 0;
 }
 
-.accounts-table-admin thead {
+.accounts-table-admin-1 thead {
   background-color: #f8f9fa;
 }
 
-.accounts-table-admin th,
-.accounts-table-admin td {
+.accounts-table-admin-1 th,
+.accounts-table-admin-1 td {
   padding: 12px 16px;
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
   font-size: 14px;
 }
 
-.accounts-table-admin th {
+.accounts-table-admin-1 th {
   font-weight: 600;
   color: #333;
   white-space: nowrap;
 }
 
-.accounts-table-admin tbody tr:hover {
+.accounts-table-admin-1 tbody tr:hover {
   background-color: #f8f9fa;
 }
 
 .username-admin {
   font-weight: 600;
   color: #d32f2f;
+  color: #257df4;
 }
 
 .actions-admin {
@@ -210,6 +213,7 @@ body:has(.admin-layout) nav {
 }
 
 /* ===== BADGES ===== */
+/*===== BADGES =====*/
 .status-badge-admin {
   padding: 4px 12px;
   border-radius: 12px;
@@ -322,7 +326,8 @@ body:has(.admin-layout) nav {
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   animation: modalFadeIn 0.2s ease-out;
 }
 
@@ -516,7 +521,7 @@ body:has(.admin-layout) nav {
     overflow-x: auto;
   }
 
-  .accounts-table-admin {
+  .accounts-table-admin-1 {
     min-width: 800px;
   }
 
@@ -546,8 +551,7 @@ body:has(.admin-layout) nav {
   .info-label-admin {
     min-width: auto;
   }
-
-  .info-value-admin {
+  More actions .info-value-admin {
     text-align: left;
     width: 100%;
   }

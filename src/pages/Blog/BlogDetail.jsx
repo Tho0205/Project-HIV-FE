@@ -39,23 +39,24 @@ export default function BlogDetail() {
     }
   }, [id]);
 
-  const handleAddComment = async () => {
-    if (!newComment.trim() || !currentUser) return;
-    const commentDto = {
-      blogId: parseInt(id),
-      content: newComment.trim(),
-      userId: currentUser.userId,
-    };
-
-    try {
-      const added = await addComment(commentDto);
-      setComments((prev) => [...prev, added]);
-      setNewComment("");
-    } catch (error) {
-      console.error("Error adding comment:", error);
-      alert("Không thể thêm bình luận. Vui lòng thử lại sau.");
-    }
+const handleAddComment = async () => {
+  if (!newComment.trim() || !currentUser) return;
+  const commentDto = {
+    blogId: parseInt(id),
+    content: newComment.trim(),
+    userId: currentUser.userId,
   };
+
+  try {
+    const added = await addComment(commentDto);
+    setComments((prev) => [...prev, added]);
+    setNewComment("");
+    window.location.reload();
+  } catch (error) {
+    console.error("Error adding comment:", error);
+    alert("Không thể thêm bình luận. Vui lòng thử lại sau.");
+  }
+};
 
   useEffect(() => {
     getBlogById(id)
@@ -63,14 +64,16 @@ export default function BlogDetail() {
       .catch(() => setBlog(null));
   }, [id]);
 
-  useEffect(() => {
-    getAllBlogs()
-      .then((data) => {
-        const approved = data.filter((b) => b.isApproved);
-        setLatestBlogs(approved);
-      })
-      .catch(() => setLatestBlogs([]));
-  }, []);
+    useEffect(() => {
+      getAllBlogs()
+        .then((data) => {
+          const approved = data
+            .filter((b) => b.isApproved)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+          setLatestBlogs(approved);
+        })
+        .catch(() => setLatestBlogs([]));
+    }, []);
 
   if (!blog) {
     return (

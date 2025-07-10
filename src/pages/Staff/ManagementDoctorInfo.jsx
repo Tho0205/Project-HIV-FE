@@ -33,19 +33,19 @@ export default function ManagementDoctorInfo() {
     setLoading(true);
     try {
       // Debug: Kiểm tra token
-      const token = localStorage.getItem('jwt_token');
+      const token = localStorage.getItem("jwt_token");
       console.log("Current JWT token exists:", !!token);
-      
+
       // Kiểm tra user info từ tokenManager
-      const userInfo = localStorage.getItem('user_info');
+      const userInfo = localStorage.getItem("user_info");
       console.log("User info:", userInfo);
-      
+
       // Gọi API lấy danh sách doctors
       const doctorData = await doctorInfoService.getAllDoctors();
       console.log("Doctor data loaded:", doctorData);
       console.log("Doctor data type:", typeof doctorData);
       console.log("Is array:", Array.isArray(doctorData));
-      
+
       // Đảm bảo data là array
       if (Array.isArray(doctorData)) {
         setDoctors(doctorData);
@@ -58,7 +58,11 @@ export default function ManagementDoctorInfo() {
       console.error("Error response:", error.response);
       console.error("Error status:", error.response?.status);
       console.error("Error data:", error.response?.data);
-      showMessage("Lỗi khi tải dữ liệu: " + (error.response?.data?.message || error.message), true);
+      showMessage(
+        "Lỗi khi tải dữ liệu: " +
+          (error.response?.data?.message || error.message),
+        true
+      );
     } finally {
       setLoading(false);
     }
@@ -231,12 +235,9 @@ export default function ManagementDoctorInfo() {
                     <td>
                       <div className="doctor-avatar-cell">
                         <img
-                          src={doctor.doctorAvatar || "/default-avatar.png"}
+                          src={doctor.doctorAvatar}
                           alt="Avatar"
                           className="doctor-avatar"
-                          onError={(e) => {
-                            e.target.src = "/default-avatar.png";
-                          }}
                         />
                       </div>
                     </td>

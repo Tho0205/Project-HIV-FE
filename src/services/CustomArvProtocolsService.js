@@ -10,7 +10,12 @@ const CustomArvProtocolsService = {
   getPatientsWithProtocols: async (doctorId) => {
     try {
       const response = await fetch(
-        `${backendBaseUrl}/api/CustomArvProtocols/doctor/${doctorId}/patients`
+        `${backendBaseUrl}/api/CustomArvProtocols/doctor/${doctorId}/patients`,
+        {
+          headers: {
+            'Authorization': `Bearer ${tokenManager.getToken()}`
+          }
+        }
       );
 
       if (!response.ok) {
@@ -32,7 +37,12 @@ const CustomArvProtocolsService = {
   getPatientCurrentProtocol: async (patientId) => {
     try {
       const response = await fetch(
-        `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/current-protocol`
+        `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/current-protocol`,
+        {
+          headers: {
+            'Authorization': `Bearer ${tokenManager.getToken()}`
+          }
+        }
       );
 
       if (response.status === 404) {
@@ -63,6 +73,10 @@ const CustomArvProtocolsService = {
         `${backendBaseUrl}/api/CustomArvProtocols/doctor/${doctorId}/patient/${patientId}`,
         {
           method: "POST",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tokenManager.getToken()}`
+          },
           body: JSON.stringify(request),
         }
       );
@@ -93,6 +107,10 @@ const CustomArvProtocolsService = {
         `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/update-protocol`,
         {
           method: "PUT",
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${tokenManager.getToken()}`
+          },
           body: JSON.stringify(request),
         }
       );
@@ -119,7 +137,12 @@ const CustomArvProtocolsService = {
   getPatientProtocolHistory: async (patientId) => {
     try {
       const response = await fetch(
-        `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/history`
+        `${backendBaseUrl}/api/CustomArvProtocols/patient/${patientId}/history`,
+        {
+          headers: {
+            'Authorization': `Bearer ${tokenManager.getToken()}`
+          }
+        }
       );
 
       if (!response.ok) {
@@ -149,8 +172,6 @@ const CustomArvProtocolsService = {
    */
   checkPatientAccessPermission: async (patientId) => {
     try {
-      // Implement your permission logic here
-      // For example, check if the current user is the patient's doctor
       const currentUserId = tokenManager.getCurrentUserId();
       const currentUserRole = tokenManager.getCurrentUserRole();
 
@@ -166,7 +187,6 @@ const CustomArvProtocolsService = {
       }
 
       if (currentUserRole === "Doctor") {
-        // You might need an additional API call to verify doctor-patient relationship
         return true;
       }
 
