@@ -48,7 +48,7 @@ export default function SidebarAdmin({ active }) {
               <span>Hồ sơ bệnh án</span>
             </li>
           </Link>
-          <Link to="/Appointment-History" style={{ textDecoration: "none" }}>
+          <Link to="/Doctor-Appointment-History" style={{ textDecoration: "none" }}>
             <li className={active === "Appointment-History" ? "active" : ""}>
               <span className="icon">👤</span>
               <span>Lịch tư vấn</span>
