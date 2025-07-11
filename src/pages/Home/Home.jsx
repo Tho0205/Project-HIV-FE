@@ -8,6 +8,7 @@ const Home = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(4);
 
   useEffect(() => {
     const fetchDoctors = async () => {
@@ -51,6 +52,10 @@ const Home = () => {
   //   }
   //   return `/placeholder.svg?height=200&width=200&text=BS${doctorId}`;
   // };
+
+  const handleShowMore = () => {
+    setVisibleCount((prev) => prev + 4);
+  };
 
   return (
     <div className="hiv-home-container">
@@ -166,7 +171,7 @@ const Home = () => {
 
           {!loading && !error && doctors.length > 0 && (
             <div className="hiv-doctors-grid">
-              {doctors.map((doctor) => (
+              {doctors.slice(0, visibleCount).map((doctor) => (
                 <div className="hiv-doctor-card" key={doctor.doctorId}>
                   <div className="hiv-doctor-image">
                     <img
@@ -187,6 +192,13 @@ const Home = () => {
                   </div>
                 </div>
               ))}
+              {visibleCount < doctors.length && (
+                <div style={{ width: "100%", textAlign: "center", marginTop: 24 }}>
+                  <button className="hiv-btn-outline" onClick={handleShowMore}>
+                    Xem thêm
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

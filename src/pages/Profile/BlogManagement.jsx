@@ -184,7 +184,7 @@ const BlogManagement = () => {
         </div>
 
         <button
-          className="btn btn-green new-blog-btn"
+          className="btn blog-btn-green new-blog-btn"
           onClick={() => setShowModal(true)}
         >
           Thêm bài viết
@@ -202,7 +202,7 @@ const BlogManagement = () => {
               <div key={blog.blogId} className="blog-card">
                 <div className="blog-main">
                   <div className="blog-header">
-                    <h3 className="blog-title">{blog.title}</h3>
+                    <h3 className="blog-title">Tiều đề: {blog.title}</h3>
                     <div className="blog-actions">
                       <button
                         className="edit-btn"
@@ -298,15 +298,15 @@ const BlogManagement = () => {
                 )}
               </div>
               <div className="form-actions1">
+                <button type="submit" className="btn btn-green">
+                  {currentBlog ? "Cập nhật" : "Đăng bài"}
+                </button>
                 <button
                   type="button"
                   className="btn cancel-btn1"
                   onClick={() => setShowModal(false)}
                 >
                   Hủy
-                </button>
-                <button type="submit" className="btn btn-green">
-                  {currentBlog ? "Cập nhật" : "Đăng bài"}
                 </button>
               </div>
             </form>

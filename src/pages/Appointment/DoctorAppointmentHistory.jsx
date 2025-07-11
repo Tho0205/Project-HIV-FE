@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from "../../services/account";
 import Sidebar from "../../components/SidebarProfile/SidebarProfile";
+import SidebarAdmin from "../../components/Sidebar/Sidebar-Doctor";
 
 const DoctorAppointmentHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -301,7 +302,7 @@ const fetchDoctorAppointments = useCallback(async () => {
   return (
     <div className="container">
       <div className="sidebar-Profile">
-        <Sidebar />
+        < SidebarAdmin active="Appointment-History"/>
       </div>
       <section className="profile">
         <h2>Lịch Hẹn Đã Xác Nhận</h2>

@@ -418,12 +418,12 @@
 }
 
 /* Status variants */
-.medi-status.active {
+.medi-status.completed {
   background: #e3f2fd;
   color: #1976d2;
 }
 
-.medi-status.completed {
+.medi-status.active {
   background: #e8f5e8;
   color: #2e7d32;
 }

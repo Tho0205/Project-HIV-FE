@@ -200,9 +200,11 @@ const handleAddComment = async () => {
           )}
         </div>
         {visibleCount < latestBlogs.length && (
-          <button className="btn" onClick={handleShowMore}>
-            Xem thêm
-          </button>
+          <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: 24 }}>
+            <button className="hiv-btn-outline" onClick={handleShowMore}>
+              Xem thêm
+            </button>
+          </div>
         )}
       </aside>
     </div>
