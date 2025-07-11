@@ -5,6 +5,9 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import "./HIVExaminationManagement.css";
 import { tokenManager } from "../../services/account";
 import { toast } from "react-toastify";
+import Pagination from "../../components/Pagination/Pagination";
+
+const PAGE_SIZE = 8;
 const HIVExaminationManagement = () => {
   const navigate = useNavigate();
 
@@ -28,6 +31,13 @@ const HIVExaminationManagement = () => {
     cd4Count: "",
     hivLoad: "",
   });
+
+  const [page, setPage] = useState(1);
+
+  const pagedPatients = patients.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   // Utility functions
   const showMessage = (text, isError = false) => {
@@ -216,16 +226,18 @@ const HIVExaminationManagement = () => {
                 ⏳ Đang tải dữ liệu...
               </td>
             </tr>
-          ) : patients.length === 0 ? (
+          ) : pagedPatients.length === 0 ? (
             <tr>
               <td colSpan="8" className="text-center">
                 📝 Chưa có dữ liệu bệnh nhân
               </td>
             </tr>
           ) : (
-            patients.map((patient, index) => (
+            pagedPatients.map((patient, index) => (
               <tr key={patient.userId}>
-                <td className="text-center">{index + 1}</td>
+                <td className="text-center">
+                  {(page - 1) * PAGE_SIZE + index + 1}
+                </td>
                 <td>
                   <strong>{patient.fullName}</strong>
                 </td>
@@ -251,6 +263,12 @@ const HIVExaminationManagement = () => {
           )}
         </tbody>
       </table>
+      <Pagination
+        page={page}
+        total={patients.length}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+      />
     </div>
   );
 

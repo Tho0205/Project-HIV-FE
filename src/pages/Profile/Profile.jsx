@@ -359,9 +359,9 @@ export default function Profile() {
                     setEditForm({ ...editForm, gender: e.target.value })
                   }
                 >
-                  <option value="Male">Nam</option>
-                  <option value="Female">Nữ</option>
-                  <option value="Other">Khác</option>
+                  <option value="Nam">Nam</option>
+                  <option value="Nữ">Nữ</option>
+                  <option value="Khác">Khác</option>
                 </select>
                 <label>Địa chỉ</label>
                 <input
