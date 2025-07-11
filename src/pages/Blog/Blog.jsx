@@ -12,7 +12,9 @@ export default function Blog() {
     const fetchData = async () => {
       try {
         const data = await getAllBlogs();
-        const approved = data.filter((blog) => blog.isApproved === true);
+        const approved = data
+          .filter((blog) => blog.isApproved === true)
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
         setBlogs(approved);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách blog:", error);

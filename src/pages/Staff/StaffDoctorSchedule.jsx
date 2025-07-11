@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { getDoctorsApi } from "../../services/Appointment";
 import scheduleService from "../../services/ScheduleService";
+import { tokenManager } from "../../services/account";
 
 export default function StaffDoctorSchedule() {
   const [doctors, setDoctors] = useState([]);
@@ -9,13 +10,32 @@ export default function StaffDoctorSchedule() {
   const [error, setError] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [newSchedule, setNewSchedule] = useState({
-    date: '',
-    startTime: '08:00',
-    room: ''
-  });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [scheduleLoading, setScheduleLoading] = useState(false);
-  const [pendingSchedules, setPendingSchedules] = useState([]);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [successMessage, setSuccessMessage] = useState('');
+  const [createdSchedulesCount, setCreatedSchedulesCount] = useState(0);
+  
+  // Weekly schedule template
+  const [weeklySchedule, setWeeklySchedule] = useState({
+    monday: { morning: false, afternoon: false, room: 'Room 1' },
+    tuesday: { morning: false, afternoon: false, room: 'Room 1' },
+    wednesday: { morning: false, afternoon: false, room: 'Room 1' },
+    thursday: { morning: false, afternoon: false, room: 'Room 1' },
+    friday: { morning: false, afternoon: false, room: 'Room 1' },
+    saturday: { morning: false, afternoon: false, room: 'Room 1' },
+    sunday: { morning: false, afternoon: false, room: 'Room 1' }
+  });
+
+  const daysOfWeek = [
+    { key: 'monday', label: 'Thứ 2', shortLabel: 'T2' },
+    { key: 'tuesday', label: 'Thứ 3', shortLabel: 'T3' },
+    { key: 'wednesday', label: 'Thứ 4', shortLabel: 'T4' },
+    { key: 'thursday', label: 'Thứ 5', shortLabel: 'T5' },
+    { key: 'friday', label: 'Thứ 6', shortLabel: 'T6' },
+    { key: 'saturday', label: 'Thứ 7', shortLabel: 'T7' },
+    { key: 'sunday', label: 'Chủ nhật', shortLabel: 'CN' }
+  ];
 
   // Fetch doctors from API when component mounts
   useEffect(() => {
@@ -23,36 +43,69 @@ export default function StaffDoctorSchedule() {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 Fetching doctors from API...');
+        
+        // Check authentication and authorization first
+        const role = tokenManager.getCurrentUserRole();
+        const token = tokenManager.getToken();
+        const isAuthenticated = tokenManager.isAuthenticated();
+        
+        console.log('🔐 Auth check:', { 
+          role, 
+          hasToken: !!token, 
+          isAuthenticated,
+          tokenValid: !tokenManager.isTokenExpired()
+        });
+        
+        if (!isAuthenticated || !token) {
+          throw new Error('Vui lòng đăng nhập để sử dụng chức năng này');
+        }
+        
+        if (role !== "Staff" && role !== "Manager" && role !== "Admin") {
+          throw new Error('Bạn không có quyền sắp xếp lịch bác sĩ. Chỉ Staff/Manager mới có quyền này.');
+        }
 
+        console.log('🔍 Fetching doctors from API...');
         const doctorsData = await getDoctorsApi();
         console.log('📥 Doctors data received:', doctorsData);
 
-        // Transform API data to match our component structure
-        const transformedDoctors = doctorsData.map(doctor => ({
-          id: doctor.userId || doctor.accountId || doctor.id || 'unknown',
-          name: doctor.fullName || doctor.name || `Bác sĩ ${doctor.userId || doctor.accountId || 'Unknown'}`,
-          room: `Room ${doctor.userId || doctor.accountId || doctor.id || 'Unknown'}`,
-          specificSchedules: [],
-          apiSchedules: []
-        }));
+        // Better data validation
+        if (!Array.isArray(doctorsData)) {
+          throw new Error('Dữ liệu bác sĩ không hợp lệ (không phải là array)');
+        }
+
+        const transformedDoctors = doctorsData
+          .filter(doctor => doctor && (doctor.userId || doctor.accountId || doctor.id))
+          .map(doctor => ({
+            id: doctor.userId || doctor.accountId || doctor.id,
+            name: doctor.fullName || doctor.name || `Bác sĩ #${doctor.userId || doctor.accountId || doctor.id}`,
+            room: doctor.room || `Room ${doctor.userId || doctor.accountId || doctor.id}`,
+            originalData: doctor
+          }));
+
+        console.log('🔄 Transformed doctors:', transformedDoctors);
 
         if (transformedDoctors.length === 0) {
-          throw new Error('No doctors returned from API');
+          throw new Error('Không tìm thấy bác sĩ nào trong hệ thống');
         }
 
         setDoctors(transformedDoctors);
-        await loadDoctorSchedules(transformedDoctors);
 
       } catch (err) {
         console.error('💥 Error fetching doctors:', err);
-        setError('Không thể tải danh sách bác sĩ. Vui lòng thử lại. Chi tiết: ' + err.message);
         
-        // Fallback to sample data
-        setDoctors([
-          { id: 1, name: "BS. Nguyễn Văn An", room: "Room 1", specificSchedules: [], apiSchedules: [] },
-          { id: 2, name: "BS. Trần Thị Bình", room: "Room 2", specificSchedules: [], apiSchedules: [] }
-        ]);
+        if (err.message.includes('đăng nhập') || err.message.includes('quyền')) {
+          setError(err.message);
+          setDoctors([]);
+        } else {
+          setError('Không thể tải danh sách bác sĩ. Chi tiết: ' + err.message);
+          
+          // Only use fallback for network/API errors
+          console.log('🔄 Using fallback sample data...');
+          setDoctors([
+            { id: 1, name: "BS. Nguyễn Văn An", room: "Room 1" },
+            { id: 2, name: "BS. Trần Thị Bình", room: "Room 2" }
+          ]);
+        }
       } finally {
         setLoading(false);
       }
@@ -60,78 +113,6 @@ export default function StaffDoctorSchedule() {
 
     fetchDoctors();
   }, []);
-
-  // Load existing schedules for doctors using ACTIVE schedules
-  const loadDoctorSchedules = async (doctorsList) => {
-    try {
-      console.log('🔄 Loading active schedules for all doctors...');
-      
-      const response = await scheduleService.getActiveSchedules();
-      console.log('📥 Active schedules response:', response);
-
-      if (response.isSuccess && Array.isArray(response.data)) {
-        console.log('✅ Active schedules loaded:', response.data);
-        
-        const schedulesByDoctor = {};
-        response.data.forEach(schedule => {
-          const doctorId = schedule.doctorId || schedule.DoctorId;
-          console.log(`👨‍⚕️ Processing schedule for doctor ID: ${doctorId}`);
-          if (!schedulesByDoctor[doctorId]) {
-            schedulesByDoctor[doctorId] = [];
-          }
-          
-          const localSchedule = {
-            scheduleId: schedule.scheduleId,
-            date: schedule.scheduledTime ? schedule.scheduledTime.split('T')[0] : '',
-            startTime: schedule.scheduledTime ? new Date(schedule.scheduledTime).toTimeString().substring(0, 5) : '',
-            room: schedule.room || 'Unknown Room',
-            status: schedule.status || 'ACTIVE',
-            hasAppointment: schedule.hasAppointment || false,
-            patientName: schedule.patientName || null,
-            appointmentNote: schedule.appointmentNote || null
-          };
-          
-          schedulesByDoctor[doctorId].push(localSchedule);
-        });
-        
-        console.log('📊 Schedules grouped by doctor:', schedulesByDoctor);
-        
-        const updatedDoctors = doctorsList.map(doctor => {
-          const doctorSchedules = schedulesByDoctor[doctor.id] || [];
-          console.log(`👨‍⚕️ Doctor ${doctor.id} (${doctor.name}): ${doctorSchedules.length} schedules`);
-          
-          return {
-            ...doctor,
-            apiSchedules: doctorSchedules,
-            specificSchedules: doctorSchedules,
-            loadSuccess: true
-          };
-        });
-        
-        setDoctors(updatedDoctors);
-        
-      } else {
-        console.warn('⚠️ No active schedules found or API failed:', response.message);
-        const updatedDoctors = doctorsList.map(doctor => ({
-          ...doctor,
-          apiSchedules: [],
-          specificSchedules: [],
-          loadError: response.message || 'Could not load schedules'
-        }));
-        setDoctors(updatedDoctors);
-      }
-      
-    } catch (error) {
-      console.error('💥 Error loading active schedules:', error);
-      const updatedDoctors = doctorsList.map(doctor => ({
-        ...doctor,
-        apiSchedules: [],
-        specificSchedules: [],
-        loadError: error.message
-      }));
-      setDoctors(updatedDoctors);
-    }
-  };
 
   // Hide navbar and footer
   useEffect(() => {
@@ -146,171 +127,325 @@ export default function StaffDoctorSchedule() {
     return () => document.head.removeChild(style);
   }, []);
 
-  // Add refresh button to manually reload active schedules
-  const refreshAllSchedules = async () => {
-    try {
-      setLoading(true);
-      console.log('🔄 Manually refreshing all active schedules...');
-      await loadDoctorSchedules(doctors);
-      alert('✅ Đã làm mới danh sách lịch làm việc!');
-    } catch (error) {
-      console.error('💥 Error refreshing schedules:', error);
-      alert('❌ Lỗi khi làm mới: ' + error.message);
-    } finally {
-      setLoading(false);
+  // Generate dates for the selected month
+  const generateMonthDates = (yearMonth) => {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const firstDay = new Date(year, month - 1, 1);
+    const lastDay = new Date(year, month, 0);
+    const dates = [];
+
+    for (let date = new Date(firstDay); date <= lastDay; date.setDate(date.getDate() + 1)) {
+      dates.push(new Date(date));
     }
+
+    return dates;
   };
 
-  // Create time options
-  const timeOptions = [];
-  for (let hour = 6; hour <= 22; hour++) {
-    for (let minute = 0; minute < 60; minute += 30) {
-      const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-      timeOptions.push(timeString);
-    }
-  }
+  // Generate schedules based on weekly template
+  const generateSchedulesFromTemplate = (weeklyTemplate, month, doctorRoom) => {
+    const monthDates = generateMonthDates(month);
+    const schedules = [];
 
-  const addSchedule = () => {
-    if (!newSchedule.date || !newSchedule.startTime || !newSchedule.room) {
-      alert('Vui lòng điền đầy đủ thông tin!');
-      return;
-    }
-
-    const newScheduleItem = { ...newSchedule, status: 'ACTIVE' };
-    setPendingSchedules(prev => [...prev, newScheduleItem]);
-
-    setDoctors(doctors.map(doctor => {
-      if (doctor.id === selectedDoctor.id) {
-        const updatedDoctor = {
-          ...doctor,
-          specificSchedules: [...doctor.specificSchedules, newScheduleItem]
-        };
-        setSelectedDoctor(updatedDoctor);
-        return updatedDoctor;
+    monthDates.forEach(date => {
+      const dayOfWeek = date.getDay();
+      const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const dayKey = dayKeys[dayOfWeek];
+      
+      const daySchedule = weeklyTemplate[dayKey];
+      
+      if (daySchedule.morning) {
+        schedules.push({
+          date: date.toISOString().split('T')[0],
+          startTime: '08:00',
+          room: daySchedule.room || doctorRoom,
+          shift: 'morning',
+          dayOfWeek: dayKey
+        });
       }
-      return doctor;
-    }));
+      
+      if (daySchedule.afternoon) {
+        schedules.push({
+          date: date.toISOString().split('T')[0],
+          startTime: '13:00',
+          room: daySchedule.room || doctorRoom,
+          shift: 'afternoon',
+          dayOfWeek: dayKey
+        });
+      }
+    });
 
-    setNewSchedule({
-      date: '',
-      startTime: '08:00',
-      room: selectedDoctor.room
+    return schedules;
+  };
+
+  // Handle checkbox changes
+  const handleShiftChange = (dayKey, shiftKey, checked) => {
+    setWeeklySchedule(prev => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        [shiftKey]: checked
+      }
+    }));
+  };
+
+  // Handle room change for a specific day
+  const handleRoomChange = (dayKey, room) => {
+    setWeeklySchedule(prev => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        room: room
+      }
+    }));
+  };
+
+  // Handle "select all" for a day
+  const handleSelectAllDay = (dayKey, selectAll) => {
+    setWeeklySchedule(prev => ({
+      ...prev,
+      [dayKey]: {
+        ...prev[dayKey],
+        morning: selectAll,
+        afternoon: selectAll
+      }
+    }));
+  };
+
+  // Handle "select all" for a shift across all days
+  const handleSelectAllShift = (shiftKey, selectAll) => {
+    setWeeklySchedule(prev => {
+      const updated = { ...prev };
+      Object.keys(updated).forEach(dayKey => {
+        updated[dayKey] = {
+          ...updated[dayKey],
+          [shiftKey]: selectAll
+        };
+      });
+      return updated;
     });
   };
 
-  const removeSchedule = (doctorId, scheduleIndex) => {
-    setDoctors(doctors.map(doctor => {
-      if (doctor.id === doctorId) {
-        const updatedDoctor = {
-          ...doctor,
-          specificSchedules: doctor.specificSchedules.filter((_, index) => index !== scheduleIndex)
-        };
-        if (selectedDoctor && selectedDoctor.id === doctorId) {
-          setSelectedDoctor(updatedDoctor);
-        }
-        return updatedDoctor;
-      }
-      return doctor;
-    }));
-
-    setPendingSchedules(prev => prev.filter((_, index) => index !== scheduleIndex));
-  };
-
+  // Open schedule modal
   const openScheduleModal = (doctor) => {
     setSelectedDoctor(doctor);
     setShowScheduleModal(true);
-    setPendingSchedules([]);
     
-    const today = new Date().toISOString().split('T')[0]; // 2025-07-02
-    setNewSchedule(prev => ({ ...prev, date: today, room: doctor.room }));
+    const resetSchedule = {};
+    daysOfWeek.forEach(day => {
+      resetSchedule[day.key] = {
+        morning: false,
+        afternoon: false,
+        room: doctor.room
+      };
+    });
+    setWeeklySchedule(resetSchedule);
   };
 
+  // Close schedule modal
   const closeScheduleModal = () => {
     setShowScheduleModal(false);
     setSelectedDoctor(null);
-    setPendingSchedules([]);
-    setNewSchedule({ date: '', startTime: '08:00', room: '' });
   };
 
+  // Save schedule
   const saveSchedule = async () => {
-    if (pendingSchedules.length === 0) {
-      alert('Không có lịch nào để lưu!');
+    if (!selectedDoctor || !selectedMonth) {
       return;
     }
 
+    const schedulesToCreate = generateSchedulesFromTemplate(weeklySchedule, selectedMonth, selectedDoctor.room);
+
+    if (schedulesToCreate.length === 0) {
+      return;
+    }
+
+    const isAuthenticated = tokenManager.isAuthenticated();
+    const role = tokenManager.getCurrentUserRole();
+    
+    if (!isAuthenticated) {
+      return;
+    }
+    
+    if (role !== "Staff" && role !== "Manager" && role !== "Admin") {
+      return;
+    }
+
+    console.log('💾 Starting to create schedules:', {
+      doctorId: selectedDoctor.id,
+      doctorName: selectedDoctor.name,
+      month: selectedMonth,
+      totalSchedules: schedulesToCreate.length,
+      userRole: role
+    });
+
     setScheduleLoading(true);
     try {
-      let results;
-      if (pendingSchedules.length === 1) {
-        results = [await scheduleService.createSchedule(pendingSchedules[0], selectedDoctor.id)];
-      } else {
-        results = await scheduleService.createMultipleSchedules(pendingSchedules, selectedDoctor.id);
+      let successCount = 0;
+      let errorCount = 0;
+      const errors = [];
+
+      // Create schedules one by one
+      const batchSize = 5;
+      for (let i = 0; i < schedulesToCreate.length; i += batchSize) {
+        const batch = schedulesToCreate.slice(i, i + batchSize);
+        console.log(`📦 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(schedulesToCreate.length/batchSize)}:`, batch);
+        
+        for (const schedule of batch) {
+          try {
+            console.log('🔄 Creating schedule:', schedule);
+            const result = await scheduleService.createSchedule(schedule, selectedDoctor.id);
+            
+            console.log('📥 API Response:', result);
+            
+            const isSuccess = result && (
+              result.isSuccess === true ||
+              (result.data && result.data.scheduleId) ||
+              result.success === true
+            );
+            
+            if (isSuccess) {
+              successCount++;
+              console.log('✅ Schedule created successfully:', {
+                scheduleId: result.data?.scheduleId,
+                message: result.message,
+                success: result.isSuccess
+              });
+            } else {
+              errorCount++;
+              const errorMsg = result?.message || result?.error || 'API không trả về dữ liệu hợp lệ';
+              errors.push(errorMsg);
+              console.error('❌ Schedule creation failed:', {
+                result,
+                expectedFormat: 'ApiResponse<ScheduleDto>',
+                hasIsSuccess: !!result?.isSuccess,
+                hasData: !!result?.data,
+                hasScheduleId: !!result?.data?.scheduleId
+              });
+            }
+          } catch (scheduleError) {
+            errorCount++;
+            console.error('💥 Schedule error:', scheduleError);
+            
+            if (scheduleError.message.includes('403') || scheduleError.message.includes('Forbidden')) {
+              errors.push('Không có quyền tạo lịch');
+            } else if (scheduleError.message.includes('405') || scheduleError.message.includes('Method Not Allowed')) {
+              errors.push('API không hỗ trợ phương thức này');
+            } else if (scheduleError.message.includes('401') || scheduleError.message.includes('Unauthorized')) {
+              errors.push('Chưa đăng nhập hoặc phiên đã hết hạn');
+            } else {
+              errors.push(scheduleError.message || 'Lỗi không xác định');
+            }
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
 
-      const successCount = Array.isArray(results) ? results.filter(r => r.isSuccess).length : (results.isSuccess ? 1 : 0);
-      const errorCount = Array.isArray(results) ? results.filter(r => !r.isSuccess).length : (results.isSuccess ? 0 : 1);
-
+      console.log('📊 Final results:', { successCount, errorCount, errors });
+      
       if (successCount > 0) {
-        alert(`✅ Đã lưu thành công ${successCount} lịch làm việc!`);
-        await loadDoctorSchedules([selectedDoctor]);
-        setPendingSchedules([]);
-      }
-
-      if (errorCount > 0) {
-        const errors = Array.isArray(results)
-          ? results.filter(r => !r.isSuccess).map(r => r.message || 'Lỗi không xác định').join('\n')
-          : (results.message || 'Lỗi không xác định');
-        alert(`❌ Có ${errorCount} lịch không thể tạo:\n${errors}`);
-      }
-
-      if (successCount === (Array.isArray(results) ? results.length : 1)) {
+        // Show success popup
+        setCreatedSchedulesCount(successCount);
+        setSuccessMessage(`Đã tạo thành công ${successCount}/${schedulesToCreate.length} lịch làm việc cho ${selectedDoctor.name}!`);
+        setShowSuccessModal(true);
         closeScheduleModal();
+      } else {
+        // Show error popup if no schedules were created
+        let errorMessage = `❌ Có ${errorCount}/${schedulesToCreate.length} lịch không thể tạo.\n`;
+        if (errors.length > 0) {
+          const uniqueErrors = [...new Set(errors)];
+          errorMessage += `\nCác lỗi gặp phải:\n${uniqueErrors.slice(0, 5).join('\n')}${uniqueErrors.length > 5 ? '\n...' : ''}`;
+        }
+        errorMessage += '\n\n💡 Gợi ý:\n- Kiểm tra quyền truy cập\n- Thử đăng nhập lại\n- Liên hệ admin nếu vấn đề tiếp tục';
+        alert(errorMessage);
       }
       
     } catch (error) {
-      console.error('Error saving schedules:', error);
-      alert('❌ Lỗi khi lưu lịch làm việc: ' + error.message);
+      console.error('💥 Save schedule error:', error);
+      alert(`❌ Lỗi khi lưu lịch làm việc: ${error.message}\n\nVui lòng thử lại hoặc liên hệ admin.`);
     } finally {
       setScheduleLoading(false);
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
-    return `${days[date.getDay()]}, ${date.toLocaleDateString('vi-VN')}`;
+  // Get count of selected shifts
+  const getSelectedShiftsCount = () => {
+    let count = 0;
+    Object.values(weeklySchedule).forEach(day => {
+      if (day.morning) count++;
+      if (day.afternoon) count++;
+    });
+    return count;
   };
 
-  const presetTimes = [
-    { label: "Ca sáng", start: "08:00" },
-    { label: "Ca chiều", start: "13:00" },
-    { label: "Cả ngày", start: "08:00" },
-    { label: "Ca tối", start: "18:00" }
-  ];
-
-  const applyPreset = (preset) => {
-    setNewSchedule(prev => ({ ...prev, startTime: preset.start }));
+  // Get preview of generated schedules count
+  const getSchedulesCount = () => {
+    const schedules = generateSchedulesFromTemplate(weeklySchedule, selectedMonth, selectedDoctor?.room || 'Room 1');
+    return schedules.length;
   };
 
-  const containerStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', backgroundColor: '#f9fafb', zIndex: 1000 };
-  const mainContentStyle = { flex: 1, padding: '24px', backgroundColor: '#f9fafb', overflow: 'auto' };
-  const cardStyle = { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', padding: '24px', marginBottom: '24px' };
-  const doctorCardStyle = { backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', marginBottom: '16px' };
-  const buttonStyle = { width: '100%', backgroundColor: '#2563eb', color: 'white', fontWeight: 'bold', padding: '8px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer' };
-  const modalStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 };
-  const modalContentStyle = { backgroundColor: 'white', borderRadius: '8px', padding: '24px', width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' };
+  // Format month display
+  const formatMonth = (yearMonth) => {
+    const [year, month] = yearMonth.split('-');
+    return `Tháng ${month}/${year}`;
+  };
+
+  // Common styles
+  const modalStyle = { 
+    position: 'fixed', 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    zIndex: 1001 
+  };
+
+  const modalContentStyle = { 
+    backgroundColor: 'white', 
+    borderRadius: '12px', 
+    padding: '24px', 
+    width: '95%', 
+    maxWidth: '1000px', 
+    maxHeight: '90vh', 
+    overflowY: 'auto' 
+  };
 
   return (
-    <div style={containerStyle}>
+    <div style={{ 
+      position: 'fixed', 
+      top: 0, 
+      left: 0, 
+      right: 0, 
+      bottom: 0, 
+      display: 'flex', 
+      backgroundColor: '#f9fafb', 
+      zIndex: 1000 
+    }}>
+      {/* Sidebar */}
       <Sidebar active="doctor-schedule" />
       
-      <div style={mainContentStyle}>
-        <div style={cardStyle}>
+      <div style={{ 
+        flex: 1, 
+        padding: '24px', 
+        backgroundColor: '#f9fafb', 
+        overflow: 'auto' 
+      }}>
+        <div style={{ 
+          backgroundColor: 'white', 
+          borderRadius: '8px', 
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+          padding: '24px', 
+          marginBottom: '24px' 
+        }}>
           <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '16px' }}>
-            📅 Sắp Xếp Lịch Bác Sĩ
+            📅 Sắp Xếp Lịch Bác Sĩ Theo Tuần
           </h1>
           <p style={{ marginBottom: '16px', color: '#6b7280' }}>
-            Quản lý lịch làm việc của {doctors.length} bác sĩ theo từng ngày và giờ cụ thể
+            Chọn các thứ trong tuần với ca sáng/chiều, áp dụng cho cả tháng. Quản lý {doctors.length} bác sĩ.
           </p>
 
           {/* Loading state */}
@@ -321,35 +456,38 @@ export default function StaffDoctorSchedule() {
             </div>
           )}
 
-          {/* Error state with debug */}
+          {/* Error state */}
           {error && (
             <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '16px', marginBottom: '16px', color: '#dc2626' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>❌</span><span>{error}</span>
               </div>
-              <button
-                onClick={refreshAllSchedules}
-                style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', marginTop: '8px' }}
-              >
-                🔄 Thử lại
-              </button>
             </div>
           )}
 
           {/* Doctors list */}
-          {!loading && doctors.length === 0 && !error && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-              <div style={{ fontSize: '18px', marginBottom: '8px' }}>👨‍⚕️</div>
-              <p>Không có bác sĩ nào trong hệ thống</p>
-            </div>
-          )}
-
           {!loading && doctors.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
               {doctors.map(doctor => (
-                <div key={doctor.id} style={doctorCardStyle}>
+                <div key={doctor.id} style={{ 
+                  backgroundColor: 'white', 
+                  border: '1px solid #e5e7eb', 
+                  borderRadius: '8px', 
+                  padding: '24px', 
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', 
+                  marginBottom: '16px' 
+                }}>
                   <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
-                    <div style={{ width: '48px', height: '48px', backgroundColor: '#dbeafe', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '16px' }}>
+                    <div style={{ 
+                      width: '48px', 
+                      height: '48px', 
+                      backgroundColor: '#dbeafe', 
+                      borderRadius: '50%', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      marginRight: '16px' 
+                    }}>
                       <span style={{ fontSize: '20px' }}>👨‍⚕️</span>
                     </div>
                     <div>
@@ -360,70 +498,22 @@ export default function StaffDoctorSchedule() {
                     </div>
                   </div>
 
-                  {/* Display specific schedules */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '8px' }}>
-                      📋 Lịch làm việc ({doctor.specificSchedules.length} ca):
-                    </h4>
-                    
-                    {doctor.specificSchedules.length > 0 ? (
-                      <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                        {doctor.specificSchedules.sort((a, b) => new Date(a.date) - new Date(b.date)).map((schedule, index) => (
-                          <div key={index} style={{ 
-                            fontSize: '12px',
-                            backgroundColor: schedule.scheduleId ? '#f0fdf4' : '#fff7ed',
-                            border: `1px solid ${schedule.scheduleId ? '#bbf7d0' : '#fed7aa'}`,
-                            borderRadius: '6px',
-                            padding: '8px',
-                            marginBottom: '6px',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'center'
-                          }}>
-                            <div>
-                              <div style={{ fontWeight: 'bold', color: '#1f2937' }}>
-                                📅 {formatDate(schedule.date)}
-                                {schedule.scheduleId && <span style={{ color: '#059669', marginLeft: '8px' }}>✅</span>}
-                                {!schedule.scheduleId && <span style={{ color: '#d97706', marginLeft: '8px' }}>⏳</span>}
-                              </div>
-                              <div style={{ color: '#6b7280', marginTop: '2px' }}>
-                                🕐 {schedule.startTime}
-                              </div>
-                              <div style={{ color: '#6b7280', fontSize: '10px' }}>
-                                🏥 {schedule.room}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => removeSchedule(doctor.id, index)}
-                              style={{
-                                backgroundColor: '#fee2e2',
-                                color: '#dc2626',
-                                border: 'none',
-                                borderRadius: '4px',
-                                padding: '4px 6px',
-                                fontSize: '10px',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              ❌
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p style={{ fontSize: '12px', color: '#9ca3af', fontStyle: 'italic' }}>
-                        Chưa có lịch làm việc cụ thể
-                      </p>
-                    )}
-                  </div>
-
                   <button
                     onClick={() => openScheduleModal(doctor)}
-                    style={buttonStyle}
+                    style={{ 
+                      width: '100%', 
+                      backgroundColor: '#2563eb', 
+                      color: 'white', 
+                      fontWeight: 'bold', 
+                      padding: '8px 16px', 
+                      borderRadius: '8px', 
+                      border: 'none', 
+                      cursor: 'pointer' 
+                    }}
                     onMouseOver={(e) => e.target.style.backgroundColor = '#1d4ed8'}
                     onMouseOut={(e) => e.target.style.backgroundColor = '#2563eb'}
                   >
-                    ➕ Thêm Lịch Làm Việc
+                    📅 Sắp Xếp Lịch Theo Tuần
                   </button>
                 </div>
               ))}
@@ -432,13 +522,82 @@ export default function StaffDoctorSchedule() {
         </div>
       </div>
 
-      {/* Modal for adding schedule */}
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div style={modalStyle}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '12px',
+            padding: '32px',
+            maxWidth: '500px',
+            textAlign: 'center',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              backgroundColor: '#dcfce7',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 24px',
+              animation: 'bounce 1s infinite'
+            }}>
+              <span style={{ fontSize: '40px' }}>✅</span>
+            </div>
+
+            <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '16px' }}>
+              Tạo lịch thành công!
+            </h2>
+
+            <p style={{ fontSize: '16px', color: '#6b7280', marginBottom: '24px', lineHeight: '1.5' }}>
+              {successMessage}
+            </p>
+
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#f0fdf4',
+              borderRadius: '8px',
+              marginBottom: '24px',
+              border: '1px solid #bbf7d0'
+            }}>
+              <div style={{ fontSize: '14px', color: '#166534', marginBottom: '8px' }}>
+                📊 Thống kê:
+              </div>
+              <div style={{ fontSize: '12px', color: '#166534' }}>
+                ✅ Đã tạo: <strong>{createdSchedulesCount}</strong> ca làm việc<br/>
+                👨‍⚕️ Bác sĩ: <strong>{selectedDoctor?.name}</strong><br/>
+                📅 Tháng: <strong>{formatMonth(selectedMonth)}</strong>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '14px'
+              }}
+            >
+              🎉 Hoàn tất
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Creation Modal */}
       {showScheduleModal && selectedDoctor && (
         <div style={modalStyle}>
           <div style={modalContentStyle}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
-                📅 Thêm Lịch Làm Việc - {selectedDoctor.name}
+                📅 Sắp Xếp Lịch Tuần - {selectedDoctor.name}
               </h2>
               <button
                 onClick={closeScheduleModal}
@@ -448,180 +607,202 @@ export default function StaffDoctorSchedule() {
               </button>
             </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{ color: '#6b7280' }}>ID: {selectedDoctor.id} | Phòng mặc định: {selectedDoctor.room}</p>
+            {/* Month selection */}
+            <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#f0f9ff', borderRadius: '8px', border: '2px solid #0ea5e9' }}>
+              <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#0c4a6e', marginBottom: '8px' }}>
+                📅 Chọn tháng áp dụng:
+              </label>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                min={new Date().toISOString().slice(0, 7)}
+                style={{ padding: '8px 12px', border: '1px solid #0ea5e9', borderRadius: '6px', fontSize: '14px' }}
+              />
+              <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#0c4a6e' }}>
+                📊 Sẽ tạo lịch cho {formatMonth(selectedMonth)} với khoảng {getSchedulesCount()} ca làm việc
+              </p>
             </div>
 
-            {/* Form to add new schedule */}
-            <div style={{ backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#0c4a6e', marginBottom: '16px' }}>
-                ➕ Thêm Ca Làm Việc Mới
-              </h3>
-
-              {/* Date input */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '6px' }}>
-                  📅 Chọn ngày:
-                </label>
-                <input
-                  type="date"
-                  value={newSchedule.date}
-                  onChange={(e) => setNewSchedule(prev => ({ ...prev, date: e.target.value }))}
-                  min={new Date().toISOString().split('T')[0]} // 2025-07-02
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
-                />
-              </div>
-
-              {/* Room input */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '6px' }}>
-                  🏥 Phòng làm việc:
-                </label>
-                <input
-                  type="text"
-                  value={newSchedule.room}
-                  onChange={(e) => setNewSchedule(prev => ({ ...prev, room: e.target.value }))}
-                  placeholder="Ví dụ: Room 1, Phòng 101..."
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
-                />
-              </div>
-
-              {/* Preset times */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '6px' }}>
-                  ⚡ Khung giờ có sẵn:
-                </label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {presetTimes.map((preset, index) => (
-                    <button
-                      key={index}
-                      onClick={() => applyPreset(preset)}
-                      style={{ padding: '6px 12px', backgroundColor: '#e0f2fe', color: '#0c4a6e', border: '1px solid #0ea5e9', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
-                    >
-                      {preset.label} ({preset.start})
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Start time selection */}
-              <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#374151', marginBottom: '6px' }}>
-                  🕐 Giờ bắt đầu:
-                </label>
-                <select
-                  value={newSchedule.startTime}
-                  onChange={(e) => setNewSchedule(prev => ({ ...prev, startTime: e.target.value }))}
-                  style={{ width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '14px' }}
-                >
-                  {timeOptions.map(time => <option key={time} value={time}>{time}</option>)}
-                </select>
-              </div>
-
-              {/* Preview */}
-              {newSchedule.date && newSchedule.room && (
-                <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #10b981', borderRadius: '6px', padding: '12px', marginBottom: '16px' }}>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#065f46' }}>
-                    <strong>📋 Xem trước:</strong><br />
-                    👨‍⚕️ {selectedDoctor.name} (ID: {selectedDoctor.id})<br />
-                    📅 {formatDate(newSchedule.date)}<br />
-                    🕐 {newSchedule.startTime}<br />
-                    🏥 {newSchedule.room}
-                  </p>
-                </div>
-              )}
-
-              <button
-                onClick={addSchedule}
-                style={{ width: '100%', padding: '10px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                ➕ Thêm Ca Làm Việc
-              </button>
-            </div>
-
-            {/* Current schedules list */}
+            {/* Weekly schedule grid */}
             <div style={{ marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937', marginBottom: '12px' }}>
-                📋 Danh Sách Lịch Hiện Tại ({selectedDoctor.specificSchedules.length} ca):
-              </h3>
-              
-              {selectedDoctor.specificSchedules.length > 0 ? (
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {selectedDoctor.specificSchedules.sort((a, b) => new Date(a.date) - new Date(b.date)).map((schedule, index) => (
-                    <div key={index} style={{ 
-                      backgroundColor: schedule.scheduleId ? '#f0fdf4' : '#fff7ed',
-                      border: `1px solid ${schedule.scheduleId ? '#bbf7d0' : '#fed7aa'}`,
-                      borderRadius: '6px',
-                      padding: '12px',
-                      marginBottom: '8px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <div>
-                        <div style={{ fontWeight: 'bold', color: '#1f2937', fontSize: '14px' }}>
-                          📅 {formatDate(schedule.date)}
-                          {schedule.scheduleId && (
-                            <span style={{ color: '#059669', marginLeft: '8px', fontSize: '12px' }}>
-                              ✅ Đã lưu (ID: {schedule.scheduleId})
-                            </span>
-                          )}
-                          {!schedule.scheduleId && (
-                            <span style={{ color: '#d97706', marginLeft: '8px', fontSize: '12px' }}>
-                              ⏳ Chưa lưu
-                            </span>
-                          )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
+                  🗓️ Chọn lịch làm việc trong tuần
+                </h3>
+                <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                  Đã chọn: {getSelectedShiftsCount()} ca/tuần
+                </div>
+              </div>
+
+              {/* Quick select buttons */}
+              <div style={{ marginBottom: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => handleSelectAllShift('morning', true)}
+                  style={{ padding: '6px 12px', backgroundColor: '#fef3c7', color: '#92400e', border: '1px solid #fbbf24', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  ☀️ Chọn tất cả ca sáng
+                </button>
+                <button
+                  onClick={() => handleSelectAllShift('afternoon', true)}
+                  style={{ padding: '6px 12px', backgroundColor: '#fed7d7', color: '#c53030', border: '1px solid #f56565', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  🌅 Chọn tất cả ca chiều
+                </button>
+                <button
+                  onClick={() => {
+                    handleSelectAllShift('morning', false);
+                    handleSelectAllShift('afternoon', false);
+                  }}
+                  style={{ padding: '6px 12px', backgroundColor: '#f7fafc', color: '#4a5568', border: '1px solid #cbd5e0', borderRadius: '6px', fontSize: '12px', cursor: 'pointer' }}
+                >
+                  🚫 Bỏ chọn tất cả
+                </button>
+              </div>
+
+              {/* Weekly schedule table */}
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e5e7eb' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f9fafb' }}>
+                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold' }}>
+                        📅 Thứ
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold' }}>
+                        ☀️ Ca Sáng<br />
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>8:00-12:00</span>
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold' }}>
+                        🌅 Ca Chiều<br />
+                        <span style={{ fontSize: '11px', color: '#6b7280' }}>13:00-17:00</span>
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'left', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold' }}>
+                        🏥 Phòng
+                      </th>
+                      <th style={{ padding: '12px', textAlign: 'center', borderBottom: '1px solid #e5e7eb', fontWeight: 'bold' }}>
+                        ⚡ Nhanh
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {daysOfWeek.map(day => (
+                      <tr key={day.key} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '12px', fontWeight: '500' }}>
+                          {day.label}
+                        </td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={weeklySchedule[day.key].morning}
+                            onChange={(e) => handleShiftChange(day.key, 'morning', e.target.checked)}
+                            style={{ width: '18px', height: '18px', accentColor: '#f59e0b' }}
+                          />
+                        </td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={weeklySchedule[day.key].afternoon}
+                            onChange={(e) => handleShiftChange(day.key, 'afternoon', e.target.checked)}
+                            style={{ width: '18px', height: '18px', accentColor: '#ef4444' }}
+                          />
+                        </td>
+                        <td style={{ padding: '12px' }}>
+                          <input
+                            type="text"
+                            value={weeklySchedule[day.key].room}
+                            onChange={(e) => handleRoomChange(day.key, e.target.value)}
+                            placeholder="Phòng"
+                            style={{ width: '80px', padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', fontSize: '12px' }}
+                          />
+                        </td>
+                        <td style={{ padding: '12px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', gap: '4px', justifyContent: 'center' }}>
+                            <button
+                              onClick={() => handleSelectAllDay(day.key, true)}
+                              style={{ padding: '2px 6px', backgroundColor: '#dcfce7', color: '#166534', border: 'none', borderRadius: '3px', fontSize: '10px', cursor: 'pointer' }}
+                              title="Chọn cả ngày"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={() => handleSelectAllDay(day.key, false)}
+                              style={{ padding: '2px 6px', backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '3px', fontSize: '10px', cursor: 'pointer' }}
+                              title="Bỏ chọn"
+                            >
+                              ✗
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Schedule preview */}
+            {getSelectedShiftsCount() > 0 && (
+              <div style={{ marginBottom: '24px', padding: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: '#166534', marginBottom: '12px' }}>
+                  📊 Xem trước lịch làm việc cho {formatMonth(selectedMonth)}
+                </h4>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                  {daysOfWeek.map(day => {
+                    const daySchedule = weeklySchedule[day.key];
+                    const hasShifts = daySchedule.morning || daySchedule.afternoon;
+                    
+                    if (!hasShifts) return null;
+                    
+                    return (
+                      <div key={day.key} style={{ padding: '8px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '12px', color: '#166534', marginBottom: '4px' }}>
+                          {day.label}
                         </div>
-                        <div style={{ color: '#6b7280', marginTop: '4px', fontSize: '13px' }}>
-                          🕐 {schedule.startTime}
-                        </div>
-                        <div style={{ color: '#6b7280', marginTop: '2px', fontSize: '12px' }}>
-                          🏥 {schedule.room}
+                        <div style={{ fontSize: '11px', color: '#059669' }}>
+                          {daySchedule.morning && <div>☀️ Ca sáng (8:00-12:00)</div>}
+                          {daySchedule.afternoon && <div>🌅 Ca chiều (13:00-17:00)</div>}
+                          <div style={{ color: '#6b7280', marginTop: '2px' }}>🏥 {daySchedule.room}</div>
                         </div>
                       </div>
-                      <button
-                        onClick={() => removeSchedule(selectedDoctor.id, index)}
-                        style={{
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
-                          border: 'none',
-                          borderRadius: '4px',
-                          padding: '6px 10px',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          fontWeight: 'bold'
-                        }}
-                      >
-                        🗑️ Xóa
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-              ) : (
-                <p style={{ fontSize: '14px', color: '#9ca3af', fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>
-                  Chưa có lịch làm việc nào được thêm
-                </p>
-              )}
-            </div>
+                
+                <div style={{ marginTop: '12px', fontSize: '12px', color: '#166534' }}>
+                  <div>📈 Tổng số ca/tuần: <strong>{getSelectedShiftsCount()}</strong></div>
+                  <div>📅 Tổng số ca trong tháng: <strong>{getSchedulesCount()}</strong></div>
+                  <div>👨‍⚕️ Bác sĩ: <strong>{selectedDoctor.name}</strong></div>
+                </div>
+              </div>
+            )}
 
-            {/* Buttons */}
+            {/* Action buttons */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button
                 onClick={closeScheduleModal}
-                style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '8px', backgroundColor: 'white', color: '#374151', cursor: 'pointer', fontWeight: 'bold' }}
+                style={{ 
+                  padding: '10px 20px', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '8px', 
+                  backgroundColor: 'white', 
+                  color: '#374151', 
+                  cursor: 'pointer', 
+                  fontWeight: 'bold' 
+                }}
               >
-                Đóng
+                ❌ Đóng
               </button>
               <button
                 onClick={saveSchedule}
-                disabled={scheduleLoading || pendingSchedules.length === 0}
+                disabled={scheduleLoading || getSelectedShiftsCount() === 0}
                 style={{ 
                   padding: '10px 20px',
-                  backgroundColor: scheduleLoading || pendingSchedules.length === 0 ? '#9ca3af' : '#2563eb',
+                  backgroundColor: scheduleLoading || getSelectedShiftsCount() === 0 ? '#9ca3af' : '#10b981',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
-                  cursor: scheduleLoading || pendingSchedules.length === 0 ? 'not-allowed' : 'pointer',
+                  cursor: scheduleLoading || getSelectedShiftsCount() === 0 ? 'not-allowed' : 'pointer',
                   fontWeight: 'bold',
                   display: 'flex',
                   alignItems: 'center',
@@ -630,23 +811,63 @@ export default function StaffDoctorSchedule() {
               >
                 {scheduleLoading ? (
                   <>
-                    <div style={{ width: '16px', height: '16px', border: '2px solid #ffffff', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
-                    Đang lưu...
+                    <div style={{ 
+                      width: '16px', 
+                      height: '16px', 
+                      border: '2px solid #ffffff', 
+                      borderTop: '2px solid transparent', 
+                      borderRadius: '50%', 
+                      animation: 'spin 1s linear infinite' 
+                    }}></div>
+                    Đang tạo lịch...
                   </>
                 ) : (
-                  <>💾 Lưu Tất Cả ({pendingSchedules.length})</>
+                  <>
+                    💾 Tạo Lịch Cho Tháng ({getSchedulesCount()} ca)
+                  </>
                 )}
               </button>
+            </div>
+
+            {/* Help text */}
+            <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#fef3c7', border: '1px solid #fbbf24', borderRadius: '6px' }}>
+              <h5 style={{ fontSize: '12px', fontWeight: 'bold', color: '#92400e', margin: '0 0 8px 0' }}>
+                💡 Hướng dẫn sử dụng:
+              </h5>
+              <ul style={{ fontSize: '11px', color: '#92400e', margin: 0, paddingLeft: '16px' }}>
+                <li>Chọn các thứ và ca làm việc mong muốn</li>
+                <li>Mẫu tuần sẽ được áp dụng cho tất cả các tuần trong tháng</li>
+                <li>Có thể đặt phòng khác nhau cho từng ngày trong tuần</li>
+                <li>Ca sáng: 8:00-12:00, Ca chiều: 13:00-17:00</li>
+                <li>Lịch sẽ được tạo tự động cho toàn bộ tháng đã chọn</li>
+              </ul>
             </div>
           </div>
         </div>
       )}
 
-      {/* CSS for loading animation */}
+      {/* CSS for animations */}
       <style jsx>{`
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
+        }
+        @keyframes bounce {
+          0%, 20%, 53%, 80%, 100% {
+            animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+            transform: translate3d(0,0,0);
+          }
+          40%, 43% {
+            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            transform: translate3d(0, -6px, 0);
+          }
+          70% {
+            animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+            transform: translate3d(0, -3px, 0);
+          }
+          90% {
+            transform: translate3d(0,-1px,0);
+          }
         }
       `}</style>
     </div>

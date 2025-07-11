@@ -21,7 +21,8 @@ class DoctorPatientService {
         };
         return {
           success: false,
-          message: statusMessages[response.status] || `Lỗi server: ${response.status}`,
+          message:
+            statusMessages[response.status] || `Lỗi server: ${response.status}`,
         };
       }
 
@@ -38,14 +39,18 @@ class DoctorPatientService {
       }
     } catch (error) {
       console.error("API Error:", error);
-      
-      if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+
+      if (
+        error.name === "TypeError" &&
+        error.message.includes("Failed to fetch")
+      ) {
         return {
           success: false,
-          message: "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
+          message:
+            "Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.",
         };
       }
-      
+
       return {
         success: false,
         message: error.message || "Lỗi không xác định",
@@ -54,10 +59,21 @@ class DoctorPatientService {
   }
 
   // API Methods
-  async getDoctorPatients(doctorId, page = 1, pageSize = 8, sortBy = "full_name", order = "asc") {
-    return this.apiCall(
-      `/api/Doctor/Patients?doctorId=${doctorId}&page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&order=${order}`
-    );
+
+  async getAllPatients(
+    searchTerm = null,
+    page = 1,
+    pageSize = 10,
+    sortBy = "full_name",
+    order = "asc"
+  ) {
+    let url = `/api/Doctor/AllPatients?page=${page}&pageSize=${pageSize}&sortBy=${sortBy}&order=${order}`;
+
+    if (searchTerm) {
+      url += `&searchTerm=${encodeURIComponent(searchTerm)}`;
+    }
+
+    return this.apiCall(url);
   }
 
   async getPatientStats(doctorId) {
@@ -75,12 +91,8 @@ class DoctorPatientService {
     });
   }
 
-  async getPatientHistory(patientId, doctorId) {
-    return this.apiCall(`/api/Doctor/PatientHistory/${patientId}?doctorId=${doctorId}`);
-  }
-
-  async getPatientDetail(patientId, doctorId) {
-    return this.apiCall(`/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`);
+  async getPatientHistory(patientId) {
+    return this.apiCall(`/api/Doctor/PatientHistory/${patientId}`);
   }
 
   async saveExamination(examData) {
@@ -100,21 +112,21 @@ class DoctorPatientService {
   getAvatarUrl(avatarPath) {
     // Đường dẫn mặc định - sửa từ patient.png thành default-avatar.png
     const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
-    
+
     if (!avatarPath) {
       return DEFAULT_AVATAR;
     }
-    
+
     // Check if it's already a full URL
-    if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+    if (avatarPath.startsWith("http://") || avatarPath.startsWith("https://")) {
       return avatarPath;
     }
-    
+
     // Check if it starts with /
-    if (avatarPath.startsWith('/')) {
+    if (avatarPath.startsWith("/")) {
       return `${API_BASE}${avatarPath}`;
     }
-    
+
     // Otherwise, assume it's just the filename
     return `${API_BASE}/api/Account/avatar/${avatarPath}`;
   }

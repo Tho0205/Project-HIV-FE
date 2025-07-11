@@ -65,7 +65,11 @@ const Header = () => {
 
         <nav className="nav-links">
           <Link to="/">Trang Chủ</Link>
-          <Link to="/appointment">Đặt Lịch Hẹn</Link>
+          {Userrole === "Patient" && (
+            <Link Link to="/appointment">
+              Đặt Lịch Hẹn
+            </Link>
+          )}
           <Link to="/blog">Blog</Link>
           <Link to="/education">Tài Liệu giáo dục</Link>
           {Userrole === "Doctor" && (
