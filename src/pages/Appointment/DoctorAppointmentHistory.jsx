@@ -335,18 +335,6 @@ const fetchDoctorAppointments = useCallback(async () => {
             }}
           >
             <div style={{ flex: "1", position: "relative" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: "0.75rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#999",
-                  fontSize: "1.25rem",
-                }}
-              >
-                🔍
-              </span>
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tên bệnh nhân hoặc ghi chú..."
@@ -364,7 +352,7 @@ const fetchDoctorAppointments = useCallback(async () => {
             <div
               style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
             >
-              <span style={{ color: "#999", fontSize: "1.25rem" }}>🔽</span>
+              <span style={{ color: "#999", fontSize: "1.25rem" }}></span>
               <select
                 value={filterStatus}
                 onChange={(e) => {
@@ -407,16 +395,6 @@ const fetchDoctorAppointments = useCallback(async () => {
                   color: "#6b7280",
                 }}
               >
-                <span
-                  style={{
-                    fontSize: "3rem",
-                    display: "block",
-                    margin: "0 auto 0.75rem",
-                    color: "#d1d5db",
-                  }}
-                >
-                  📅
-                </span>
                 <p>Không tìm thấy lịch hẹn nào</p>
                 <p style={{ fontSize: "0.875rem" }}>
                   Chỉ hiển thị các lịch hẹn đã được xác nhận
@@ -446,9 +424,6 @@ const fetchDoctorAppointments = useCallback(async () => {
                           marginBottom: "0.5rem",
                         }}
                       >
-                        <span style={{ fontSize: "1.25rem" }}>
-                          {appointment.isAnonymous ? "🛡️" : "👤"}
-                        </span>
                         <h3
                           style={{
                             fontSize: "1.125rem",
@@ -486,13 +461,11 @@ const fetchDoctorAppointments = useCallback(async () => {
                             alignItems: "center",
                             gap: "0.5rem",
                           }}
-                        >
-                          <span>📅</span>
+                        > 
                           <span>
                             {appointment.formattedDate.dayName},{" "}
                             {appointment.formattedDate.date}
                           </span>
-                          <span style={{ marginLeft: "0.5rem" }}>🕐</span>
                           <span>{appointment.formattedDate.time}</span>
                         </div>
                         {appointment.note && (
@@ -504,7 +477,6 @@ const fetchDoctorAppointments = useCallback(async () => {
                               marginTop: "0.25rem",
                             }}
                           >
-                            <span>📝</span>
                             <span>{appointment.note}</span>
                           </div>
                         )}
@@ -519,7 +491,7 @@ const fetchDoctorAppointments = useCallback(async () => {
                           }}
                         >
                           <span>Mã lịch hẹn: #{appointment.appointmentId}</span>
-                          <span>🏥 Phòng: {appointment.room}</span>
+                          <span> Phòng: {appointment.room}</span>
                         </div>
                       </div>
                     </div>
@@ -552,7 +524,6 @@ const fetchDoctorAppointments = useCallback(async () => {
                           Object.assign(e.target.style, viewButtonStyle);
                         }}
                       >
-                        <span>👁️</span>
                         Xem chi tiết
                       </button>
                     </div>
@@ -662,7 +633,7 @@ const fetchDoctorAppointments = useCallback(async () => {
                   }}
                 >
                   <p style={{ fontWeight: "500", color: "#1f2937", marginBottom: "0.5rem" }}>
-                    📅 Thông tin lịch hẹn
+                   Thông tin lịch hẹn
                   </p>
                   <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                     <strong>Mã:</strong> #{selectedAppointment.appointmentId}
@@ -686,12 +657,10 @@ const fetchDoctorAppointments = useCallback(async () => {
                   <p style={{ fontWeight: "500", color: "#1f2937", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     {selectedAppointment.isAnonymous ? (
                       <>
-                        <span>🛡️</span>
                         Thông tin bệnh nhân (Ẩn danh)
                       </>
                     ) : (
                       <>
-                        <span>👤</span>
                         Thông tin bệnh nhân
                       </>
                     )}
@@ -719,7 +688,7 @@ const fetchDoctorAppointments = useCallback(async () => {
                     }}
                   >
                     <p style={{ fontWeight: "500", color: "#1f2937", marginBottom: "0.5rem" }}>
-                      📝 Ghi chú từ bệnh nhân
+                      Ghi chú từ bệnh nhân
                     </p>
                     <p style={{ fontSize: "0.875rem" }}>
                       {selectedAppointment.note}
