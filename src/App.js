@@ -49,7 +49,10 @@ function App() {
       </main>
       {!hideHeaderFooter && <Footer />}
       <ToastContainer />
-      {tokenManager.isAuthenticated() && <FloatingChat />}
+      {tokenManager.isAuthenticated() && 
+        (["Staff", "Patient"].includes(tokenManager.getCurrentUserRole())) && (
+          <FloatingChat />
+      )}
     </div>
   );
 }
