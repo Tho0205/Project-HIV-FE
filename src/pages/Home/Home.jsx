@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getDotorInfo } from "../../services/doctorInfo";
+import { doctorAvatar } from "../../services/doctorInfo";
 import { Link } from "react-router-dom";
 import "./Home.css";
 
@@ -44,12 +45,12 @@ const Home = () => {
   };
 
   // Hàm helper để tạo placeholder avatar
-  const getAvatarUrl = (doctorAvatar, doctorId) => {
-    if (doctorAvatar) {
-      return doctorAvatar;
-    }
-    return `/placeholder.svg?height=200&width=200&text=BS${doctorId}`;
-  };
+  // const getAvatarUrl = (doctorAvatar, doctorId) => {
+  //   if (doctorAvatar) {
+  //     return doctorAvatar;
+  //   }
+  //   return `/placeholder.svg?height=200&width=200&text=BS${doctorId}`;
+  // };
 
   return (
     <div className="hiv-home-container">
@@ -68,9 +69,7 @@ const Home = () => {
             </p>
             <div className="hiv-hero-buttons">
               <Link to="/appointment">
-                <button className="hiv-btn-primary">
-                  Tư vấn ngay
-                </button>
+                <button className="hiv-btn-primary">Tư vấn ngay</button>
               </Link>
             </div>
           </div>
@@ -171,10 +170,7 @@ const Home = () => {
                 <div className="hiv-doctor-card" key={doctor.doctorId}>
                   <div className="hiv-doctor-image">
                     <img
-                      src={
-                        getAvatarUrl(doctor.doctorAvatar, doctor.doctorId) ||
-                        "/placeholder.svg"
-                      }
+                      src={doctorAvatar(doctor.doctorAvatar)}
                       alt={doctor.doctorName}
                     />
                   </div>
