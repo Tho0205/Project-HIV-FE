@@ -36,9 +36,14 @@ Kế thừa các style chung từ file CSS chính .blog-management-page {
 }
 
 .new-blog-btn {
-  background-color: #4439c7;
+  background-color: #007b7f;
   padding: 8px 8px;
   margin-bottom: 18px;
+}
+
+.new-blog-btn:hover {
+  background-color: #45c396;
+  color: white;
 }
 
 /* Blog list */
@@ -57,8 +62,12 @@ Kế thừa các style chung từ file CSS chính .blog-management-page {
 
 /* Blog card */
 .blog-card {
-  padding: 15px 0;
   border-bottom: 1px solid #eee;
+  background: white;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
 .blog-card:last-child {
@@ -70,6 +79,7 @@ Kế thừa các style chung từ file CSS chính .blog-management-page {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+  padding: 15px;  
 }
 
 .blog-title {
@@ -109,7 +119,7 @@ Kế thừa các style chung từ file CSS chính .blog-management-page {
   padding: 5px 12px;
   border: none;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
@@ -239,7 +249,6 @@ button:disabled {
 
 /* Blog card compact */
 .blog-card {
-  padding: 15px 0;
   border-bottom: 1px solid #eee;
 }
 

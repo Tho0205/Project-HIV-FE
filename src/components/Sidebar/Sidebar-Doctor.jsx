@@ -32,25 +32,21 @@ export default function SidebarAdmin({ active }) {
             style={{ textDecoration: "none" }}
           >
             <li className={active === "Doctor-Patient-Manager" ? "active" : ""}>
-              <span className="icon">👤</span>
               <span>Quản Lý Bệnh Nhân</span>
             </li>
           </Link>
           <Link to="/Protocol-management" style={{ textDecoration: "none" }}>
             <li className={active === "Protocol-Manager" ? "active" : ""}>
-              <span className="icon">👤</span>
               <span>Quản Lý Phác đồ</span>
             </li>
           </Link>
           <Link to="/Doctor-MedicalRecord" style={{ textDecoration: "none" }}>
             <li className={active === "Doctor-MedicalRecord" ? "active" : ""}>
-              <span className="icon">👤</span>
               <span>Hồ sơ bệnh án</span>
             </li>
           </Link>
           <Link to="/Doctor-Appointment-History" style={{ textDecoration: "none" }}>
             <li className={active === "Appointment-History" ? "active" : ""}>
-              <span className="icon">👤</span>
               <span>Lịch tư vấn</span>
             </li>
           </Link>
