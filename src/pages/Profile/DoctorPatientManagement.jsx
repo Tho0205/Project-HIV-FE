@@ -16,8 +16,10 @@ const formatDate = (dateStr) =>
 const formatDateTime = (dateStr) =>
   dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "";
 
-const StatCard = ({ value, label, className }) => (
-  <div className={`doc-stat-card ${className}`}>
+// Components
+const StatCard = ({ icon, value, label }) => (
+  <div className="stat-card">
+    <div className="stat-icon">{icon}</div>
     <div className="stat-info">
       <h3>{value}</h3>
       <p>{label}</p>
@@ -25,9 +27,7 @@ const StatCard = ({ value, label, className }) => (
   </div>
 );
 
-
-
-const PatientRow = ({ patient, index, page, onViewHistory }) => (
+const PatientRow = ({ patient, index, page, onViewHistory, viewMode }) => (
   <tr>
     <td className="text-center">{(page - 1) * PAGE_SIZE + index + 1}</td>
     <td className="text-center">
@@ -51,10 +51,10 @@ const PatientRow = ({ patient, index, page, onViewHistory }) => (
     <td className="actions-admin">
       <button
         onClick={() => onViewHistory(patient)}
-        className="doc-btn-info-admin"
+        className="btn-info-admin"
         title="Xem lịch sử"
       >
-        🗎
+        📋
       </button>
     </td>
   </tr>
@@ -95,6 +95,8 @@ export default function DoctorPatientManagement() {
     controlledPatients: 0,
     unstablePatients: 0,
   });
+  const [viewMode, setViewMode] = useState("myPatients"); // "myPatients" hoặc "allPatients"
+  const [scheduleDate, setScheduleDate] = useState(null);
 
   // Modal states
   const [modals, setModals] = useState({
@@ -116,28 +118,41 @@ export default function DoctorPatientManagement() {
     }
   }, [navigate]);
 
-  // Load all patients
+  // Load patients với chế độ xem
   const loadPatients = useCallback(async () => {
+    if (!doctorId && viewMode === "myPatients") return;
+
     setLoading(true);
     try {
       const [sortBy, order] = sort.split("_");
-      
-      // Luôn lấy tất cả bệnh nhân
-      const result = await doctorPatientService.getAllPatients(
-        searchTerm,
-        page,
-        PAGE_SIZE,
-        sortBy,
-        order
-      );
+      let result;
+
+      if (viewMode === "allPatients") {
+        // Lấy toàn bộ bệnh nhân
+        result = await doctorPatientService.getAllPatients(
+          searchTerm,
+          page,
+          PAGE_SIZE,
+          sortBy,
+          order
+        );
+      } else {
+        // Lấy bệnh nhân của bác sĩ với filter ngày nếu có
+        result = await doctorPatientService.getDoctorPatients(
+          doctorId,
+          page,
+          PAGE_SIZE,
+          sortBy,
+          order,
+          scheduleDate,
+          false // Bỏ hasScheduleOnly
+        );
+      }
 
       if (result.success) {
         setPatients(result.data.data || []);
         setTotal(result.data.total || 0);
-        // Cập nhật stats từ response
-        if (result.data.stats) {
-          setStats(result.data.stats);
-        }
+        if (result.data.stats) setStats(result.data.stats);
       } else {
         toast.error(result.message || "Không thể tải danh sách bệnh nhân");
       }
@@ -146,7 +161,14 @@ export default function DoctorPatientManagement() {
     } finally {
       setLoading(false);
     }
-  }, [page, sort, searchTerm]);
+  }, [
+    doctorId,
+    page,
+    sort,
+    searchTerm,
+    viewMode,
+    scheduleDate,
+  ]);
 
   useEffect(() => {
     loadPatients();
@@ -179,14 +201,39 @@ export default function DoctorPatientManagement() {
   const handleViewHistory = async (patient) => {
     setSelectedPatient(patient);
     try {
-      // Lấy thông tin lịch sử - không cần doctorId
-      const result = await doctorPatientService.getPatientHistory(patient.userId);
+      // Ở tab "Tất cả bệnh nhân", cho phép xem thông tin cơ bản
+      if (viewMode === "allPatients") {
+        // Lấy thông tin lịch sử từ API (có thể giới hạn thông tin)
+        const result = await doctorPatientService.getPatientHistory(
+          patient.userId,
+          doctorId
+        );
 
-      if (result.success && result.data) {
-        setPatientHistory(result.data);
-        openModal("history");
+        if (result.success && result.data) {
+          setPatientHistory(result.data);
+          openModal("history");
+        } else {
+          // Nếu không có quyền đầy đủ, hiển thị thông tin cơ bản
+          setPatientHistory({
+            appointments: [],
+            examinations: [],
+            limitedAccess: true
+          });
+          openModal("history");
+        }
       } else {
-        toast.error(result.message || "Không thể tải lịch sử bệnh nhân");
+        // Tab "Bệnh nhân của tôi" - quyền truy cập đầy đủ
+        const result = await doctorPatientService.getPatientHistory(
+          patient.userId,
+          doctorId
+        );
+
+        if (result.success && result.data) {
+          setPatientHistory(result.data);
+          openModal("history");
+        } else {
+          toast.error(result.message || "Không thể tải lịch sử bệnh nhân");
+        }
       }
     } catch (error) {
       toast.error("Không thể tải lịch sử bệnh nhân");
@@ -225,15 +272,13 @@ export default function DoctorPatientManagement() {
 
         // Reload history
         const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.userId
+          selectedPatient.userId,
+          doctorId
         );
         if (historyResult.success) {
           setPatientHistory(historyResult.data);
           openModal("history");
         }
-        
-        // Reload patients to update stats
-        loadPatients();
       }
     } catch (error) {
       toast.error("Có lỗi xảy ra");
@@ -253,12 +298,10 @@ export default function DoctorPatientManagement() {
       if (result.success) {
         toast.success("Xóa thành công");
         const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.userId
+          selectedPatient.userId,
+          doctorId
         );
         if (historyResult.success) setPatientHistory(historyResult.data);
-        
-        // Reload patients to update stats
-        loadPatients();
       } else {
         toast.error(result.message || "Có lỗi xảy ra khi xóa");
       }
@@ -289,31 +332,50 @@ export default function DoctorPatientManagement() {
           <h1>Quản Lý Bệnh Nhân</h1>
         </div>
 
-        {/* Statistics - Hiển thị thống kê chung */}
-        <div className="stats-grid">
-          <StatCard
-            value={stats.totalPatients}
-            label="Tổng số bệnh nhân"
-            className="doc-blue"
-          />
-          <StatCard
-            value={stats.todayAppointments}
-            label="Lịch hẹn hôm nay"
-            className="doc-purple"
-          />
-          <StatCard
-            value={stats.controlledPatients}
-            label="Đã kiểm soát"
-            className="doc-green"
-          />
-          <StatCard 
-            value={stats.unstablePatients} 
-            label="Bất ổn"
-            className="doc-red"
-          />
+        {/* View Mode Tabs */}
+        <div className="view-mode-tabs">
+          <button
+            className={`tab-btn ${viewMode === "myPatients" ? "active" : ""}`}
+            onClick={() => {
+              setViewMode("myPatients");
+              setPage(1);
+            }}
+          >
+            Bệnh nhân của tôi
+          </button>
+          <button
+            className={`tab-btn ${viewMode === "allPatients" ? "active" : ""}`}
+            onClick={() => {
+              setViewMode("allPatients");
+              setPage(1);
+              setScheduleDate(null);
+            }}
+          >
+            Tất cả bệnh nhân
+          </button>
         </div>
 
-
+        {/* Statistics - Chỉ hiển thị khi ở tab "Bệnh nhân của tôi" */}
+        {viewMode === "myPatients" && (
+          <div className="stats-grid">
+            <StatCard
+              icon="👥"
+              value={stats.totalPatients}
+              label="Tổng số bệnh nhân"
+            />
+            <StatCard
+              icon="📍"
+              value={stats.todayAppointments}
+              label="Lịch hẹn hôm nay"
+            />
+            <StatCard
+              icon="✅"
+              value={stats.controlledPatients}
+              label="Đã kiểm soát"
+            />
+            <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
+          </div>
+        )}
 
         {/* Filters */}
         <div className="filters-admin">
@@ -326,6 +388,20 @@ export default function DoctorPatientManagement() {
               className="search-input-admin"
             />
           </div>
+
+          {/* Schedule date filter - chỉ hiện khi xem "Bệnh nhân của tôi" */}
+          {viewMode === "myPatients" && (
+            <input
+              type="date"
+              value={scheduleDate || ""}
+              onChange={(e) => {
+                setScheduleDate(e.target.value || null);
+                setPage(1);
+              }}
+              className="date-filter-admin"
+              title="Lọc theo ngày hẹn"
+            />
+          )}
 
           <select
             value={sort}
@@ -379,6 +455,7 @@ export default function DoctorPatientManagement() {
                     index={idx}
                     page={page}
                     onViewHistory={handleViewHistory}
+                    viewMode={viewMode}
                   />
                 ))
               )}
@@ -393,7 +470,7 @@ export default function DoctorPatientManagement() {
           onPageChange={setPage}
         />
 
-        {/* History Modal - giữ nguyên như cũ */}
+        {/* History Modal */}
         <Modal
           show={modals.history}
           onClose={() => closeModal("history")}
@@ -403,9 +480,16 @@ export default function DoctorPatientManagement() {
           <div className="modal-info-body-admin">
             {patientHistory ? (
               <>
+                {/* Thông báo giới hạn quyền nếu cần */}
+                {patientHistory.limitedAccess && viewMode === "allPatients" && (
+                  <div className="limited-access-notice">
+                    <p>⚠️ Bạn đang xem thông tin cơ bản của bệnh nhân này.</p>
+                  </div>
+                )}
+
                 {/* Patient Info */}
                 <div className="patient-info-section">
-                  <h3>🗎  Thông Tin Bệnh Nhân</h3>
+                  <h3>📋 Thông Tin Bệnh Nhân</h3>
                   <div className="patient-detail-grid">
                     <div className="info-item">
                       <span className="info-label">Họ tên:</span>
@@ -432,7 +516,7 @@ export default function DoctorPatientManagement() {
 
                 {/* Appointments */}
                 <div className="info-section-admin">
-                  <h3> Lịch Hẹn Khám</h3>
+                  <h3>📅 Lịch Hẹn Khám</h3>
                   {patientHistory?.appointments?.length > 0 ? (
                     <div className="appointment-list">
                       {patientHistory.appointments.map((appointment) => (
@@ -446,11 +530,6 @@ export default function DoctorPatientManagement() {
                             </span>
                             {getStatusBadge(appointment.status)}
                           </div>
-                          {appointment.doctorName && (
-                            <p className="history-detail">
-                              Bác sĩ: {appointment.doctorName}
-                            </p>
-                          )}
                           {appointment.room && (
                             <p className="history-detail">
                               Phòng: {appointment.room}
@@ -469,10 +548,10 @@ export default function DoctorPatientManagement() {
                   )}
                 </div>
 
-                {/* Examinations */}
+                {/* Examinations - Hiển thị cho cả hai tab */}
                 <div className="info-section-admin">
                   <div className="section-header-no-border">
-                    <h3> Kết Quả Xét Nghiệm</h3>
+                    <h3>🔬 Kết Quả Xét Nghiệm</h3>
                     <button
                       className="btn-add-small"
                       onClick={() => openExamModal()}
@@ -480,70 +559,64 @@ export default function DoctorPatientManagement() {
                       + Thêm mới
                     </button>
                   </div>
-                  {patientHistory?.examinations?.length > 0 ? (
-                    <div className="exam-list">
-                      {patientHistory.examinations.map((exam) => (
-                        <div key={exam.examId} className="history-item">
-                          <div className="history-item-header">
-                            <span className="date">
-                              Ngày: {formatDate(exam.examDate)}
-                            </span>
-                            <div className="exam-actions">
-                              <button
-                                onClick={() => openExamModal(exam)}
-                                className="btn-icon-small btn-edit"
-                                title="Chỉnh sửa"
-                              >
-                                Chỉnh sửa
-                              </button>
-
-                              <button
-                                onClick={() => handleDeleteExam(exam.examId)}
-                                className="btn-icon-small doc-btn-delete"
-                                title="Xóa"
-                              >
-                                Xóa
-                              </button>
+                    {patientHistory?.examinations?.length > 0 ? (
+                      <div className="exam-list">
+                        {patientHistory.examinations.map((exam) => (
+                          <div key={exam.examId} className="history-item">
+                            <div className="history-item-header">
+                              <span className="date">
+                                Ngày: {formatDate(exam.examDate)}
+                              </span>
+                              <div className="exam-actions">
+                                <button
+                                  onClick={() => openExamModal(exam)}
+                                  className="btn-icon-small"
+                                  title="Chỉnh sửa"
+                                >
+                                  ✏️
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteExam(exam.examId)}
+                                  className="btn-icon-small"
+                                  title="Xóa"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
                             </div>
+                            <p className="result">{exam.result}</p>
+                            <div className="metrics">
+                              {exam.cd4Count && (
+                                <span className="metric">
+                                  CD4: {exam.cd4Count} cells/μL
+                                </span>
+                              )}
+                              {exam.hivLoad && (
+                                <span className="metric">
+                                  HIV Load: {exam.hivLoad} copies/ml
+                                </span>
+                              )}
+                            </div>
+                            <small className="timestamp">
+                              Tạo lúc: {formatDateTime(exam.createdAt)}
+                            </small>
                           </div>
-                          {exam.doctorName && (
-                            <p className="history-detail">
-                              Bác sĩ khám: {exam.doctorName}
-                            </p>
-                          )}
-                          <p className="result">{exam.result}</p>
-                          <div className="metrics">
-                            {exam.cd4Count && (
-                              <span className="metric">
-                                CD4: {exam.cd4Count} cells/μL
-                              </span>
-                            )}
-                            {exam.hivLoad && (
-                              <span className="metric">
-                                HIV Load: {exam.hivLoad} copies/ml
-                              </span>
-                            )}
-                          </div>
-                          <small className="timestamp">
-                            Tạo lúc: {formatDateTime(exam.createdAt)}
-                          </small>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-data-section">
-                      <p className="no-data-admin">
-                        Chưa có kết quả xét nghiệm nào
-                      </p>
-                      <button
-                        className="btn-add-small"
-                        onClick={() => openExamModal()}
-                      >
-                        + Thêm kết quả đầu tiên
-                      </button>
-                    </div>
-                  )}
-                </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="no-data-section">
+                        <p className="no-data-admin">
+                          Chưa có kết quả xét nghiệm nào
+                        </p>
+                        <button
+                          className="btn-add-small"
+                          onClick={() => openExamModal()}
+                        >
+                          + Thêm kết quả đầu tiên
+                        </button>
+                      </div>
+                    )}
+                  </div>
               </>
             ) : (
               <div className="loading-admin">Đang tải dữ liệu...</div>
@@ -559,7 +632,7 @@ export default function DoctorPatientManagement() {
           </div>
         </Modal>
 
-        {/* Exam Modal - giữ nguyên */}
+        {/* Exam Modal */}
         <Modal
           show={modals.exam}
           onClose={() => closeModal("exam")}
