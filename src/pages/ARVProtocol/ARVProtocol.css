@@ -3,121 +3,194 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
+  align-items: center;
 }
 
-.title {
+.title-arv-protocol {
   color: #257df4;
   margin-bottom: 20px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .action-bar {
   margin-bottom: 20px;
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ============ Table Styles ============ */
 .table-container {
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(37, 125, 244, 0.07);
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  margin-bottom: 24px;
 }
 
 .arv-protocol-table {
   width: 100%;
   border-collapse: collapse;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 14px;
   overflow: hidden;
+  font-size: 15px;
 }
 
 .arv-protocol-table th,
 .arv-protocol-table td {
-  padding: 15px;
+  padding: 15px 18px;
   font-size: 15px;
   border-bottom: 1px solid #eee;
+  text-align: center;
 }
 
 .arv-protocol-table th {
   background-color: #f0f8ff;
   color: #257df4;
   font-weight: bold;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  border-bottom: 2px solid #e0e0e0;
 }
 
-.protocol-table td {
-  padding: 15px;
-  border-bottom: 1px solid #eee;
+.arv-protocol-table tr:last-child td {
+  border-bottom: none;
 }
 
-.protocol-table tr:hover {
-  background-color: #f8f9fa;
+.arv-protocol-table tr {
+  transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
+}
+
+.arv-protocol-table tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.09);
 }
 
 /* ============ Status Badges ============ */
 .status-badge {
   display: inline-block;
   border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 7px 18px;
+  min-width: 80px;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(37, 125, 244, 0.07);
+  text-align: center;
 }
 
 .status-active {
   background-color: #d4edda;
-  color: #155724;
+  color: #28a745;
 }
 
 .status-inactive {
   background-color: #fff3cd;
-  color: #856404;
+  color: #ffc107;
 }
 
 .status-deleted {
   background-color: #f8d7da;
-  color: #721c24;
+  color: #e53e3e;
+}
+
+.status-badge-arv-protocol {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  color: #fff;
+  font-size: 15px;
+  min-width: 70px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.07);
+  vertical-align: middle;
+}
+
+/* Trạng thái ACTIVE */
+.status-badge-arv-protocol.active {
+  background: #28a745;
+}
+
+/* Trạng thái INACTIVE */
+.status-badge-arv-protocol.inactive {
+  background: #ffc107;
+  color: #333;
+}
+
+/* Trạng thái DELETED */
+.status-badge-arv-protocol.deleted {
+  background: #e53e3e;
 }
 
 /* ============ Action Buttons ============ */
 .actions-arv-protocol {
   display: flex;
   gap: 8px;
-}
-
-.action-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  transition: all 0.2s;
 }
 
-.action-btn.edit {
-  background-color: #17a2b8;
+.btn-edit-arv-protocol,
+.btn-delete-arv-protocol,
+.btn-detail-arv-protocol {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(37, 125, 244, 0.04);
+  outline: none;
+}
+.close-btn-1 {
+  background: none;
+  border: none;
+  font-size: 30px;
+  color: red;
+  font-weight: bolder;
+  position: relative;
+  bottom: 20px;
+  left: 20px;
+  cursor: pointer;
+}
+.close-view-protocol {
+  background: none;
+  border: none;
+  padding: 8px 18px;
+  background-color: #6c757d;
+  color: white;
+  border-radius: 6px;
+}
+.btn-edit-arv-protocol {
+  background-color: #28a745;
   color: white;
 }
+.btn-edit-arv-protocol:hover {
+  background-color: green;
+}
 
-.action-btn.delete {
+.btn-delete-arv-protocol {
   background-color: #dc3545;
   color: white;
 }
+.btn-delete-arv-protocol:hover {
+  background-color: #c82333;
+}
 
-.action-btn.detail {
+.btn-detail-arv-protocol {
   background-color: #6c757d;
   color: white;
 }
-
-.action-btn:hover {
-  opacity: 0.8;
-  transform: translateY(-1px);
+.btn-detail-arv-protocol:hover {
+  background-color: #495057;
 }
 
-.action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
 .btn-add-protocol {
   background-color: #257df4;
   color: #fff;
@@ -128,7 +201,11 @@
   font-size: 16px;
   box-shadow: 0 2px 8px rgba(37, 125, 244, 0.08);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.btn-add-protocol:hover {
+  background-color: #1a5fd0;
+  box-shadow: 0 4px 16px rgba(37, 125, 244, 0.12);
 }
 
 /* ============ Modal Styles ============ */
@@ -138,7 +215,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(37, 125, 244, 0.18);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -148,13 +225,14 @@
 .modal-container {
   padding: 10px;
   background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
+  box-shadow: 0 10px 32px rgba(37, 125, 244, 0.13);
   width: 600px;
-  max-width: 90%;
+  max-width: 95vw;
   max-height: 90vh;
   overflow-y: auto;
   animation: modalFadeIn 0.3s ease-out;
+  border: 1px solid #e0e0e0;
 }
 
 @keyframes modalFadeIn {
@@ -179,20 +257,23 @@
 .modal-header h3 {
   margin: 0;
   font-size: 1.3rem;
-  color: #2c3e50;
+  color: #257df4;
+  font-weight: 700;
 }
 
 .close-button {
   background: none;
   border: none;
-  font-size: 1.5rem;
+  font-size: 2rem;
   cursor: pointer;
-  color: #95a5a6;
+  color: #257df4;
   padding: 0 5px;
+  border-radius: 50%;
+  transition: background 0.2s, color 0.2s;
 }
-
 .close-button:hover {
-  color: #7f8c8d;
+  color: #dc3545;
+  background: #f0f8ff;
 }
 
 /* Edit Modal Form */
@@ -207,18 +288,27 @@
 .form-group label {
   display: block;
   margin-bottom: 8px;
-  font-weight: 500;
-  color: #34495e;
+  font-weight: 600;
+  color: #257df4;
+  font-size: 1rem;
 }
 
 .form-group input,
 #modalForm textarea,
 .form-group select {
   width: 100%;
-  padding: 10px;
+  padding: 10px 14px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 1rem;
+  background: #f6fafd;
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+#modalForm textarea:focus,
+.form-group select:focus {
+  border-color: #257df4;
+  outline: none;
 }
 
 #modalForm textarea {
@@ -238,10 +328,10 @@
   color: white;
   padding: 8px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
 }
-
 .btn-secondary:hover {
   background-color: #7f8c8d;
 }
@@ -253,7 +343,7 @@
 
 .arv-medications-list h4 {
   margin-top: 0;
-  color: #2c3e50;
+  color: #257df4;
   padding-bottom: 10px;
   border-bottom: 1px solid #eee;
 }
@@ -273,8 +363,8 @@
 
 .arv-details-table th {
   background-color: #f8f9fa;
-  color: #7f8c8d;
-  font-weight: 500;
+  color: #257df4;
+  font-weight: 600;
 }
 
 .arv-details-table tr:nth-child(even) {
@@ -290,15 +380,16 @@
 
 /* ============ Error Message ============ */
 .error-message {
-  color: #721c24;
+  color: #e53e3e;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
   padding: 12px 15px;
-  border-radius: 4px;
+  border-radius: 6px;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-weight: 600;
 }
 
 .error-message::before {
@@ -306,58 +397,25 @@
 }
 
 /* ============ Loading States ============ */
-.loading-text {
-  text-align: center;
-  padding: 20px;
-  color: #7f8c8d;
-}
-
-.no-data {
-  text-align: center;
-  padding: 20px;
-  color: #95a5a6;
-  font-style: italic;
-}
-
+.loading-text,
+.no-data,
 .no-arv-message {
   text-align: center;
   padding: 20px;
   color: #95a5a6;
   font-style: italic;
+  background: #f6fafd;
+  border-radius: 8px;
+  margin-top: 12px;
 }
-.btn-edit-arv-protocol {
-  background-color: #28a745;
-  color: white;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-.btn-delete-arv-protocol {
-  background-color: #dc3545;
-  color: white;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-.btn-detail-arv-protocol {
-  background-color: gray;
-  color: white;
-  padding: 6px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
+
 /* ARV Detail Item Styles */
 .arv-detail-item {
   background: #f8f9fa;
-  border-radius: 6px;
+  border-radius: 8px;
   padding: 12px;
   margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(37, 125, 244, 0.07);
 }
 
 .arv-detail-row {
@@ -371,7 +429,15 @@
 .arv-detail-row input {
   padding: 8px;
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f6fafd;
+  transition: border-color 0.2s;
+}
+.arv-detail-row select:focus,
+.arv-detail-row input:focus {
+  border-color: #257df4;
+  outline: none;
 }
 
 .arv-detail-actions {
@@ -383,8 +449,13 @@
   color: white;
   border: none;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-add-arv:hover {
+  background: #218838;
 }
 
 .btn-remove-arv {
@@ -392,8 +463,13 @@
   color: white;
   border: none;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-remove-arv:hover {
+  background: #c82333;
 }
 
 .detail-header {
@@ -407,19 +483,29 @@
 .btn-green-add {
   background: #28a745;
   color: white;
-  padding: 4px 16px;
+  padding: 8px 18px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-green-add:hover {
+  background: #218838;
 }
 
 .btn-cancel-add {
   background: #6c757d;
   color: white;
-  padding: 8px 16px;
+  padding: 8px 18px;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.btn-cancel-add:hover {
+  background: #495057;
 }
 
 /* Responsive adjustments */
@@ -437,5 +523,15 @@
   .btn-delete-arv-protocol,
   .btn-detail-arv-protocol {
     width: 100%;
+  }
+  .modal-container {
+    width: 98vw;
+    padding: 8px 2px;
+    max-width: 99vw;
+  }
+  .arv-protocol-table th,
+  .arv-protocol-table td {
+    padding: 8px 6px;
+    font-size: 13px;
   }
 }

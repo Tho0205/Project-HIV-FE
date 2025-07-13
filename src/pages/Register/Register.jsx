@@ -5,6 +5,7 @@ import { registerAPI } from "../../services/account";
 import { toast } from "react-toastify";
 import LoadingOverlay from "../../components/Loading/Loading";
 
+const today = new Date().toISOString().split("T")[0];
 const RegisterForm = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -30,25 +31,31 @@ const RegisterForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const res = await registerAPI(formData);
-
+    setLoading(true);
     try {
+      const res = await registerAPI(formData);
+
       if (res.ok) {
         const json = await res.json();
         toast.success(json.message || "Register Successfully !");
-        setLoading(true);
         setTimeout(() => {
           navigate("/login");
           setLoading(false);
         }, 800);
       } else {
-        const errorText = await res.text();
-        toast.error("Register fail: " + errorText);
+        const result = await res.json();
+        const errorMsg =
+          result?.errors?.password_hash?.[0] ||
+          result?.errors?.email?.[0] ||
+          result?.message ||
+          "Đăng ký thất bại.";
+        toast.error(errorMsg, { autoClose: 2000 });
+        setLoading(false);
       }
     } catch (err) {
       console.error(err);
       toast.error("Can't connect with Server.");
+      setLoading(false);
     }
   };
 
@@ -142,6 +149,8 @@ const RegisterForm = () => {
           <input
             type="date"
             name="birthdate"
+            max={today}
+            min="1900-01-01"
             value={formData.birthdate}
             onChange={handleChange}
           />
@@ -150,6 +159,8 @@ const RegisterForm = () => {
           <input
             type="password"
             name="password"
+            minLength={4}
+            maxLength={50}
             value={formData.password}
             onChange={handleChange}
           />
