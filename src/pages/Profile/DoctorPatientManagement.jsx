@@ -16,16 +16,16 @@ const formatDate = (dateStr) =>
 const formatDateTime = (dateStr) =>
   dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "";
 
-// Components
-const StatCard = ({ icon, value, label }) => (
-  <div className="stat-card">
-    <div className="stat-icon">{icon}</div>
+const StatCard = ({ value, label, className }) => (
+  <div className={`doc-stat-card ${className}`}>
     <div className="stat-info">
       <h3>{value}</h3>
       <p>{label}</p>
     </div>
   </div>
 );
+
+
 
 const PatientRow = ({ patient, index, page, onViewHistory }) => (
   <tr>
@@ -294,22 +294,28 @@ export default function DoctorPatientManagement() {
         {/* Statistics - Hiển thị thống kê chung */}
         <div className="stats-grid">
           <StatCard
-            icon="👥"
             value={stats.totalPatients}
             label="Tổng số bệnh nhân"
+            className="doc-blue"
           />
           <StatCard
-            icon="📍"
             value={stats.todayAppointments}
             label="Lịch hẹn hôm nay"
+            className="doc-purple"
           />
           <StatCard
-            icon="✅"
             value={stats.controlledPatients}
             label="Đã kiểm soát"
+            className="doc-green"
           />
-          <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
+          <StatCard 
+            value={stats.unstablePatients} 
+            label="Bất ổn"
+            className="doc-red"
+          />
         </div>
+
+
 
         {/* Filters */}
         <div className="filters-admin">
@@ -497,14 +503,15 @@ export default function DoctorPatientManagement() {
                             <div className="exam-actions">
                               <button
                                 onClick={() => openExamModal(exam)}
-                                className="btn-icon-small"
+                                className="btn-icon-small btn-edit"
                                 title="Chỉnh sửa"
                               >
                                 Chỉnh sửa
                               </button>
+
                               <button
                                 onClick={() => handleDeleteExam(exam.examId)}
-                                className="btn-icon-small"
+                                className="btn-icon-small doc-btn-delete"
                                 title="Xóa"
                               >
                                 Xóa
