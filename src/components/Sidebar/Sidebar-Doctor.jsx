@@ -15,7 +15,7 @@ export default function SidebarAdmin({ active }) {
 
   return (
     <aside
-      className="sidebar"
+      className="sidebar-sidebar-doctor"
       style={{
         background: "none",
         borderRight: "2px solid rgba(0, 0, 0, 0.05);",
@@ -45,7 +45,10 @@ export default function SidebarAdmin({ active }) {
               <span>Hồ sơ bệnh án</span>
             </li>
           </Link>
-          <Link to="/Doctor-Appointment-History" style={{ textDecoration: "none" }}>
+          <Link
+            to="/Doctor-Appointment-History"
+            style={{ textDecoration: "none" }}
+          >
             <li className={active === "Appointment-History" ? "active" : ""}>
               <span>Lịch tư vấn</span>
             </li>

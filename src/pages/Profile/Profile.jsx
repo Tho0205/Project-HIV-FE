@@ -286,7 +286,7 @@ export default function Profile() {
               </p>
             </div>
             <div>
-              <span>vai trò</span>
+              <span>Vai Trò</span>
               <p>{profile.role}</p>
             </div>
             <div>
