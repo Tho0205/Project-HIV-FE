@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { tokenManager } from "../../services/account";
+import { useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -25,6 +27,7 @@ import {
   getNewUsermonthly,
 } from "../../services/DashBoard";
 import "./DashBoard.css";
+import { toast } from "react-toastify";
 import Sidebar from "../../components/Sidebar/Sidebar";
 
 export default function Dashboard() {
@@ -39,46 +42,52 @@ export default function Dashboard() {
   const [protocolData, setProtocolData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [
-          patients,
-          exams,
-          records,
-          protocols,
-          gender,
-          protocolStats,
-          monthly,
-        ] = await Promise.all([
-          getAllPatient(),
-          getAllExam(),
-          getAllMedicalRecord(),
-          getAllArvProtocol(),
-          getPatietnByGender(),
-          getProtocolStat(),
-          getNewUsermonthly(),
-        ]);
+    const role = tokenManager.getCurrentUserRole();
+    if (role !== "Staff" && role !== "Manager") {
+      toast.error("Ban không có quyền truy cập trang này");
+      navigate("/");
+    } else {
+      const fetchData = async () => {
+        try {
+          const [
+            patients,
+            exams,
+            records,
+            protocols,
+            gender,
+            protocolStats,
+            monthly,
+          ] = await Promise.all([
+            getAllPatient(),
+            getAllExam(),
+            getAllMedicalRecord(),
+            getAllArvProtocol(),
+            getPatietnByGender(),
+            getProtocolStat(),
+            getNewUsermonthly(),
+          ]);
 
-        setStats({
-          totalPatients: patients || 0,
-          totalExams: exams || 0,
-          totalMedicalRecords: records || 0,
-          totalArvProtocols: protocols || 0,
-        });
+          setStats({
+            totalPatients: patients || 0,
+            totalExams: exams || 0,
+            totalMedicalRecords: records || 0,
+            totalArvProtocols: protocols || 0,
+          });
 
-        setGenderData(gender || []);
-        setProtocolData(protocolStats || []);
-        setMonthlyData(monthly || []);
-      } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setGenderData(gender || []);
+          setProtocolData(protocolStats || []);
+          setMonthlyData(monthly || []);
+        } catch (error) {
+          console.error("Error fetching dashboard data:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchData();
+      fetchData();
+    }
   }, []);
 
   const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"];

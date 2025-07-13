@@ -71,30 +71,8 @@ class DoctorInfoService {
         }
       );
 
-      // Handle response
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage;
-        
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.message || `HTTP Error: ${response.status}`;
-          
-          // If there are validation errors, include them
-          if (errorJson.errors && Array.isArray(errorJson.errors)) {
-            errorMessage += "\n" + errorJson.errors.join("\n");
-          }
-        } catch {
-          errorMessage = `HTTP Error: ${response.status} - ${errorText}`;
-        }
-        
-        throw new Error(errorMessage);
-      }
-
-      // Parse response
-      const result = await response.json();
-      console.log("✅ Update successful:", result);
-      return result;
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
     } catch (error) {
       console.error("❌ Error updating doctor:", error);
       throw error;

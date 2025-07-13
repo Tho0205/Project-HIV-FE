@@ -48,7 +48,7 @@ const PatientRow = ({ patient, index, page, onViewHistory }) => (
     <td className="text-center">
       <span className="appointment-badge">{patient.appointmentCount || 0}</span>
     </td>
-    <td className="actions-admin">
+    <td className="actions-doctor">
       <button
         onClick={() => onViewHistory(patient)}
         className="doc-btn-info-admin"
@@ -121,7 +121,7 @@ export default function DoctorPatientManagement() {
     setLoading(true);
     try {
       const [sortBy, order] = sort.split("_");
-      
+
       // Luôn lấy tất cả bệnh nhân
       const result = await doctorPatientService.getAllPatients(
         searchTerm,
@@ -180,7 +180,9 @@ export default function DoctorPatientManagement() {
     setSelectedPatient(patient);
     try {
       // Lấy thông tin lịch sử - không cần doctorId
-      const result = await doctorPatientService.getPatientHistory(patient.userId);
+      const result = await doctorPatientService.getPatientHistory(
+        patient.userId
+      );
 
       if (result.success && result.data) {
         setPatientHistory(result.data);
@@ -231,7 +233,7 @@ export default function DoctorPatientManagement() {
           setPatientHistory(historyResult.data);
           openModal("history");
         }
-        
+
         // Reload patients to update stats
         loadPatients();
       }
@@ -256,7 +258,7 @@ export default function DoctorPatientManagement() {
           selectedPatient.userId
         );
         if (historyResult.success) setPatientHistory(historyResult.data);
-        
+
         // Reload patients to update stats
         loadPatients();
       } else {
@@ -283,7 +285,7 @@ export default function DoctorPatientManagement() {
   return (
     <div className="container">
       <SidebarDoctor active={"Doctor-Patient-Manager"} />
-      <div className="main-content-admin">
+      <div className="main-content-doctor">
         {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
@@ -405,27 +407,37 @@ export default function DoctorPatientManagement() {
               <>
                 {/* Patient Info */}
                 <div className="patient-info-section">
-                  <h3>🗎  Thông Tin Bệnh Nhân</h3>
+                  <h3>🗎 Thông Tin Bệnh Nhân</h3>
                   <div className="patient-detail-grid">
                     <div className="info-item">
                       <span className="info-label">Họ tên:</span>
-                      <span className="info-value">{selectedPatient?.fullName || "Chưa có"}</span>
+                      <span className="info-value">
+                        {selectedPatient?.fullName || "Chưa có"}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Email:</span>
-                      <span className="info-value">{selectedPatient?.email}</span>
+                      <span className="info-value">
+                        {selectedPatient?.email}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">{selectedPatient?.phone || "Chưa có"}</span>
+                      <span className="info-value">
+                        {selectedPatient?.phone || "Chưa có"}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Ngày sinh:</span>
-                      <span className="info-value">{formatDate(selectedPatient?.birthdate)}</span>
+                      <span className="info-value">
+                        {formatDate(selectedPatient?.birthdate)}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Giới tính:</span>
-                      <span className="info-value">{selectedPatient?.gender || "Other"}</span>
+                      <span className="info-value">
+                        {selectedPatient?.gender || "Other"}
+                      </span>
                     </div>
                   </div>
                 </div>

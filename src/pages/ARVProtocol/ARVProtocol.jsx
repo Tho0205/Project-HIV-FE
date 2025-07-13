@@ -6,6 +6,9 @@ import ARVService from "../../services/ARVService";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import "./ARVProtocol.css";
+import { toast } from "react-toastify";
+import { FaEdit, FaTrashAlt, FaEye, FaPlus } from "react-icons/fa";
+import { MdClose } from "react-icons/md";
 
 const PAGE_SIZE = 9;
 
@@ -55,7 +58,7 @@ export default function ARVProtocol() {
     fetchProtocols();
 
     if (tokenManager.getCurrentUserRole() !== "Staff") {
-      alert("You are not authorized");
+      toast.error("Bạn không được phép truy cập");
       navigate("/login");
     }
   }, [navigate]);
@@ -127,7 +130,7 @@ export default function ARVProtocol() {
       try {
         await ARVProtocolService.deleteProtocol(id);
         await fetchProtocols();
-        alert("Protocol deleted successfully!");
+        toast.success("Protocol deleted successfully!");
       } catch (err) {
         setError("Lỗi khi xóa protocol");
         console.error(err);
@@ -156,7 +159,7 @@ export default function ARVProtocol() {
       await ARVProtocolService.createProtocolWithDetails(newProtocol);
       setShowCreateModal(false);
       await fetchProtocols();
-      alert("Protocol created successfully!");
+      toast.success("Thêm Protocol Thành Công");
     } catch (err) {
       setError(err.message || "Failed to create protocol");
       console.error(err);
@@ -288,18 +291,19 @@ export default function ARVProtocol() {
         <div className="header">
           <input
             type="text"
-            placeholder="Search Protocols..."
+            placeholder="Tìm Kiếm Protocols..."
             className="search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        <h1 className="title">ARV Protocol Management</h1>
+        <h1 className="title-arv-protocol">Quản Lí ARV Protocol</h1>
 
         <div className="action-bar">
+          {/* Nút thêm mới protocol */}
           <button className="btn-add-protocol" onClick={handleCreate}>
-            ➕ Add New Protocol
+            <FaPlus style={{ marginRight: 6 }} /> Thêm Mới Protocol
           </button>
         </div>
 
@@ -310,20 +314,20 @@ export default function ARVProtocol() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Họ Và Tên</th>
+                <th>Mô Tả</th>
+                <th>Trạng Thái</th>
+                <th>Hành Động</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>Loading...</td>
+                  <td colSpan={5}>Đang Tải...</td>
                 </tr>
               ) : pagedProtocols.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>No protocols found</td>
+                  <td colSpan={5}>Không Tìm Thấy protocols</td>
                 </tr>
               ) : (
                 pagedProtocols.map((p) => (
@@ -333,7 +337,7 @@ export default function ARVProtocol() {
                     <td>{p.description || "-"}</td>
                     <td>
                       <span
-                        className={`status-badge ${p.status.toLowerCase()}`}
+                        className={`status-badge-arv-protocol ${p.status.toLowerCase()}`}
                       >
                         {p.status}
                       </span>
@@ -343,20 +347,20 @@ export default function ARVProtocol() {
                         onClick={() => handleUpdate(p)}
                         className="btn-edit-arv-protocol"
                       >
-                        ✏️ Edit
+                        <FaEdit style={{ marginRight: 6 }} /> Sửa
                       </button>
                       <button
                         onClick={() => handleDelete(p.protocolId)}
                         disabled={p.status === "DELETED"}
                         className="btn-delete-arv-protocol"
                       >
-                        🗑️ Delete
+                        <FaTrashAlt style={{ marginRight: 6 }} /> Xóa
                       </button>
                       <button
                         onClick={() => handleShowARVDetails(p)}
                         className="btn-detail-arv-protocol"
                       >
-                        👁️ View
+                        <FaEye style={{ marginRight: 6 }} /> Xem
                       </button>
                     </td>
                   </tr>
@@ -381,7 +385,8 @@ export default function ARVProtocol() {
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h3>Create New Protocol</h3>
+                <h3>Thêm Mới Protocol</h3>
+                {/* Nút đóng modal (thay &times; bằng icon) */}
                 <button
                   onClick={() => setShowCreateModal(false)}
                   style={{
@@ -397,7 +402,7 @@ export default function ARVProtocol() {
                     left: "30px",
                   }}
                 >
-                  &times;
+                  <MdClose />
                 </button>
               </div>
               <div className="modal-body">
@@ -405,7 +410,7 @@ export default function ARVProtocol() {
 
                 <form onSubmit={handleCreateWithDetails}>
                   <div className="form-group">
-                    <label>Protocol Name*</label>
+                    <label>Tên Protocol*</label>
                     <input
                       type="text"
                       value={newProtocol.name}
@@ -417,7 +422,7 @@ export default function ARVProtocol() {
                   </div>
 
                   <div className="form-group">
-                    <label>Description</label>
+                    <label>Mô Tả</label>
                     <textarea
                       value={newProtocol.description}
                       onChange={(e) =>
@@ -430,7 +435,7 @@ export default function ARVProtocol() {
                   </div>
 
                   <div className="form-group">
-                    <label>Status</label>
+                    <label>Trạng Thái</label>
                     <select
                       value={newProtocol.status}
                       onChange={(e) =>
@@ -447,13 +452,14 @@ export default function ARVProtocol() {
 
                   <div className="form-group">
                     <div className="detail-header">
-                      <label>ARV Medications*</label>
+                      <label>Thuốc ARV*</label>
+                      {/* Nút thêm ARV trong modal */}
                       <button
                         type="button"
                         className="btn-add-arv"
                         onClick={handleAddARVDetail}
                       >
-                        ➕ Add ARV
+                        <FaPlus style={{ marginRight: 6 }} /> Thêm ARV
                       </button>
                     </div>
 
@@ -471,7 +477,7 @@ export default function ARVProtocol() {
                             }
                             required
                           >
-                            <option value="">Select ARV</option>
+                            <option value="">Chọn ARV</option>
                             {availableARVs.map((arv) => (
                               <option key={arv.arvId} value={arv.arvId}>
                                 {arv.name}
@@ -508,12 +514,13 @@ export default function ARVProtocol() {
                         </div>
 
                         <div className="arv-detail-actions">
+                          {/* Nút xóa ARV trong modal */}
                           <button
                             type="button"
                             className="btn-remove-arv"
                             onClick={() => handleRemoveARVDetail(index)}
                           >
-                            🗑️ Remove
+                            <FaTrashAlt style={{ marginRight: 6 }} /> Xóa
                           </button>
                         </div>
                       </div>
@@ -526,7 +533,7 @@ export default function ARVProtocol() {
                       className="btn-green-add"
                       disabled={loading}
                     >
-                      {loading ? "Processing..." : "Save"}
+                      {loading ? "Đang Xử Lí..." : "Lưu"}
                     </button>
                     <button
                       type="button"
@@ -534,7 +541,7 @@ export default function ARVProtocol() {
                       onClick={() => setShowCreateModal(false)}
                       disabled={loading}
                     >
-                      Cancel
+                      Thoát
                     </button>
                   </div>
                 </form>
@@ -548,7 +555,7 @@ export default function ARVProtocol() {
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h3>Edit Protocol</h3>
+                <h3>Chỉnh Sửa Protocol</h3>
                 <button
                   onClick={() => setShowEditModal(false)}
                   style={{
@@ -564,7 +571,7 @@ export default function ARVProtocol() {
                     left: "30px",
                   }}
                 >
-                  &times;
+                  <MdClose />
                 </button>
               </div>
               <div className="modal-body">
@@ -572,7 +579,7 @@ export default function ARVProtocol() {
 
                 <form onSubmit={handleSubmitEdit}>
                   <div className="form-group">
-                    <label>Protocol Name*</label>
+                    <label>Tên Protocol*</label>
                     <input
                       type="text"
                       value={editData.name}
@@ -584,7 +591,7 @@ export default function ARVProtocol() {
                   </div>
 
                   <div className="form-group">
-                    <label>Description</label>
+                    <label>Mô Tả</label>
                     <textarea
                       value={editData.description}
                       onChange={(e) =>
@@ -597,27 +604,27 @@ export default function ARVProtocol() {
                   </div>
 
                   <div className="form-group">
-                    <label>Status</label>
+                    <label>Trạng Thái</label>
                     <select
                       value={editData.status}
                       onChange={(e) =>
                         setEditData({ ...editData, status: e.target.value })
                       }
                     >
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
+                      <option value="ACTIVE">Hoạt Động</option>
+                      <option value="INACTIVE">Không Hoạt Động</option>
                     </select>
                   </div>
 
                   <div className="form-group">
                     <div className="detail-header">
-                      <label>ARV Medications*</label>
+                      <label>Thuốc ARV*</label>
                       <button
                         type="button"
                         className="btn-add-arv"
                         onClick={handleAddEditARVDetail}
                       >
-                        ➕ Add ARV
+                        <FaPlus style={{ marginRight: 6 }} /> Thêm ARV
                       </button>
                     </div>
 
@@ -636,7 +643,7 @@ export default function ARVProtocol() {
                             }}
                             required
                           >
-                            <option value="">Select ARV</option>
+                            <option value="">Chọn ARV</option>
                             {availableARVs.map((arv) => (
                               <option key={arv.arvId} value={arv.arvId}>
                                 {arv.name}
@@ -687,7 +694,7 @@ export default function ARVProtocol() {
                               })
                             }
                           >
-                            🗑️ Remove
+                            <FaTrashAlt style={{ marginRight: 6 }} /> Xóa
                           </button>
                         </div>
                       </div>
@@ -700,7 +707,7 @@ export default function ARVProtocol() {
                       className="btn-green-add"
                       disabled={loading}
                     >
-                      {loading ? "Processing..." : "Save"}
+                      {loading ? "Processing..." : "Lưu"}
                     </button>
                     <button
                       type="button"
@@ -708,7 +715,7 @@ export default function ARVProtocol() {
                       onClick={() => setShowEditModal(false)}
                       disabled={loading}
                     >
-                      Cancel
+                      Thoát
                     </button>
                   </div>
                 </form>
@@ -722,8 +729,13 @@ export default function ARVProtocol() {
           <div className="modal-overlay">
             <div className="modal-container">
               <div className="modal-header">
-                <h3>ARV Details: {selectedProtocol?.name}</h3>
-                <button onClick={() => setShowARVModal(false)}>&times;</button>
+                <h3>Mô Tả ARV: {selectedProtocol?.name}</h3>
+                <button
+                  className="close-btn-1"
+                  onClick={() => setShowARVModal(false)}
+                >
+                  &times;
+                </button>
               </div>
               <div className="modal-body">
                 {arvDetails.length > 0 ? (
@@ -731,9 +743,9 @@ export default function ARVProtocol() {
                     <thead>
                       <tr>
                         <th>ARV ID</th>
-                        <th>ARV Name</th>
-                        <th>Dosage</th>
-                        <th>Usage Instructions</th>
+                        <th>ARV Tên</th>
+                        <th>Liều Lượng</th>
+                        <th>Hướng dẫn sử dụng</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -752,7 +764,12 @@ export default function ARVProtocol() {
                 )}
               </div>
               <div className="modal-footer">
-                <button onClick={() => setShowARVModal(false)}>Close</button>
+                <button
+                  className="close-view-protocol"
+                  onClick={() => setShowARVModal(false)}
+                >
+                  Thoát
+                </button>
               </div>
             </div>
           </div>
