@@ -137,7 +137,7 @@ const BlogStaff = () => {
       </div>
 
       <div className="main-content">
-        <h1 className="title">QUẢN LÝ BÀI VIẾT</h1>
+        <h1 className="title-blog-staff">QUẢN LÝ BÀI VIẾT</h1>
 
         <div className="blog-list-section">
           {loading ? (

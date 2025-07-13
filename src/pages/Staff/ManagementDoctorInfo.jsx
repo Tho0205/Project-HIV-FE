@@ -1,7 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import doctorInfoService from "../../services/DoctorInfoService";
+import { doctorAvatar } from "../../services/doctorInfo";
 import "./ManagementDoctorInfo.css";
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaUserMd,
+  FaPlus,
+  FaGraduationCap,
+  FaSave,
+  FaTimes,
+  FaSpinner,
+} from "react-icons/fa";
+import { MdClose } from "react-icons/md";
 
 export default function ManagementDoctorInfo() {
   const [doctors, setDoctors] = useState([]);
@@ -45,7 +57,6 @@ export default function ManagementDoctorInfo() {
       console.log("Doctor data loaded:", doctorData);
       console.log("Doctor data type:", typeof doctorData);
       console.log("Is array:", Array.isArray(doctorData));
-
       // Đảm bảo data là array
       if (Array.isArray(doctorData)) {
         setDoctors(doctorData);
@@ -99,7 +110,7 @@ export default function ManagementDoctorInfo() {
           experienceYears: formData.experienceYears
             ? parseInt(formData.experienceYears)
             : null,
-          doctorAvatar: formData.doctorAvatar,
+          doctorAvatar: formData.doctorAvatar || "doctor.png",
         };
 
         await doctorInfoService.createDoctor(createData);
@@ -176,7 +187,7 @@ export default function ManagementDoctorInfo() {
       <Sidebar active="doctor" />
 
       <main className="content">
-        <h1 className="title">Quản Lý Thông Tin Bác Sĩ</h1>
+        <h1 className="title-doctor-info">Quản Lý Thông Tin Bác Sĩ</h1>
 
         {message.text && (
           <div
@@ -190,13 +201,17 @@ export default function ManagementDoctorInfo() {
 
         <div className="table-container">
           <div className="table-header">
-            <h3>👨‍⚕️ Danh Sách Bác Sĩ</h3>
+            {/* Tiêu đề danh sách bác sĩ */}
+            <h3>
+              <FaUserMd style={{ marginRight: 6 }} /> Danh Sách Bác Sĩ
+            </h3>
+            {/* Nút thêm bác sĩ mới */}
             <button
               className="btn-add-exam"
               onClick={openAddModal}
               disabled={loading}
             >
-              ➕ Thêm Bác Sĩ Mới
+              <FaPlus style={{ marginRight: 6 }} /> Thêm Bác Sĩ Mới
             </button>
           </div>
 
@@ -217,25 +232,27 @@ export default function ManagementDoctorInfo() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="9" className="text-center">
+                  <td colSpan="9" className="text-center-doctor-info">
                     ⏳ Đang tải dữ liệu...
                   </td>
                 </tr>
               ) : doctors.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="text-center">
+                  <td colSpan="9" className="text-center-doctor-info">
                     📝 Chưa có dữ liệu bác sĩ
                   </td>
                 </tr>
               ) : (
                 doctors.map((doctor, index) => (
                   <tr key={doctor.doctorId}>
-                    <td className="text-center">{index + 1}</td>
-                    <td className="text-center">{doctor.doctorId}</td>
+                    <td className="text-center-doctor-info">{index + 1}</td>
+                    <td className="text-center-doctor-info">
+                      {doctor.doctorId}
+                    </td>
                     <td>
                       <div className="doctor-avatar-cell">
                         <img
-                          src={doctor.doctorAvatar}
+                          src={doctorAvatar(doctor.doctorAvatar)}
                           alt="Avatar"
                           className="doctor-avatar"
                         />
@@ -248,7 +265,7 @@ export default function ManagementDoctorInfo() {
                     </td>
                     <td>{doctor.degree || "Chưa cập nhật"}</td>
                     <td>{doctor.specialization || "Chưa cập nhật"}</td>
-                    <td className="text-center">
+                    <td className="text-center-doctor-info">
                       {doctor.experienceYears ? (
                         <span className="experience-badge">
                           {doctor.experienceYears} năm
@@ -262,20 +279,22 @@ export default function ManagementDoctorInfo() {
                         {doctor.status === "ACTIVE" ? "Hoạt động" : "Ngừng"}
                       </span>
                     </td>
-                    <td className="text-center">
+                    <td className="text-center-doctor-info">
+                      {/* Nút chỉnh sửa */}
                       <button
                         className="btn-action"
                         onClick={() => handleEdit(doctor)}
                         title="Chỉnh sửa"
                       >
-                        ✏️
+                        <FaEdit />
                       </button>
+                      {/* Nút xóa */}
                       <button
                         className="btn-action"
                         onClick={() => handleDelete(doctor.doctorId)}
                         title="Xóa"
                       >
-                        🗑️
+                        <FaTrashAlt />
                       </button>
                     </td>
                   </tr>
@@ -289,23 +308,34 @@ export default function ManagementDoctorInfo() {
           <div className="modal-overlay">
             <div className="form-modal">
               <div className="form-header">
+                {/* Tiêu đề modal */}
                 <h2>
-                  {editMode
-                    ? "✏️ Cập Nhật Thông Tin Bác Sĩ"
-                    : "🧑‍⚕️ Thêm Bác Sĩ Mới"}
+                  {editMode ? (
+                    <>
+                      <FaEdit style={{ marginRight: 6 }} /> Cập Nhật Thông Tin
+                      Bác Sĩ
+                    </>
+                  ) : (
+                    <>
+                      <FaUserMd style={{ marginRight: 6 }} /> Thêm Bác Sĩ Mới
+                    </>
+                  )}
                 </h2>
+                {/* Nút đóng modal */}
                 <button
                   className="close-btn"
                   onClick={() => setShowModal(false)}
                 >
-                  ✕
+                  <MdClose />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="exam-form">
                 {!editMode && (
                   <div className="form-section">
-                    <h3>👤 Thông Tin Bác Sĩ</h3>
+                    <h3>
+                      <FaUserMd style={{ marginRight: 6 }} /> Thông Tin Bác Sĩ
+                    </h3>
                     <div className="form-group">
                       <label>
                         ID Bác sĩ (User ID){" "}
@@ -363,7 +393,10 @@ export default function ManagementDoctorInfo() {
                 )}
 
                 <div className="form-section">
-                  <h3>🎓 Thông tin chuyên môn</h3>
+                  <h3>
+                    <FaGraduationCap style={{ marginRight: 6 }} /> Thông tin
+                    chuyên môn
+                  </h3>
                   <div className="form-row">
                     <div className="form-group">
                       <label>Bằng Cấp</label>
@@ -414,15 +447,14 @@ export default function ManagementDoctorInfo() {
                     <div className="form-group">
                       <label>Link Ảnh Đại Diện</label>
                       <input
-                        type="url"
-                        value={formData.doctorAvatar}
+                        value={formData.doctorAvatar || "doctor.png"}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
                             doctorAvatar: e.target.value,
                           })
                         }
-                        placeholder="https://example.com/avatar.jpg"
+                        placeholder="doctor.png"
                       />
                     </div>
                   </div>
@@ -456,11 +488,23 @@ export default function ManagementDoctorInfo() {
                     className="btn-submit"
                     disabled={loading}
                   >
-                    {loading
-                      ? "⏳ Đang xử lý..."
-                      : editMode
-                      ? "💾 Cập Nhật"
-                      : "💾 Lưu"}
+                    {loading ? (
+                      <>
+                        <FaSpinner
+                          className="icon-spin"
+                          style={{ marginRight: 6 }}
+                        />{" "}
+                        Đang xử lý...
+                      </>
+                    ) : editMode ? (
+                      <>
+                        <FaSave style={{ marginRight: 6 }} /> Cập Nhật
+                      </>
+                    ) : (
+                      <>
+                        <FaSave style={{ marginRight: 6 }} /> Lưu
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

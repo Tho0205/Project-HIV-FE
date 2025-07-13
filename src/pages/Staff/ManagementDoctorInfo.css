@@ -23,14 +23,13 @@
   background-color: #f9f9f9;
 }
 
-.title {
+.title-doctor-info {
   font-size: 32px;
   font-weight: 700;
-  color: #1e293b;
+  color: #3b82f6;
   margin-bottom: 30px;
-  display: flex;
-  align-items: center;
   gap: 12px;
+  text-align: center;
 }
 
 /* ===== ALERT MESSAGES ===== */
@@ -109,8 +108,8 @@
 .examination-table th {
   padding: 16px;
   text-align: left;
-  font-weight: 600;
-  color: #374151;
+  font-weight: 700;
+  color: black;
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -143,14 +142,26 @@
   border-left-color: #3b82f6;
 }
 
-.text-center {
-  text-align: center;
+.text-center-doctor-info {
+  text-align: none;
 }
 
 /* ===== DOCTOR SPECIFIC STYLES ===== */
 .doctor-avatar-cell {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
+  position: relative;
+  right: 5px;
+  padding: 4px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.07);
+  transition: box-shadow 0.2s;
+}
+
+.examination-table tbody tr:hover .doctor-avatar-cell {
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.13);
 }
 
 .doctor-avatar {
@@ -159,31 +170,39 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #e5e7eb;
-  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.07);
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  background: #f1f5f9;
 }
 
 .examination-table tbody tr:hover .doctor-avatar {
   border-color: #3b82f6;
-  transform: scale(1.1);
+  transform: scale(1.12);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.15);
 }
 
 .experience-badge {
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   color: #1e40af;
-  padding: 4px 12px;
+  padding: 4px 14px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   display: inline-block;
   border: 1px solid #93c5fd;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.07);
+  margin-right: 2px;
 }
 
 .status-doctor {
-  padding: 4px 12px;
+  padding: 5px 14px;
   border-radius: 20px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   display: inline-block;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.07);
+  border: 1px solid #e5e7eb;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .status-doctor.active {
@@ -196,6 +215,17 @@
   background-color: #f8d7da;
   color: #dc3545;
   border: 1px solid #dc3545;
+}
+
+/* ===== TABLE ROW HOVER ===== */
+.examination-table tbody tr {
+  transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
+}
+
+.examination-table tbody tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.09);
 }
 
 /* ===== MODAL STYLES ===== */
@@ -377,13 +407,18 @@
 }
 
 .btn-add-exam::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   transition: left 0.5s;
 }
 
@@ -415,19 +450,20 @@
   border: 1px solid #e5e7eb;
   width: 36px;
   height: 36px;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin: 0 4px;
   transition: all 0.2s;
-  font-size: 14px;
+  font-size: 15px;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.07);
 }
 
 .btn-action:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .btn-action:first-child:hover {
@@ -442,89 +478,102 @@
   color: #ef4444;
 }
 
-.btn-cancel {
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  min-width: 100px;
-  background: #f8fafc;
-  color: #475569;
-  border: 2px solid #e2e8f0;
+/* ===== MODAL AVATAR PREVIEW ===== */
+.form-group input[type="url"],
+.form-group input[type="text"] {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.07);
 }
 
-.btn-cancel:hover {
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+.form-group input[type="number"] {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(59, 130, 246, 0.07);
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .doctor-avatar-cell {
+    padding: 2px;
+    border-radius: 10px;
+  }
+  .doctor-avatar {
+    width: 35px;
+    height: 35px;
+  }
+  .experience-badge {
+    font-size: 12px;
+    padding: 3px 10px;
+  }
+  .status-doctor {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+}
+
 @media (max-width: 768px) {
   .content {
     padding: 20px;
   }
-  
-  .title {
+
+  .title-doctor-info {
     font-size: 24px;
   }
-  
+
   .table-header {
     flex-direction: column;
     gap: 16px;
     text-align: center;
   }
-  
+
   .btn-add-exam {
     width: 100%;
     max-width: 320px;
     padding: 14px 24px;
   }
-  
+
   .form-modal {
     width: 95%;
     margin: 20px;
     max-height: calc(100vh - 40px);
   }
-  
+
   .form-header {
     padding: 20px;
   }
-  
+
   .form-header h2 {
     font-size: 18px;
   }
-  
+
   .exam-form {
     padding: 20px;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 16px;
   }
-  
+
   .examination-table {
     font-size: 12px;
   }
-  
+
   .examination-table th,
   .examination-table td {
     padding: 12px 8px;
   }
-  
+
   .btn-action {
     width: 32px;
     height: 32px;
     font-size: 12px;
   }
-  
+
   .form-actions {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .btn-cancel,
   .btn-submit {
     width: 100%;
@@ -532,11 +581,11 @@
 }
 
 @media (max-width: 480px) {
-  .examination-table th:nth-child(n+4),
-  .examination-table td:nth-child(n+4) {
+  .examination-table th:nth-child(n + 4),
+  .examination-table td:nth-child(n + 4) {
     display: none;
   }
-  
+
   .doctor-avatar {
     width: 35px;
     height: 35px;

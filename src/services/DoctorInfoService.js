@@ -57,7 +57,9 @@ class DoctorInfoService {
           body: JSON.stringify(doctorData),
         }
       );
-      return await response.json();
+
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
     } catch (error) {
       throw error;
     }

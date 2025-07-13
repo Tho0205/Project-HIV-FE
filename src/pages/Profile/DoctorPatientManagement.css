@@ -263,7 +263,7 @@
   text-align: center;
 }
 
-.actions-admin {
+.actions-doctor {
   text-align: center;
 }
 
@@ -737,7 +737,7 @@
 }
 
 /* ===== Main Content Adjustments ===== */
-.main-content-admin {
+.main-content-doctor {
   width: 100%;
   max-width: 1400px;
   padding: 30px;
@@ -761,18 +761,18 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
-  
+
   .patient-detail-info {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-container-admin {
     width: 95%;
   }
 }
 
 @media (max-width: 768px) {
-  .main-content-admin {
+  .main-content-doctor {
     padding: 20px;
   }
 
@@ -795,18 +795,18 @@
   .stat-info h3 {
     font-size: 26px;
   }
-  
+
   .filters-admin {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
     padding: 20px;
   }
-  
+
   .search-box-admin {
     min-width: auto;
   }
-  
+
   .date-filter-admin,
   .status-filter-admin {
     width: 100%;
@@ -833,7 +833,7 @@
   .accounts-table-admin td:nth-child(7) {
     display: none;
   }
-  
+
   .modal-container-admin {
     width: 100%;
     margin: 10px;
@@ -842,7 +842,6 @@
 }
 
 @media (max-width: 480px) {
-
   .filters-admin {
     padding: 16px;
   }
@@ -864,7 +863,7 @@
   .accounts-table-admin td:nth-child(5) {
     display: none;
   }
-  
+
   .content-header-admin h1 {
     font-size: 24px;
   }
