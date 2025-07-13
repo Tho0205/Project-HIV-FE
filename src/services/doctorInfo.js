@@ -1,4 +1,4 @@
-const API_BASE = 'https://localhost:7243/api/DoctorInfo';
+const API_BASE = "https://localhost:7243/api/DoctorInfo";
 
 export const getDotorInfo = async () => {
   try {
@@ -20,3 +20,5 @@ export const getDotorInfo = async () => {
     return null;
   }
 };
+export const doctorAvatar = (doctorAvatar) =>
+  `https://localhost:7243/api/Account/avatar/${doctorAvatar}`;

@@ -7,7 +7,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import "./ARVProtocol.css";
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 9;
 
 export default function ARVProtocol() {
   const [protocols, setProtocols] = useState([]);
@@ -166,7 +166,7 @@ export default function ARVProtocol() {
   };
 
   // Update protocol
-    const handleSubmitEdit = async (e) => {
+  const handleSubmitEdit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
@@ -199,7 +199,6 @@ export default function ARVProtocol() {
               dosage: detail.dosage,
               usageInstruction: detail.usageInstruction,
               status: detail.status,
-
             }
           );
         } else {

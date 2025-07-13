@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -13,8 +13,8 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
-} from "recharts"
-import { Users, FileText, Activity, Pill, TrendingUp } from "lucide-react"
+} from "recharts";
+import { Users, FileText, Activity, Pill, TrendingUp } from "lucide-react";
 import {
   getAllPatient,
   getAllExam,
@@ -23,8 +23,8 @@ import {
   getPatietnByGender,
   getProtocolStat,
   getNewUsermonthly,
-} from "../../services/DashBoard"
-import "./DashBoard.css"
+} from "../../services/DashBoard";
+import "./DashBoard.css";
 import Sidebar from "../../components/Sidebar/Sidebar";
 
 export default function Dashboard() {
@@ -33,17 +33,25 @@ export default function Dashboard() {
     totalExams: 0,
     totalMedicalRecords: 0,
     totalArvProtocols: 0,
-  })
+  });
 
-  const [genderData, setGenderData] = useState([])
-  const [protocolData, setProtocolData] = useState([])
-  const [monthlyData, setMonthlyData] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [genderData, setGenderData] = useState([]);
+  const [protocolData, setProtocolData] = useState([]);
+  const [monthlyData, setMonthlyData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [patients, exams, records, protocols, gender, protocolStats, monthly] = await Promise.all([
+        const [
+          patients,
+          exams,
+          records,
+          protocols,
+          gender,
+          protocolStats,
+          monthly,
+        ] = await Promise.all([
           getAllPatient(),
           getAllExam(),
           getAllMedicalRecord(),
@@ -51,29 +59,29 @@ export default function Dashboard() {
           getPatietnByGender(),
           getProtocolStat(),
           getNewUsermonthly(),
-        ])
+        ]);
 
         setStats({
           totalPatients: patients || 0,
           totalExams: exams || 0,
           totalMedicalRecords: records || 0,
           totalArvProtocols: protocols || 0,
-        })
+        });
 
-        setGenderData(gender || [])
-        setProtocolData(protocolStats || [])
-        setMonthlyData(monthly || [])
+        setGenderData(gender || []);
+        setProtocolData(protocolStats || []);
+        setMonthlyData(monthly || []);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error)
+        console.error("Error fetching dashboard data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
-  const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"]
+  const COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b"];
 
   if (loading) {
     return (
@@ -93,7 +101,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -114,7 +122,9 @@ export default function Dashboard() {
               <Users className="dash-card-icon" />
             </div>
             <div className="dash-card-content">
-              <div className="dash-card-value">{stats.totalPatients.toLocaleString()}</div>
+              <div className="dash-card-value">
+                {stats.totalPatients.toLocaleString()}
+              </div>
               <p className="dash-card-description">
                 <TrendingUp className="dash-trend-icon" />
                 Đang điều trị
@@ -128,7 +138,9 @@ export default function Dashboard() {
               <Activity className="dash-card-icon" />
             </div>
             <div className="dash-card-content">
-              <div className="dash-card-value">{stats.totalExams.toLocaleString()}</div>
+              <div className="dash-card-value">
+                {stats.totalExams.toLocaleString()}
+              </div>
               <p className="dash-card-description">
                 <TrendingUp className="dash-trend-icon" />
                 Lượt khám
@@ -142,7 +154,9 @@ export default function Dashboard() {
               <FileText className="dash-card-icon" />
             </div>
             <div className="dash-card-content">
-              <div className="dash-card-value">{stats.totalMedicalRecords.toLocaleString()}</div>
+              <div className="dash-card-value">
+                {stats.totalMedicalRecords.toLocaleString()}
+              </div>
               <p className="dash-card-description">
                 <TrendingUp className="dash-trend-icon" />
                 Hồ sơ
@@ -156,7 +170,9 @@ export default function Dashboard() {
               <Pill className="dash-card-icon" />
             </div>
             <div className="dash-card-content">
-              <div className="dash-card-value">{stats.totalArvProtocols.toLocaleString()}</div>
+              <div className="dash-card-value">
+                {stats.totalArvProtocols.toLocaleString()}
+              </div>
               <p className="dash-card-description">
                 <TrendingUp className="dash-trend-icon" />
                 Phác đồ
@@ -170,8 +186,12 @@ export default function Dashboard() {
           {/* Gender Distribution */}
           <div className="dash-chart-card">
             <div className="dash-chart-header">
-              <h2 className="dash-chart-title">Phân Bố Bệnh Nhân Theo Giới Tính</h2>
-              <p className="dash-chart-description">Tỷ lệ nam/nữ trong hệ thống</p>
+              <h2 className="dash-chart-title">
+                Phân Bố Bệnh Nhân Theo Giới Tính
+              </h2>
+              <p className="dash-chart-description">
+                Tỷ lệ nam/nữ trong hệ thống
+              </p>
             </div>
             <div className="dash-chart-content">
               <div className="dash-chart-container">
@@ -182,13 +202,18 @@ export default function Dashboard() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ gender, count, percent }) => `${gender}: ${count} (${(percent * 100).toFixed(1)}%)`}
+                      label={({ gender, count, percent }) =>
+                        `${gender}: ${count} (${(percent * 100).toFixed(1)}%)`
+                      }
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="count"
                     >
                       {genderData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                   </PieChart>
@@ -201,14 +226,21 @@ export default function Dashboard() {
           <div className="dash-chart-card">
             <div className="dash-chart-header">
               <h2 className="dash-chart-title">Thống Kê Phác Đồ ARV</h2>
-              <p className="dash-chart-description">Số lượng sử dụng các phác đồ điều trị</p>
+              <p className="dash-chart-description">
+                Số lượng sử dụng các phác đồ điều trị
+              </p>
             </div>
             <div className="dash-chart-content">
               <div className="dash-chart-container">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={protocolData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="protocol" angle={-45} textAnchor="end" height={80} />
+                    <XAxis
+                      dataKey="protocol"
+                      angle={-45}
+                      textAnchor="end"
+                      height={80}
+                    />
                     <YAxis />
                     <Bar dataKey="count" fill="#3b82f6" radius={4} />
                   </BarChart>
@@ -221,8 +253,12 @@ export default function Dashboard() {
         {/* Monthly New Users */}
         <div className="dash-chart-card dash-full-width">
           <div className="dash-chart-header">
-            <h2 className="dash-chart-title">Xu Hướng Bệnh Nhân Mới Theo Tháng</h2>
-            <p className="dash-chart-description">Số lượng bệnh nhân đăng ký mới hàng tháng</p>
+            <h2 className="dash-chart-title">
+              Xu Hướng Bệnh Nhân Mới Theo Tháng
+            </h2>
+            <p className="dash-chart-description">
+              Số lượng bệnh nhân đăng ký mới hàng tháng
+            </p>
           </div>
           <div className="dash-chart-content">
             <div className="dash-chart-container-large">
@@ -245,5 +281,5 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

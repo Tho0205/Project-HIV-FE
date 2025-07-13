@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import SidebarAdmin from "../../components/Sidebar/SidebarAdmin";
 import AdminAccountService from "../../services/AdminAccountService";
+import Pagination from "../../components/Pagination/Pagination";
 import { toast } from "react-toastify";
 import "./AdminManagementAccount.css";
+
+const PAGE_SIZE = 10;
 
 export default function AdminManagementAccount() {
   // States
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [roleFilter, setRoleFilter] = useState("ALL");
@@ -24,8 +29,8 @@ export default function AdminManagementAccount() {
 
   // Load accounts on mount
   useEffect(() => {
-    loadAccounts();
-  }, []);
+    loadAccounts(page);
+  }, [page]);
 
   // Load all accounts
   const loadAccounts = async () => {
@@ -57,6 +62,12 @@ export default function AdminManagementAccount() {
 
     return matchesSearch && matchesStatus && matchesRole;
   });
+
+  const total1 = filteredAccounts.length;
+  const pagedAccounts = filteredAccounts.slice(
+    (page - 1) * PAGE_SIZE,
+    page * PAGE_SIZE
+  );
 
   // Open create modal
   const handleCreate = (e) => {
@@ -323,14 +334,14 @@ export default function AdminManagementAccount() {
               </tr>
             </thead>
             <tbody>
-              {filteredAccounts.length === 0 ? (
+              {pagedAccounts.length === 0 ? (
                 <tr>
                   <td colSpan="8" className="no-data-admin">
                     Không tìm thấy tài khoản nào
                   </td>
                 </tr>
               ) : (
-                filteredAccounts.map((account) => (
+                pagedAccounts.map((account) => (
                   <tr key={account.accountId}>
                     <td>{account.accountId}</td>
                     <td className="username-admin">{account.username}</td>
@@ -377,6 +388,14 @@ export default function AdminManagementAccount() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <Pagination
+          page={page}
+          total={total1}
+          pageSize={PAGE_SIZE}
+          onPageChange={setPage}
+        />
 
         {/* Edit/Create Modal */}
         {showEditModal && (
