@@ -75,7 +75,7 @@ const Login = () => {
       }
 
       if (response.ok) {
-        toast.success("Login Successfully", { autoClose: 1000 });
+        toast.success("Đăng nhập thành công", { autoClose: 1000 });
         const data = await response.json();
         tokenManager.setToken(data.token, 60);
 
@@ -94,12 +94,12 @@ const Login = () => {
         } else if (error?.title) {
           toast.error(error.title);
         } else {
-          toast.error("Login Failed");
+          toast.error("Đăng nhập lỗi, vui lòng thử lại");
         }
       }
     } catch (error) {
       setLoading(false);
-      toast.error("Network error occurred");
+      toast.error("Đăng nhập thất bại, vui lòng thử lại");
       console.error("Login error:", error);
     }
   };
@@ -131,7 +131,7 @@ const Login = () => {
       window.location.replace(googleAuthUrl);
     } catch (error) {
       console.error("Error starting Google login:", error);
-      toast.error("Failed to start Google login. Please try again.");
+      toast.error("Đăng nhập bằng Google thất bại, vui lòng thử lại");
       setLoading(false);
     }
   };
