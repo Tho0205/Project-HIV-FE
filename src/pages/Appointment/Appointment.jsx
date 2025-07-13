@@ -270,6 +270,7 @@ const Appointment = () => {
 
       // Reset form
       resetForm();
+      window.location.reload(); 
     } catch (error) {
       console.error("Error:", error);
       showError(error.message || "Không thể đặt lịch hẹn. Vui lòng thử lại!");
