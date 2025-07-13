@@ -100,30 +100,36 @@ const Header = () => {
   };
 
   return (
-    <header className="custom-header">
-      <div className="logo">
-        <Link to="/">
-          <img
-            src="/assets/image/Logo/LogoHIV.jpg"
-            width="90px"
-            height="70px"
-            alt="Logo"
-          />
-        </Link>
-      </div>
+    <>
+      <header className="custom-header">
+        <div className="logo">
+          <Link to="/">
+            <img
+              src="/assets/image/Logo/LogoHIV.jpg"
+              width={"90px"}
+              height={"70px"}
+            />
+          </Link>
+        </div>
 
-      <nav className="nav-links">
-        <Link to="/">Trang Chủ</Link>
-        <Link to="/appointment">Đặt Lịch Hẹn</Link>
-        <Link to="/blog">Blog</Link>
-        <Link to="/education">Tài Liệu giáo dục</Link>
-        {Userrole === "Doctor" && (
-          <Link to="/Doctor-Patient-Management">Làm Việc</Link>
-        )}
-      </nav>
+        <nav className="nav-links">
+          <Link to="/">Trang Chủ</Link>
+          {Userrole === "Patient" && (
+            <Link Link to="/appointment">
+              Đặt Lịch Hẹn
+            </Link>
+          )}
+          <Link to="/blog">Blog</Link>
+          <Link to="/education">Tài Liệu giáo dục</Link>
+          {Userrole === "Doctor" && (
+            <Link Link to="/Doctor-Patient-Management">
+              Làm Việc
+            </Link>
+          )}
+        </nav>
 
-      <div className="header-buttons">
-        <span className="lang-switch">🌐</span>
+        <div className="header-buttons">
+          <span className="lang-switch">🌐</span>
 
         {role && (
           <div className="notification-container">
@@ -171,52 +177,46 @@ const Header = () => {
             )}
           </div>
         )}
-
-        <button
-          className="btn-outline"
-          onClick={() => navigate("/appointment")}
-        >
-          Đặt Lịch Hẹn
-        </button>
-
-        {!role ? (
-          <button
-            className="btn-primary login"
-            onClick={() => {
-              setLoading(true);
-              navigate("/login");
-              setLoading(false);
-            }}
-          >
-            Đăng Nhập
-          </button>
-        ) : (
-          <>
-            <button className="btn-primary logout" onClick={Logout}>
-              Đăng Xuất
-            </button>
+          {!role ? (
             <button
-              className="avatar-btn profile"
+              className="btn-primary login"
               onClick={() => {
                 setLoading(true);
-                navigate("/Profile-Patient");
+                navigate("/login");
                 setLoading(false);
               }}
             >
-              <img
-                src={avatarUrl}
-                alt="Avatar"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "/assets/image/patient/patient.png";
-                }}
-              />
+              Đăng Nhập
             </button>
-          </>
-        )}
-      </div>
-    </header>
+          ) : (
+            <>
+              <button className="btn-primary logout" onClick={Logout}>
+                Đăng Xuất
+              </button>
+              <button
+                className="avatar-btn profile"
+                onClick={() => {
+                  setLoading(true);
+                  navigate("/Profile-Patient");
+                  setLoading(false);
+                }}
+              >
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/assets/image/patient/patient.png";
+                  }}
+                />
+              </button>
+            </>
+          )}
+        </div>
+      </header>
+    </>
   );
 };
+
 
 export default Header;

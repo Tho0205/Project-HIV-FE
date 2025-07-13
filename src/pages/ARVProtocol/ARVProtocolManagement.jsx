@@ -145,6 +145,7 @@ const ARVProtocolManagement = () => {
         description: "",
         details: [],
       });
+      window.location.reload();
     } catch (err) {
       toast.error("Lỗi khi tạo phác đồ: " + err.message);
     } finally {
@@ -409,7 +410,7 @@ const ARVProtocolManagement = () => {
                       </button>
                       <button
                         className="btn-switch-ARVProtocol"
-                        onClick={() => setModalType("switch")}
+                        onClick={() => setModalType("select-standard")}
                       >
                         Chuyển phác đồ
                       </button>
@@ -417,36 +418,6 @@ const ARVProtocolManagement = () => {
                   </div>
                 )}
 
-                {modalType === "switch" && (
-                  <div className="switch-protocol-ARVProtocol">
-                    <div className="switch-options-ARVProtocol">
-                      <h4>Chọn loại phác đồ:</h4>
-                      <div className="option-buttons-ARVProtocol">
-                        <button
-                          className="option-btn-ARVProtocol active"
-                          onClick={() => setModalType("create")}
-                        >
-                          Tạo phác đồ tùy chỉnh
-                        </button>
-                        <button
-                          className="option-btn-ARVProtocol"
-                          onClick={() => {
-                            setModalType("select-standard");
-                          }}
-                        >
-                          Chọn phác đồ chuẩn
-                        </button>
-                      </div>
-                    </div>
-
-                    <button
-                      className="btn-back-ARVProtocol"
-                      onClick={() => setModalType("view")}
-                    >
-                      Quay lại
-                    </button>
-                  </div>
-                )}
 
                 {modalType === "select-standard" && (
                   <div className="select-standard-protocol-ARVProtocol">
