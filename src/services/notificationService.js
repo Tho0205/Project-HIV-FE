@@ -21,33 +21,62 @@ export const notificationService = {
 
   markAsRead: async (notificationId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/mark-as-read/${notificationId}`, {
-        method: "POST",
+      const response = await fetch(`${backendBaseUrl}/api/Notification/${notificationId}/read`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json"
         },
         credentials: "include"
       });
-      return await response.json();
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`HTTP ${response.status}: ${errorText}`);
+        throw new Error(`Failed to mark notification as read`);
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await response.json();
+      } else {
+        return null;
+      }
     } catch (error) {
       console.error("Error marking notification as read:", error);
       throw error;
     }
   },
 
+
   markAllAsRead: async (userId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/mark-all-as-read/${userId}`, {
-        method: "POST",
+      const response = await fetch(`${backendBaseUrl}/api/Notification/user/${userId}/read-all`, {
+        method: "PUT", // hoặc POST nếu API backend cho phép
         headers: {
           "Content-Type": "application/json"
         },
         credentials: "include"
       });
-      return await response.json();
+
+      if (!response.ok) {
+        // Ghi log chi tiết lỗi nếu server trả về lỗi (ví dụ: 405, 404, v.v.)
+        const errorText = await response.text();
+        console.error(`Error ${response.status}: ${errorText}`);
+        throw new Error(`Failed to mark notifications as read: HTTP ${response.status}`);
+      }
+
+      // Tránh lỗi nếu response không có JSON (ví dụ: status 204 No Content)
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        return await response.json();
+      } else {
+        return null; // không có nội dung trả về
+      }
+
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       throw error;
     }
-  }
+  },
+
 };
