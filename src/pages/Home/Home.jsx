@@ -35,7 +35,7 @@ const Home = () => {
   const getVietnameseSpecialization = (specialization) => {
     const specializationMap = {
       "Infectious Diseases": "Chuyên khoa Nhiễm khuẩn",
-      "HIV/AIDS": "Chuyên khoa HIV/AIDS",
+      "HIV/AIDS Treatment": "Chuyên khoa HIV/AIDS",
       Psychology: "Tâm lý học Y khoa",
       Nutrition: "Dinh dưỡng HIV",
       "Internal Medicine": "Nội khoa",
