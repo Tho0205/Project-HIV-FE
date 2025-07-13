@@ -1,4 +1,4 @@
-Kế thừa các style chung từ file CSS chính .blog-management-page {
+.blog-management-page {
   display: flex;
   gap: 20px;
 }
@@ -79,7 +79,7 @@ Kế thừa các style chung từ file CSS chính .blog-management-page {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
-  padding: 15px;  
+  padding: 15px;
 }
 
 .blog-title {
@@ -266,10 +266,10 @@ button:disabled {
 
 .edit-btn {
   background: none;
-  border: none;
   color: #4caf50;
   cursor: pointer;
   font-weight: 500;
+  padding: 10px;
 }
 .edit-btn:hover {
   background: #c1f9c2;
@@ -293,7 +293,6 @@ button:disabled {
   font-size: 14px;
   margin: 0;
 }
-
 /* Responsive */
 @media (max-width: 768px) {
   .blog-tabs {

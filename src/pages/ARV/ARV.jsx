@@ -6,6 +6,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import "./ARV.css";
 import { tokenManager } from "../../services/account";
 import { toast } from "react-toastify";
+import { FaEdit } from "react-icons/fa";
 
 const PAGE_SIZE = 10;
 
@@ -194,7 +195,7 @@ export default function ARV() {
                         onClick={() => openEditModal(arv)}
                         title="Edit"
                       >
-                        ✏️
+                        <FaEdit />
                       </button>
                     </td>
                   </tr>

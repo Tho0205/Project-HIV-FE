@@ -1,4 +1,4 @@
-import { tokenManager, apiRequest }  from "./account";
+import { tokenManager, apiRequest } from "./account";
 
 const backendBaseUrl = "https://localhost:7243";
 
@@ -8,7 +8,7 @@ class ScheduleService {
   }
 
   // ============= UTILITY METHODS =============
-  
+
   /**
    * Get current user info from token
    */
@@ -30,7 +30,7 @@ class ScheduleService {
     return {
       doctorId: doctorId,
       scheduledTime: `${schedule.date}T${schedule.startTime}:00`,
-      room: schedule.room
+      room: schedule.room,
     };
   }
 
@@ -39,9 +39,9 @@ class ScheduleService {
    */
   convertFromApiFormat(apiSchedule) {
     const scheduledTime = new Date(apiSchedule.scheduledTime);
-    const date = scheduledTime.toISOString().split('T')[0];
+    const date = scheduledTime.toISOString().split("T")[0];
     const startTime = scheduledTime.toTimeString().substring(0, 5);
-    
+
     return {
       scheduleId: apiSchedule.scheduleId,
       date: date,
@@ -51,7 +51,7 @@ class ScheduleService {
       status: apiSchedule.status,
       hasAppointment: apiSchedule.hasAppointment,
       patientName: apiSchedule.patientName,
-      appointmentNote: apiSchedule.appointmentNote
+      appointmentNote: apiSchedule.appointmentNote,
     };
   }
 
@@ -63,51 +63,55 @@ class ScheduleService {
    * @param {number} doctorId - Doctor ID
    * @returns {Promise<Object>} API response
    */
- // Trong ScheduleService.js - method createSchedule
-async createSchedule(scheduleData, doctorId) {
-  try {
-    console.log('🚀 ScheduleService: Creating schedule', { scheduleData, doctorId });
-    
-    const apiData = this.convertToApiFormat(scheduleData, doctorId);
-    console.log('📤 API Format:', apiData);
-    
-    const response = await apiRequest(`${this.baseUrl}`, {
-      method: 'POST',
-      body: JSON.stringify(apiData)
-    });
-    
-    console.log('📡 HTTP Response:', {
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok
-    });
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ HTTP Error Response:', errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
+  // Trong ScheduleService.js - method createSchedule
+  async createSchedule(scheduleData, doctorId) {
+    try {
+      console.log("🚀 ScheduleService: Creating schedule", {
+        scheduleData,
+        doctorId,
+      });
+
+      const apiData = this.convertToApiFormat(scheduleData, doctorId);
+      console.log("📤 API Format:", apiData);
+
+      const response = await apiRequest(`${this.baseUrl}`, {
+        method: "POST",
+        body: JSON.stringify(apiData),
+      });
+
+      console.log("📡 HTTP Response:", {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ HTTP Error Response:", errorText);
+        throw new Error(
+          `HTTP ${response.status}: ${errorText || response.statusText}`
+        );
+      }
+
+      const result = await response.json();
+
+      // 🔍 CRITICAL: Log exact response structure
+      console.log("🔍 Parsed JSON Response:", {
+        fullResult: result,
+        isSuccess: result?.isSuccess,
+        hasData: !!result?.data,
+        dataScheduleId: result?.data?.scheduleId,
+        message: result?.message,
+        resultType: typeof result,
+        dataType: typeof result?.data,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("💥 ScheduleService createSchedule error:", error);
+      throw error;
     }
-    
-    const result = await response.json();
-    
-    // 🔍 CRITICAL: Log exact response structure
-    console.log('🔍 Parsed JSON Response:', {
-      fullResult: result,
-      isSuccess: result?.isSuccess,
-      hasData: !!result?.data,
-      dataScheduleId: result?.data?.scheduleId,
-      message: result?.message,
-      resultType: typeof result,
-      dataType: typeof result?.data
-    });
-    
-    return result;
-    
-  } catch (error) {
-    console.error('💥 ScheduleService createSchedule error:', error);
-    throw error;
   }
-}
 
   /**
    * Create multiple schedules
@@ -116,30 +120,29 @@ async createSchedule(scheduleData, doctorId) {
    * @returns {Promise<Array>} Array of API responses
    */
   // Trong ScheduleService.js, sửa method createMultipleSchedules
-async createMultipleSchedules(schedulesData, doctorId) {
-  try {
-    console.log('🚀 Creating multiple schedules one by one...');
-    
-    const results = [];
-    
-    // Tạo từng schedule một thay vì bulk
-    for (const scheduleData of schedulesData) {
-      try {
-        const result = await this.createSchedule(scheduleData, doctorId);
-        results.push(result);
-      } catch (error) {
-        results.push({ isSuccess: false, message: error.message });
+  async createMultipleSchedules(schedulesData, doctorId) {
+    try {
+      console.log("🚀 Creating multiple schedules one by one...");
+
+      const results = [];
+
+      // Tạo từng schedule một thay vì bulk
+      for (const scheduleData of schedulesData) {
+        try {
+          const result = await this.createSchedule(scheduleData, doctorId);
+          results.push(result);
+        } catch (error) {
+          results.push({ isSuccess: false, message: error.message });
+        }
       }
+
+      console.log("✅ Multiple schedules processed:", results);
+      return results;
+    } catch (error) {
+      console.error("💥 Error creating multiple schedules:", error);
+      throw error;
     }
-    
-    console.log('✅ Multiple schedules processed:', results);
-    return results;
-    
-  } catch (error) {
-    console.error('💥 Error creating multiple schedules:', error);
-    throw error;
   }
-}
 
   /**
    * Get doctor's schedules
@@ -150,41 +153,44 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async getDoctorSchedules(doctorId, fromDate = null, toDate = null) {
     try {
-      console.log('🚀 ScheduleService: Getting doctor schedules', { doctorId, fromDate, toDate });
-      
+      console.log("🚀 ScheduleService: Getting doctor schedules", {
+        doctorId,
+        fromDate,
+        toDate,
+      });
+
       let url = `${this.baseUrl}/doctor/${doctorId}`;
       const params = new URLSearchParams();
-      
-      if (fromDate) params.append('fromDate', fromDate);
-      if (toDate) params.append('toDate', toDate);
-      
+
+      if (fromDate) params.append("fromDate", fromDate);
+      if (toDate) params.append("toDate", toDate);
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-      
+
       const response = await apiRequest(url, {
-        method: 'GET'
+        method: "GET",
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Doctor schedules loaded:', result);
-      
+      console.log("✅ Doctor schedules loaded:", result);
+
       // Convert API format to local format
       if (result.isSuccess && result.data) {
-        const localSchedules = result.data.map(apiSchedule => 
+        const localSchedules = result.data.map((apiSchedule) =>
           this.convertFromApiFormat(apiSchedule)
         );
         return { ...result, data: localSchedules };
       }
-      
+
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService getDoctorSchedules error:', error);
+      console.error("💥 ScheduleService getDoctorSchedules error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -198,32 +204,34 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async getActiveSchedules(fromDate = null, toDate = null) {
     try {
-      console.log('🚀 ScheduleService: Getting active schedules', { fromDate, toDate });
-      
+      console.log("🚀 ScheduleService: Getting active schedules", {
+        fromDate,
+        toDate,
+      });
+
       let url = `${this.baseUrl}/active`;
       const params = new URLSearchParams();
-      
-      if (fromDate) params.append('fromDate', fromDate);
-      if (toDate) params.append('toDate', toDate);
-      
+
+      if (fromDate) params.append("fromDate", fromDate);
+      if (toDate) params.append("toDate", toDate);
+
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
-      
+
       const response = await apiRequest(url, {
-        method: 'GET'
+        method: "GET",
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Active schedules loaded:', result);
+      console.log("✅ Active schedules loaded:", result);
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService getActiveSchedules error:', error);
+      console.error("💥 ScheduleService getActiveSchedules error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -236,27 +244,26 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async getAvailableSchedules(date = null) {
     try {
-      console.log('🚀 ScheduleService: Getting available schedules', { date });
-      
+      console.log("🚀 ScheduleService: Getting available schedules", { date });
+
       let url = `${this.baseUrl}/available`;
       if (date) {
         url += `?date=${date}`;
       }
-      
+
       const response = await apiRequest(url, {
-        method: 'GET'
+        method: "GET",
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Available schedules loaded:', result);
+      console.log("✅ Available schedules loaded:", result);
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService getAvailableSchedules error:', error);
+      console.error("💥 ScheduleService getAvailableSchedules error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -269,22 +276,21 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async getScheduleById(scheduleId) {
     try {
-      console.log('🚀 ScheduleService: Getting schedule by ID', { scheduleId });
-      
+      console.log("🚀 ScheduleService: Getting schedule by ID", { scheduleId });
+
       const response = await apiRequest(`${this.baseUrl}/${scheduleId}`, {
-        method: 'GET'
+        method: "GET",
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Schedule loaded:', result);
+      console.log("✅ Schedule loaded:", result);
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService getScheduleById error:', error);
+      console.error("💥 ScheduleService getScheduleById error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -298,24 +304,26 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async updateSchedule(scheduleId, updateData) {
     try {
-      console.log('🚀 ScheduleService: Updating schedule', { scheduleId, updateData });
-      
-      const response = await apiRequest(`${this.baseUrl}/${scheduleId}`, {
-        method: 'PUT',
-        body: JSON.stringify(updateData)
+      console.log("🚀 ScheduleService: Updating schedule", {
+        scheduleId,
+        updateData,
       });
-      
+
+      const response = await apiRequest(`${this.baseUrl}/${scheduleId}`, {
+        method: "PUT",
+        body: JSON.stringify(updateData),
+      });
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Schedule updated:', result);
+      console.log("✅ Schedule updated:", result);
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService updateSchedule error:', error);
+      console.error("💥 ScheduleService updateSchedule error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -328,23 +336,22 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async deleteSchedule(scheduleId) {
     try {
-      console.log('🚀 ScheduleService: Deleting schedule', { scheduleId });
-      
+      console.log("🚀 ScheduleService: Deleting schedule", { scheduleId });
+
       const response = await apiRequest(`${this.baseUrl}/${scheduleId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP ${response.status}: ${errorText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Schedule deleted:', result);
+      console.log("✅ Schedule deleted:", result);
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService deleteSchedule error:', error);
+      console.error("💥 ScheduleService deleteSchedule error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -358,22 +365,27 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async getDoctorAvailableTimes(doctorId, date) {
     try {
-      console.log('🚀 ScheduleService: Getting doctor available times', { doctorId, date });
-      
-      const response = await apiRequest(`${this.baseUrl}/doctor/${doctorId}/available-times?date=${date}`, {
-        method: 'GET'
+      console.log("🚀 ScheduleService: Getting doctor available times", {
+        doctorId,
+        date,
       });
-      
+
+      const response = await apiRequest(
+        `${this.baseUrl}/doctor/${doctorId}/available-times?date=${date}`,
+        {
+          method: "GET",
+        }
+      );
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const result = await response.json();
-      console.log('✅ Doctor available times loaded:', result);
+      console.log("✅ Doctor available times loaded:", result);
       return result;
-      
     } catch (error) {
-      console.error('💥 ScheduleService getDoctorAvailableTimes error:', error);
+      console.error("💥 ScheduleService getDoctorAvailableTimes error:", error);
       this.handleApiError(error);
       throw error;
     }
@@ -387,24 +399,23 @@ async createMultipleSchedules(schedulesData, doctorId) {
    */
   async testConnection() {
     try {
-      console.log('🧪 ScheduleService: Testing connection');
-      
+      console.log("🧪 ScheduleService: Testing connection");
+
       const response = await apiRequest(`${this.baseUrl}/active`, {
-        method: 'GET'
+        method: "GET",
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        console.log('✅ Connection test successful:', data);
+        console.log("✅ Connection test successful:", data);
         return { success: true, data };
       } else {
         const errorText = await response.text();
-        console.log('⚠️ Connection test failed:', errorText);
+        console.log("⚠️ Connection test failed:", errorText);
         return { success: false, error: errorText };
       }
-      
     } catch (error) {
-      console.error('💥 Connection test error:', error);
+      console.error("💥 Connection test error:", error);
       return { success: false, error: error.message };
     }
   }
@@ -414,16 +425,16 @@ async createMultipleSchedules(schedulesData, doctorId) {
    * @param {Error} error - The error object
    */
   handleApiError(error) {
-    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      console.error('🌐 Network Error: Cannot connect to server');
-    } else if (error.message.includes('401')) {
-      console.error('🔐 Auth Error: Please login again');
-    } else if (error.message.includes('403')) {
-      console.error('🚫 Permission Error: Not authorized');
-    } else if (error.message.includes('500')) {
-      console.error('🛠️ Server Error: Internal server error');
+    if (error.name === "TypeError" && error.message.includes("fetch")) {
+      console.error("🌐 Network Error: Cannot connect to server");
+    } else if (error.message.includes("401")) {
+      console.error("🔐 Auth Error: Please login again");
+    } else if (error.message.includes("403")) {
+      console.error("🚫 Permission Error: Not authorized");
+    } else if (error.message.includes("500")) {
+      console.error("🛠️ Server Error: Internal server error");
     } else {
-      console.error('❌ Unknown Error:', error.message);
+      console.error("❌ Unknown Error:", error.message);
     }
   }
 
@@ -435,14 +446,14 @@ async createMultipleSchedules(schedulesData, doctorId) {
     const userInfo = this.getCurrentUser();
     const isAuth = this.isAuthenticated();
     const hasToken = !!tokenManager.getToken();
-    
+
     return {
       backendUrl: backendBaseUrl,
       baseUrl: this.baseUrl,
       isAuthenticated: isAuth,
       hasToken: hasToken,
       currentUser: userInfo,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 }

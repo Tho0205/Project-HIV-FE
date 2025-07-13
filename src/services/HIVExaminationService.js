@@ -1,12 +1,13 @@
+import { apiRequest } from "./account";
 const API_BASE = "https://localhost:7243";
 
 class HIVExaminationService {
   // Base API call method
   async apiCall(url, options = {}) {
     try {
-      const response = await fetch(`${API_BASE}${url}`, {
+      const response = await apiRequest(`${API_BASE}${url}`, {
         headers: { "Content-Type": "application/json" },
-        ...options
+        ...options,
       });
       const result = await response.json();
 
@@ -21,7 +22,9 @@ class HIVExaminationService {
 
   // Get patients with exam count
   async getPatientsWithExamCount(page = 1, pageSize = 100) {
-    return this.apiCall(`/api/HIVExamination/patients?page=${page}&pageSize=${pageSize}`);
+    return this.apiCall(
+      `/api/HIVExamination/patients?page=${page}&pageSize=${pageSize}`
+    );
   }
 
   // Get doctors
@@ -31,27 +34,31 @@ class HIVExaminationService {
 
   // Get patient history
   async getPatientHistory(patientId) {
-    return this.apiCall(`/api/HIVExamination/patient/${patientId}/examinations`);
+    return this.apiCall(
+      `/api/HIVExamination/patient/${patientId}/examinations`
+    );
   }
 
   // Save examination (create or update)
   async saveExamination(data) {
     return this.apiCall("/api/HIVExamination/save", {
       method: "POST",
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
   }
 
   // Delete examination
   async deleteExamination(examId) {
     return this.apiCall(`/api/HIVExamination/${examId}`, {
-      method: "DELETE"
+      method: "DELETE",
     });
   }
 
   // Helper method for avatar URL
   getAvatarUrl(avatarPath) {
-    return avatarPath ? `${API_BASE}/api/Account/avatar/${avatarPath}` : "/assets/image/patient/patient.png";
+    return avatarPath
+      ? `${API_BASE}/api/Account/avatar/${avatarPath}`
+      : "/assets/image/patient/patient.png";
   }
 }
 
