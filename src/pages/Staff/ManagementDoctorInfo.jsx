@@ -23,6 +23,8 @@ export default function ManagementDoctorInfo() {
   const [editMode, setEditMode] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [message, setMessage] = useState({ text: "", isError: false });
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [formData, setFormData] = useState({
     doctorId: "",
     degree: "",
@@ -169,13 +171,13 @@ export default function ManagementDoctorInfo() {
         showMessage("Thêm mới bác sĩ thành công!");
       }
 
-      const result = await doctorInfoService.updateDoctor(
-        selectedDoctor.doctorId,
-        updateData
-      );
+      // const result = await doctorInfoService.updateDoctor(
+      //   selectedDoctor.doctorId,
+      //   updateData
+      // );
 
-      console.log("Update result:", result);
-      showMessage("Cập nhật thông tin bác sĩ thành công!");
+      // console.log("Update result:", result);
+      // showMessage("Cập nhật thông tin bác sĩ thành công!");
 
       setShowModal(false);
       resetForm();
@@ -275,8 +277,9 @@ export default function ManagementDoctorInfo() {
             }`}
           >
             {message.isError ? "⚠️" : "✅"} {message.text}
-          </div>
-        )}
+            </div>
+          )}
+        </main>
 
         <div className="search-container">
           <input
@@ -565,7 +568,7 @@ export default function ManagementDoctorInfo() {
                         <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 <div className="form-section">
@@ -611,7 +614,7 @@ export default function ManagementDoctorInfo() {
                     <div className="form-group">
                       <label>Ảnh hiện tại:</label>
                       <img
-                        src={formData.doctorAvatar}
+                        src={doctorAvatar(formData.doctorAvatar)}
                         alt="Current Avatar"
                         style={{
                           width: "100px",
@@ -661,7 +664,6 @@ export default function ManagementDoctorInfo() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </div>
   );
 }
