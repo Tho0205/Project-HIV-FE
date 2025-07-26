@@ -6,6 +6,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import { apiRequest } from "../../services/account";
+import { FaEdit } from "react-icons/fa";
 
 const API_BASE = "https://localhost:7243";
 
@@ -175,7 +176,7 @@ export default function ManagerPatient() {
       <Sidebar active="patient" />
       {/* Main Content */}
       <main className="content-patient">
-        <div className="header">
+        {/* <div className="header">
           <input type="text" placeholder="Tìm Kiếm..." className="search" />
           <div className="user">
             <span className="notification">
@@ -187,9 +188,9 @@ export default function ManagerPatient() {
               alt="avatar"
             />
           </div>
-        </div>
+        </div> */}
 
-        <h1 className="title">Quản Lí Thông Tin Khách Hàng</h1>
+        <h1 className="title-manager-patient">Quản Lí Thông Tin Khách Hàng</h1>
 
         <div className="sort-bar">
           <label>Xắp Xếp:</label>
@@ -252,13 +253,17 @@ export default function ManagerPatient() {
                   <td className="address">{p.address}</td>
                   <td className="gender">{p.gender}</td>
                   <td className="created">{formatDate(p.created_at)}</td>
-                  <td className="status">{p.status}</td>
+                  <td
+                    className={`status-manager-patient ${p.status.toLowerCase()}`}
+                  >
+                    {p.status}
+                  </td>
                   <td className="actions">
                     <button
                       className="edit-btn"
                       onClick={() => openEditModal(p)}
                     >
-                      ✏️
+                      <FaEdit />
                     </button>
                   </td>
                 </tr>
@@ -372,7 +377,7 @@ export default function ManagerPatient() {
 
                 <label>Trạng Thái</label>
                 <select
-                  name="status"
+                  name="status-manager-patient"
                   value={editData.status}
                   onChange={(e) =>
                     setEditData({ ...editData, status: e.target.value })

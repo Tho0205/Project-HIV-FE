@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { FaRegEdit, FaTrashAlt, FaClipboardList, FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import HIVExamService from "../../services/HIVExaminationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -206,7 +207,7 @@ const HIVExaminationManagement = () => {
   const renderPatientTable = () => (
     <div className="table-container">
       <div className="table-header">
-        <h3>👥 Danh Sách Bệnh Nhân</h3>
+        <h3> Danh Sách Bệnh Nhân</h3>
         <div className="table-stats">
           <span>
             Tổng số: <strong>{patients.length}</strong> bệnh nhân
@@ -274,7 +275,7 @@ const HIVExaminationManagement = () => {
                     disabled={loading}
                     title="Xem lịch sử xét nghiệm"
                   >
-                    📋
+                    <FaClipboardList />
                   </button>
                 </td>
               </tr>
@@ -295,7 +296,7 @@ const HIVExaminationManagement = () => {
     showHistory &&
     selectedPatient && (
       <div className="modal-overlay">
-        <div className="history-modal">
+        <div className="history-modal-examination">
           <div className="modal-header">
             <div>
               <h3>🩺 Lịch Sử Xét Nghiệm - {selectedPatient.fullName}</h3>
@@ -360,7 +361,7 @@ const HIVExaminationManagement = () => {
                           onClick={() => openForm(exam)}
                           title="Chỉnh sửa kết quả"
                         >
-                          ✏️
+                          <FaRegEdit />
                         </button>
                         <button
                           className="btn-action"
@@ -370,7 +371,7 @@ const HIVExaminationManagement = () => {
                           }}
                           title="Xóa kết quả"
                         >
-                          🗑️
+                          <FaTrashAlt />
                         </button>
                       </td>
                     </tr>
@@ -384,7 +385,8 @@ const HIVExaminationManagement = () => {
                 onClick={() => openForm()}
                 disabled={loading}
               >
-                ➕ Thêm kết quả xét nghiệm mới
+                <FaPlus style={{ marginRight: 8 }} />
+                Thêm kết quả xét nghiệm mới
               </button>
             </div>
           </div>
@@ -587,7 +589,7 @@ const HIVExaminationManagement = () => {
     <div className="wrapper">
       <Sidebar active="result" />
       <main className="content">
-        <h1 className="title">Quản Lý Xét Nghiệm HIV</h1>
+        <h1 className="title-HIV-Examination">Quản Lý Xét Nghiệm HIV</h1>
 
         {message.text && (
           <div

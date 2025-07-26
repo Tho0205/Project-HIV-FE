@@ -296,7 +296,7 @@
   text-align: center;
 }
 
-.actions-admin {
+.actions-doctor {
   text-align: center;
 }
 
@@ -785,7 +785,7 @@
 }
 
 /* ===== Main Content Adjustments ===== */
-.main-content-admin {
+.main-content-doctor {
   width: 100%;
   max-width: 1400px;
   padding: 30px;
@@ -820,7 +820,7 @@
 }
 
 @media (max-width: 768px) {
-  .main-content-admin {
+  .main-content-doctor {
     padding: 20px;
   }
 

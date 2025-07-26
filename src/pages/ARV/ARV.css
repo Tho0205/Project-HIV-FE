@@ -28,7 +28,7 @@
 }
 
 .arvpage-title {
-  font-size: 30px;
+  font-size: 32px;
   font-weight: bold;
   color: #257df4;
   letter-spacing: 1px;
@@ -226,17 +226,21 @@
 
 .arvpage-action-btn {
   padding: 6px 14px;
-  border: none;
   border-radius: 6px;
   color: #fff;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+  border: 1px solid #ccc;
 }
 
 .arvpage-action-btn.edit {
-  background: #28a745;
+  background: none;
+  color: #4caf50;
+  cursor: pointer;
+  font-weight: 500;
+  padding: 10px;
 }
 
 .arvpage-action-btn.delete {
@@ -289,6 +293,28 @@
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #257df4;
+}
+
+/* Status Badge */
+.arvpage-status-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+  color: #fff;
+  font-size: 15px;
+  min-width: 70px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(40, 167, 69, 0.07);
+  vertical-align: middle;
+}
+
+.arvpage-status-active {
+  background: #28a745;
+}
+
+.arvpage-status-inactive {
+  background: #dc3545;
 }
 
 /* Responsive */
