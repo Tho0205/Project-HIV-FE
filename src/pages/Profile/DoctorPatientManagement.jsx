@@ -106,7 +106,7 @@ export default function DoctorPatientManagement() {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
-
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
 
@@ -161,18 +161,21 @@ export default function DoctorPatientManagement() {
     } finally {
       setLoading(false);
     }
-  }, [
-    doctorId,
-    page,
-    sort,
-    searchTerm,
-    viewMode,
-    scheduleDate,
-  ]);
+  }, [doctorId, page, sort, searchTerm, viewMode, scheduleDate]);
 
+  // Trong useEffect hiện tại, thêm interval reload với thời gian ngắn hơn
   useEffect(() => {
     loadPatients();
-  }, [loadPatients]);
+    if (!isFirstLoad && viewMode === "myPatients") {
+      // Giảm thời gian reload từ 30 giây xuống 10 giây để cập nhật nhanh hơn
+      const interval = setInterval(() => {
+        loadPatients();
+      }, 10000); // 10 giây
+
+      return () => clearInterval(interval);
+    }
+    setIsFirstLoad(false);
+  }, [loadPatients, viewMode, isFirstLoad]);
 
   // Filter patients
   const filteredPatients = useMemo(() => {
@@ -201,35 +204,35 @@ export default function DoctorPatientManagement() {
   const handleViewHistory = async (patient) => {
     setSelectedPatient(patient);
     try {
-      // Ở tab "Tất cả bệnh nhân", cho phép xem thông tin cơ bản
+      let result;
+
       if (viewMode === "allPatients") {
-        // Lấy thông tin lịch sử từ API (có thể giới hạn thông tin)
-        const result = await doctorPatientService.getPatientHistory(
-          patient.userId,
-          doctorId
+        // Gọi API view-only cho tab "Tất cả bệnh nhân"
+        result = await doctorPatientService.getPatientHistoryViewOnly(
+          patient.userId
         );
 
         if (result.success && result.data) {
-          setPatientHistory(result.data);
-          openModal("history");
-        } else {
-          // Nếu không có quyền đầy đủ, hiển thị thông tin cơ bản
           setPatientHistory({
-            appointments: [],
-            examinations: [],
-            limitedAccess: true
+            ...result.data,
+            viewOnly: true, // Đánh dấu là chế độ xem only
           });
           openModal("history");
+        } else {
+          toast.error("Không thể tải thông tin bệnh nhân");
         }
       } else {
         // Tab "Bệnh nhân của tôi" - quyền truy cập đầy đủ
-        const result = await doctorPatientService.getPatientHistory(
+        result = await doctorPatientService.getPatientHistory(
           patient.userId,
           doctorId
         );
 
         if (result.success && result.data) {
-          setPatientHistory(result.data);
+          setPatientHistory({
+            ...result.data,
+            viewOnly: false, // Có quyền chỉnh sửa
+          });
           openModal("history");
         } else {
           toast.error(result.message || "Không thể tải lịch sử bệnh nhân");
@@ -315,6 +318,7 @@ export default function DoctorPatientManagement() {
       SCHEDULED: "Đã lên lịch",
       PENDING: "Chờ khám",
       COMPLETED: "Hoàn thành",
+      CANCELLED: "Đã hủy",
     };
     return (
       <span className={`status-badge-admin status-${status.toLowerCase()}`}>
@@ -480,36 +484,39 @@ export default function DoctorPatientManagement() {
           <div className="modal-info-body-admin">
             {patientHistory ? (
               <>
-                {/* Thông báo giới hạn quyền nếu cần */}
-                {patientHistory.limitedAccess && viewMode === "allPatients" && (
-                  <div className="limited-access-notice">
-                    <p>⚠️ Bạn đang xem thông tin cơ bản của bệnh nhân này.</p>
-                  </div>
-                )}
-
                 {/* Patient Info */}
                 <div className="patient-info-section">
                   <h3>📋 Thông Tin Bệnh Nhân</h3>
                   <div className="patient-detail-grid">
                     <div className="info-item">
                       <span className="info-label">Họ tên:</span>
-                      <span className="info-value">{selectedPatient?.fullName || "Chưa có"}</span>
+                      <span className="info-value">
+                        {selectedPatient?.fullName || "Chưa có"}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Email:</span>
-                      <span className="info-value">{selectedPatient?.email}</span>
+                      <span className="info-value">
+                        {selectedPatient?.email}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">{selectedPatient?.phone || "Chưa có"}</span>
+                      <span className="info-value">
+                        {selectedPatient?.phone || "Chưa có"}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Ngày sinh:</span>
-                      <span className="info-value">{formatDate(selectedPatient?.birthdate)}</span>
+                      <span className="info-value">
+                        {formatDate(selectedPatient?.birthdate)}
+                      </span>
                     </div>
                     <div className="info-item">
                       <span className="info-label">Giới tính:</span>
-                      <span className="info-value">{selectedPatient?.gender || "Other"}</span>
+                      <span className="info-value">
+                        {selectedPatient?.gender || "Other"}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -536,10 +543,24 @@ export default function DoctorPatientManagement() {
                             </p>
                           )}
                           {appointment.note && (
-                            <p className="history-detail note">
+                            <p
+                              className={`history-detail note ${
+                                appointment.status === "CANCELLED"
+                                  ? "cancelled-note"
+                                  : ""
+                              }`}
+                            >
                               {appointment.note}
                             </p>
                           )}
+                          {/* Thêm cảnh báo nếu bị hủy do chuyển bác sĩ */}
+                          {appointment.status === "CANCELLED" &&
+                            appointment.note?.includes("bác sĩ mới") && (
+                              <div className="transfer-warning">
+                                ⚠️ Lịch hẹn này đã bị hủy tự động do bệnh
+                                nhânchuyển sang bác sĩ khác
+                              </div>
+                            )}
                         </div>
                       ))}
                     </div>
@@ -552,21 +573,24 @@ export default function DoctorPatientManagement() {
                 <div className="info-section-admin">
                   <div className="section-header-no-border">
                     <h3>🔬 Kết Quả Xét Nghiệm</h3>
-                    <button
-                      className="btn-add-small"
-                      onClick={() => openExamModal()}
-                    >
-                      + Thêm mới
-                    </button>
+                    {!patientHistory?.viewOnly && ( // Chỉ hiện nút khi không phải viewOnly
+                      <button
+                        className="btn-add-small"
+                        onClick={() => openExamModal()}
+                      >
+                        + Thêm mới
+                      </button>
+                    )}
                   </div>
-                    {patientHistory?.examinations?.length > 0 ? (
-                      <div className="exam-list">
-                        {patientHistory.examinations.map((exam) => (
-                          <div key={exam.examId} className="history-item">
-                            <div className="history-item-header">
-                              <span className="date">
-                                Ngày: {formatDate(exam.examDate)}
-                              </span>
+                  {patientHistory?.examinations?.length > 0 ? (
+                    <div className="exam-list">
+                      {patientHistory.examinations.map((exam) => (
+                        <div key={exam.examId} className="history-item">
+                          <div className="history-item-header">
+                            <span className="date">
+                              Ngày: {formatDate(exam.examDate)}
+                            </span>
+                            {!patientHistory?.viewOnly && ( // Chỉ hiện khi không phải viewOnly
                               <div className="exam-actions">
                                 <button
                                   onClick={() => openExamModal(exam)}
@@ -583,40 +607,43 @@ export default function DoctorPatientManagement() {
                                   🗑️
                                 </button>
                               </div>
-                            </div>
-                            <p className="result">{exam.result}</p>
-                            <div className="metrics">
-                              {exam.cd4Count && (
-                                <span className="metric">
-                                  CD4: {exam.cd4Count} cells/μL
-                                </span>
-                              )}
-                              {exam.hivLoad && (
-                                <span className="metric">
-                                  HIV Load: {exam.hivLoad} copies/ml
-                                </span>
-                              )}
-                            </div>
-                            <small className="timestamp">
-                              Tạo lúc: {formatDateTime(exam.createdAt)}
-                            </small>
+                            )}
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="no-data-section">
-                        <p className="no-data-admin">
-                          Chưa có kết quả xét nghiệm nào
-                        </p>
+                          <p className="result">{exam.result}</p>
+                          <div className="metrics">
+                            {exam.cd4Count && (
+                              <span className="metric">
+                                CD4: {exam.cd4Count} cells/μL
+                              </span>
+                            )}
+                            {exam.hivLoad && (
+                              <span className="metric">
+                                HIV Load: {exam.hivLoad} copies/ml
+                              </span>
+                            )}
+                          </div>
+                          <small className="timestamp">
+                            Tạo lúc: {formatDateTime(exam.createdAt)}
+                          </small>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-data-section">
+                      <p className="no-data-admin">
+                        Chưa có kết quả xét nghiệm nào
+                      </p>
+                      {!patientHistory?.viewOnly && ( // Chỉ hiện nút khi không phải viewOnly
                         <button
                           className="btn-add-small"
                           onClick={() => openExamModal()}
                         >
                           + Thêm kết quả đầu tiên
                         </button>
-                      </div>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <div className="loading-admin">Đang tải dữ liệu...</div>

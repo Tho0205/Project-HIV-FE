@@ -6,6 +6,7 @@ import "./ManagementDoctorInfo.css";
 export default function ManagementDoctorInfo() {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [message, setMessage] = useState({ text: "", isError: false });
@@ -55,7 +56,12 @@ export default function ManagementDoctorInfo() {
     const file = e.target.files[0];
     if (file) {
       // Validate file type
-      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+      ];
       if (!allowedTypes.includes(file.type)) {
         showMessage("Chỉ chấp nhận file ảnh (JPEG, PNG, GIF)", true);
         return;
@@ -80,11 +86,11 @@ export default function ManagementDoctorInfo() {
         selectedDoctor.doctorId,
         selectedFile
       );
-      
+
       // Update form data with new avatar URL
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        doctorAvatar: result.avatarUrl
+        doctorAvatar: result.avatarUrl,
       }));
 
       showMessage("Tải ảnh lên thành công!");
@@ -118,19 +124,19 @@ export default function ManagementDoctorInfo() {
         selectedDoctor.doctorId,
         updateData
       );
-      
+
       console.log("Update result:", result);
       showMessage("Cập nhật thông tin bác sĩ thành công!");
-      
+
       setShowModal(false);
       resetForm();
       fetchData();
     } catch (error) {
       console.error("Submit error:", error);
-      
+
       // Handle different types of errors
       let errorMessage = "Có lỗi xảy ra khi cập nhật";
-      
+
       if (error.message) {
         errorMessage = error.message;
       } else if (error.response?.data?.message) {
@@ -138,7 +144,7 @@ export default function ManagementDoctorInfo() {
       } else if (error.response?.status) {
         errorMessage = `Lỗi HTTP: ${error.response.status}`;
       }
-      
+
       showMessage(errorMessage, true);
     } finally {
       setLoading(false);
@@ -188,6 +194,16 @@ export default function ManagementDoctorInfo() {
     setSelectedFile(null);
   };
 
+  const filteredDoctors = doctors.filter(
+    (doctor) =>
+      (doctor.doctorName &&
+        doctor.doctorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (doctor.degree &&
+        doctor.degree.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (doctor.specialization &&
+        doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
     <div className="wrapper">
       <Sidebar active="doctor" />
@@ -204,6 +220,16 @@ export default function ManagementDoctorInfo() {
             {message.isError ? "⚠️" : "✅"} {message.text}
           </div>
         )}
+
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Tìm kiếm theo tên, bằng cấp hoặc chuyên khoa..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
 
         <div className="table-container">
           <div className="table-header">
@@ -231,14 +257,16 @@ export default function ManagementDoctorInfo() {
                     ⏳ Đang tải dữ liệu...
                   </td>
                 </tr>
-              ) : doctors.length === 0 ? (
+              ) : filteredDoctors.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="text-center">
-                    📝 Chưa có dữ liệu bác sĩ
+                    {searchTerm
+                      ? "🔍 Không tìm thấy bác sĩ phù hợp"
+                      : "📝 Chưa có dữ liệu bác sĩ"}
                   </td>
                 </tr>
               ) : (
-                doctors.map((doctor, index) => (
+                filteredDoctors.map((doctor, index) => (
                   <tr key={doctor.doctorId}>
                     <td className="text-center">{index + 1}</td>
                     <td className="text-center">{doctor.doctorId}</td>
@@ -268,7 +296,9 @@ export default function ManagementDoctorInfo() {
                       )}
                     </td>
                     <td>
-                      <span className={`status-doctor ${doctor.status.toLowerCase()}`}>
+                      <span
+                        className={`status-doctor ${doctor.status.toLowerCase()}`}
+                      >
                         {doctor.status === "ACTIVE" ? "Hoạt động" : "Ngừng"}
                       </span>
                     </td>
@@ -408,11 +438,17 @@ export default function ManagementDoctorInfo() {
                         accept="image/*"
                         onChange={handleFileChange}
                       />
-                      <small style={{ color: "#666", display: "block", marginTop: "5px" }}>
+                      <small
+                        style={{
+                          color: "#666",
+                          display: "block",
+                          marginTop: "5px",
+                        }}
+                      >
                         * Chỉ chấp nhận file ảnh (JPEG, PNG, GIF) - Tối đa 5MB
                       </small>
                     </div>
-                    
+
                     {selectedFile && (
                       <div className="form-group">
                         <label>File đã chọn: {selectedFile.name}</label>
@@ -423,7 +459,9 @@ export default function ManagementDoctorInfo() {
                           disabled={uploadingAvatar}
                           style={{ marginTop: "8px" }}
                         >
-                          {uploadingAvatar ? "⏳ Đang tải..." : "📤 Tải Ảnh Lên"}
+                          {uploadingAvatar
+                            ? "⏳ Đang tải..."
+                            : "📤 Tải Ảnh Lên"}
                         </button>
                       </div>
                     )}
@@ -440,7 +478,7 @@ export default function ManagementDoctorInfo() {
                           height: "100px",
                           objectFit: "cover",
                           borderRadius: "8px",
-                          border: "2px solid #e5e7eb"
+                          border: "2px solid #e5e7eb",
                         }}
                       />
                     </div>

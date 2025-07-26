@@ -809,11 +809,11 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
-  
+
   .patient-detail-info {
     grid-template-columns: 1fr;
   }
-  
+
   .modal-container-admin {
     width: 95%;
   }
@@ -847,23 +847,23 @@
   .view-mode-tabs {
     margin-bottom: 20px;
   }
-  
+
   .tab-btn {
     font-size: 14px;
     padding: 12px 20px;
   }
-  
+
   .filters-admin {
     flex-direction: column;
     align-items: stretch;
     gap: 12px;
     padding: 20px;
   }
-  
+
   .search-box-admin {
     min-width: auto;
   }
-  
+
   .date-filter-admin,
   .status-filter-admin {
     width: 100%;
@@ -890,7 +890,7 @@
   .accounts-table-admin td:nth-child(7) {
     display: none;
   }
-  
+
   .modal-container-admin {
     width: 100%;
     margin: 10px;
@@ -904,7 +904,7 @@
     white-space: nowrap;
     padding-bottom: 5px;
   }
-  
+
   .tab-btn {
     font-size: 13px;
     padding: 10px 16px;
@@ -932,8 +932,30 @@
   .accounts-table-admin td:nth-child(5) {
     display: none;
   }
-  
+
   .content-header-admin h1 {
     font-size: 24px;
+  }
+
+  .status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .cancelled-note {
+    color: #721c24;
+    font-style: italic;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .transfer-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 13px;
   }
 }

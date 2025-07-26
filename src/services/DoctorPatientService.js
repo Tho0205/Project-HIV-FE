@@ -118,6 +118,10 @@ class DoctorPatientService {
     );
   }
 
+  async getPatientHistoryViewOnly(patientId) {
+    return this.apiCall(`/api/Doctor/PatientHistoryViewOnly/${patientId}`);
+  }
+
   async getPatientDetail(patientId, doctorId) {
     return this.apiCall(
       `/api/Doctor/PatientDetail/${patientId}?doctorId=${doctorId}`
