@@ -844,6 +844,15 @@
     font-size: 26px;
   }
 
+  .view-mode-tabs {
+    margin-bottom: 20px;
+  }
+
+  .tab-btn {
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+
   .filters-admin {
     flex-direction: column;
     align-items: stretch;
@@ -890,6 +899,18 @@
 }
 
 @media (max-width: 480px) {
+  .view-mode-tabs {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 5px;
+  }
+
+  .tab-btn {
+    font-size: 13px;
+    padding: 10px 16px;
+    flex-shrink: 0;
+  }
+
   .filters-admin {
     padding: 16px;
   }
@@ -914,5 +935,27 @@
 
   .content-header-admin h1 {
     font-size: 24px;
+  }
+
+  .status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .cancelled-note {
+    color: #721c24;
+    font-style: italic;
+    font-size: 12px;
+    margin-top: 4px;
+  }
+
+  .transfer-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 8px;
+    font-size: 13px;
   }
 }

@@ -34,8 +34,15 @@ const HIVExaminationManagement = () => {
   });
 
   const [page, setPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredPatients = patients.filter(
+    (patient) =>
+      patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.phone && patient.phone.includes(searchTerm))
+  );
 
-  const pagedPatients = patients.slice(
+  const pagedPatients = filteredPatients.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
@@ -207,6 +214,18 @@ const HIVExaminationManagement = () => {
           </span>
         </div>
       </div>
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên, email hoặc SĐT..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setPage(1); // Reset về trang 1 khi search
+          }}
+          className="search-input"
+        />
+      </div>
       <table className="examination-table">
         <thead>
           <tr>
@@ -266,7 +285,7 @@ const HIVExaminationManagement = () => {
       </table>
       <Pagination
         page={page}
-        total={patients.length}
+        total={filteredPatients.length}
         pageSize={PAGE_SIZE}
         onPageChange={setPage}
       />
