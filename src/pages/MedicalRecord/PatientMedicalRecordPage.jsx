@@ -152,7 +152,9 @@ const PatientMedicalRecordPage = () => {
   });
 
   // Filter logic for protocols
-  const filteredProtocols = protocolHistory.filter((protocol) => {
+  const filteredProtocols = protocolHistory
+  .filter((protocol) => protocol.baseProtocolId != null) // chỉ lấy protocol có base
+  .filter((protocol) => {
     const matchesSearch =
       (protocol.name &&
         protocol.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -389,7 +391,7 @@ const PatientMedicalRecordPage = () => {
                 transition: "all 0.3s ease",
               }}
             >
-              💊 Lịch sử phác đồ ARV ({protocolHistory.length})
+              💊 Lịch sử phác đồ ARV ({protocolHistory.filter(p => p.baseProtocolId != null).length})
             </button>
           </div>
 
@@ -468,12 +470,12 @@ const PatientMedicalRecordPage = () => {
                 ) : (
                   <>
                     <option value="all">
-                      Tất cả ({protocolHistory.length})
+                     Tất cả ({protocolHistory.filter(p => p.baseProtocolId != null).length})
                     </option>
                     <option value="active">
                       Đang áp dụng (
                       {
-                        protocolHistory.filter((p) => p.status === "ACTIVE")
+                        protocolHistory.filter((p) => p.status === "ACTIVE" && p.baseProtocolId != null )
                           .length
                       }
                       )
@@ -481,7 +483,7 @@ const PatientMedicalRecordPage = () => {
                     <option value="inactive">
                       Không áp dụng (
                       {
-                        protocolHistory.filter((p) => p.status !== "ACTIVE")
+                        protocolHistory.filter((p) => p.status !== "ACTIVE" && p.baseProtocolId != null)
                           .length
                       }
                       )
