@@ -197,9 +197,9 @@ const Login = () => {
               />
               Ghi nhớ đăng nhập
             </label>
-            <Link to="/forgot-password" className="login-forgot">
+            {/* <Link to="/forgot-password" className="login-forgot">
               Quên mật khẩu?
-            </Link>
+            </Link> */}
           </div>
 
           <div className="login-divider">Đăng nhập bằng</div>
@@ -218,7 +218,7 @@ const Login = () => {
             <span>Đăng nhập bằng Google</span>
           </button>
 
-          <button
+          {/* <button
             type="button"
             className="login-social-btn login-facebook"
             disabled
@@ -229,7 +229,7 @@ const Login = () => {
               width="30"
             />
             <span>Đăng nhập bằng Facebook (Coming Soon)</span>
-          </button>
+          </button> */}
         </form>
       </div>
       <LoadingOverlay isLoading={loading} />
