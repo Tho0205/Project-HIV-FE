@@ -5,13 +5,16 @@ const backendBaseUrl = "https://localhost:7243";
 export const notificationService = {
   getNotifications: async (userId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/user/${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include"
-      });
+      const response = await fetch(
+        `${backendBaseUrl}/api/Notification/user/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
       return await response.json();
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -21,13 +24,16 @@ export const notificationService = {
 
   markAsRead: async (notificationId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/${notificationId}/read`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include"
-      });
+      const response = await fetch(
+        `${backendBaseUrl}/api/Notification/${notificationId}/read`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -47,7 +53,6 @@ export const notificationService = {
     }
   },
 
-
   markAllAsRead: async (userId) => {
     try {
       const response = await fetch(`${backendBaseUrl}/api/Notification/user/${userId}/read-all`, {
@@ -58,10 +63,13 @@ export const notificationService = {
         credentials: "include"
       });
 
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Error ${response.status}: ${errorText}`);
-        throw new Error(`Failed to mark notifications as read: HTTP ${response.status}`);
+        throw new Error(
+          `Failed to mark notifications as read: HTTP ${response.status}`
+        );
       }
 
       const contentType = response.headers.get("content-type");
@@ -70,11 +78,9 @@ export const notificationService = {
       } else {
         return null; 
       }
-
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       throw error;
     }
   },
-
 };

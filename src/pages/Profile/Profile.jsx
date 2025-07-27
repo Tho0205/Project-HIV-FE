@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { tokenManager, apiRequest } from "../../services/account";
 
 const backendBaseUrl = "https://localhost:7243";
-
+const today = new Date().toISOString().split("T")[0];
 export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [showEdit, setShowEdit] = useState(false);
@@ -338,6 +338,8 @@ export default function Profile() {
                 <input
                   type="date"
                   value={editForm.dob}
+                  max={today}
+                  min="1900-01-01"
                   onChange={(e) =>
                     setEditForm({ ...editForm, dob: e.target.value })
                   }
