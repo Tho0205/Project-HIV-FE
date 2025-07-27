@@ -1,6 +1,6 @@
 import { apiRequest } from "./account";
 
-const backendBaseUrl = "https://localhost:7243"; // Hoặc dùng biến môi trường nếu có
+const backendBaseUrl = "https://localhost:7243"; 
 
 export const notificationService = {
   getNotifications: async (userId) => {
@@ -55,19 +55,16 @@ export const notificationService = {
 
   markAllAsRead: async (userId) => {
     try {
-      const response = await fetch(
-        `${backendBaseUrl}/api/Notification/user/${userId}/read-all`,
-        {
-          method: "PUT", // hoặc POST nếu API backend cho phép
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-        }
-      );
+      const response = await fetch(`${backendBaseUrl}/api/Notification/user/${userId}/read-all`, {
+        method: "PUT", 
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include"
+      });
+
 
       if (!response.ok) {
-        // Ghi log chi tiết lỗi nếu server trả về lỗi (ví dụ: 405, 404, v.v.)
         const errorText = await response.text();
         console.error(`Error ${response.status}: ${errorText}`);
         throw new Error(
@@ -75,12 +72,11 @@ export const notificationService = {
         );
       }
 
-      // Tránh lỗi nếu response không có JSON (ví dụ: status 204 No Content)
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         return await response.json();
       } else {
-        return null; // không có nội dung trả về
+        return null; 
       }
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
