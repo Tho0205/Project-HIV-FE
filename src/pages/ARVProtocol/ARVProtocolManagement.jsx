@@ -512,7 +512,7 @@ const ARVProtocolManagement = () => {
 
                     <button
                       className="btn-back-ARVProtocol"
-                      onClick={() => setModalType("switch")}
+                      onClick={() => setModalType("view")}
                     >
                       Quay lại
                     </button>
@@ -645,7 +645,7 @@ const ARVProtocolManagement = () => {
                           if (selectedStandardProtocol) {
                             setModalType("select-standard");
                           } else {
-                            setModalType("switch");
+                            setModalType("view");
                           }
                         }}
                       >

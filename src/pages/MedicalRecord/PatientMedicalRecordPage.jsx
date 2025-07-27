@@ -255,26 +255,6 @@ const PatientMedicalRecordPage = () => {
       <section className="profile">
         <h2>Hồ sơ y tế của bạn</h2>
 
-        {/* Patient Info Header */}
-        {patientInfo && (
-          <div className="card profile-header">
-            <div className="profile-photo">
-              <img src="/assets/image/patient/patient.png" alt="Avatar" />
-            </div>
-            <div className="profile-info">
-              <strong>{patientInfo.fullName || "Chưa cập nhật"}</strong>
-              <p>#{patientInfo.userId}</p>
-              <p>
-                {patientInfo.gender === "Male"
-                  ? "Nam"
-                  : patientInfo.gender === "Female"
-                  ? "Nữ"
-                  : ""}
-              </p>
-            </div>
-          </div>
-        )}
-
         <div className="card">
           {/* Tab Navigation */}
           <div
