@@ -127,10 +127,8 @@ const Login = () => {
       const returnUrl = encodeURIComponent(currentUrl);
       const googleAuthUrl = `${backendBaseUrl}/api/Account/login/google?returnUrl=${returnUrl}`;
 
-      console.log("Starting Google OAuth...", googleAuthUrl);
       window.location.replace(googleAuthUrl);
     } catch (error) {
-      console.error("Error starting Google login:", error);
       toast.error("Đăng nhập bằng Google thất bại, vui lòng thử lại");
       setLoading(false);
     }

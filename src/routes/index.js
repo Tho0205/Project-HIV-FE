@@ -24,6 +24,9 @@ import DoctorMedicalRecordPage from "../pages/MedicalRecord/DoctorMedicalRecordP
 import PatientMedicalRecordPage from "../pages/MedicalRecord/PatientMedicalRecordPage";
 import Dashboard from "../pages/Staff/DashBoard";
 import DoctorAppointmentHistory from "../pages/Appointment/DoctorAppointmentHistory";
+import ResetPassword from "../pages/Login/ResetPassword";
+import ForgotPassword from "../pages/Login/ForgotPassword";
+
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
@@ -45,10 +48,15 @@ export const routes = [
   { path: "/Staff-DoctorInfo", element: <ManagementDoctorInfo /> },
   { path: "/Staff-DoctorSchedule", element: <StaffDoctorSchedule /> },
   { path: "/Appointment-Management", element: <AppointmentManagement /> }, // New route
-  { path: "/Doctor-MedicalRecord", element: <DoctorMedicalRecordPage/>},
-  { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage/>},
+  { path: "/Doctor-MedicalRecord", element: <DoctorMedicalRecordPage /> },
+  { path: "/Patient-MedicalRecord", element: <PatientMedicalRecordPage /> },
   { path: "/Protocol-management", element: <ARVProtocolManagement /> },
-  { path: "/Appointment-History", element: <AppointmentHistory />},
-  { path: "/DashBoard", element: <Dashboard />},
-  {path: "/Doctor-Appointment-History", element: <DoctorAppointmentHistory /> }
+  { path: "/Appointment-History", element: <AppointmentHistory /> },
+  { path: "/DashBoard", element: <Dashboard /> },
+  {
+    path: "/Doctor-Appointment-History",
+    element: <DoctorAppointmentHistory />,
+  },
+  { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/reset-password", element: <ResetPassword /> },
 ];
