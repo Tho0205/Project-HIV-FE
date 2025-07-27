@@ -679,7 +679,9 @@ const ARVProtocolManagement = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {protocolHistory.map((protocol) => (
+                       {protocolHistory
+                      .filter((protocol) => protocol.baseProtocolId !== null)
+                      .map((protocol) => (
                           <tr key={protocol.customProtocolId}>
                             <td>{formatDate(protocol.createdDate)}</td>
                             <td>{protocol.name}</td>
