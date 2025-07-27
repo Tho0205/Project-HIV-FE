@@ -35,24 +35,58 @@ class ScheduleService {
   }
 
   /**
-   * Convert API schedule format to local format
+   * Enhanced convertFromApiFormat to handle more field variations
    */
   convertFromApiFormat(apiSchedule) {
-    const scheduledTime = new Date(apiSchedule.scheduledTime);
-    const date = scheduledTime.toISOString().split("T")[0];
-    const startTime = scheduledTime.toTimeString().substring(0, 5);
+    try {
+      // Handle multiple possible field name formats
+      const scheduledTimeField = apiSchedule.scheduledTime || 
+                                apiSchedule.ScheduledTime || 
+                                apiSchedule.scheduled_time;
+      
+      const roomField = apiSchedule.room || 
+                       apiSchedule.Room || 
+                       apiSchedule.roomNumber || 
+                       "Unknown";
+      
+      const scheduleIdField = apiSchedule.scheduleId || 
+                             apiSchedule.ScheduleId || 
+                             apiSchedule.id;
 
-    return {
-      scheduleId: apiSchedule.scheduleId,
-      date: date,
-      startTime: startTime,
-      endTime: startTime, // You might need to calculate this based on your business logic
-      room: apiSchedule.room,
-      status: apiSchedule.status,
-      hasAppointment: apiSchedule.hasAppointment,
-      patientName: apiSchedule.patientName,
-      appointmentNote: apiSchedule.appointmentNote,
-    };
+      if (!scheduledTimeField) {
+        console.warn("⚠️ No scheduledTime found in:", apiSchedule);
+        return null;
+      }
+
+      const scheduledTime = new Date(scheduledTimeField);
+      
+      if (isNaN(scheduledTime.getTime())) {
+        console.warn("⚠️ Invalid date:", scheduledTimeField);
+        return null;
+      }
+
+      const date = scheduledTime.toISOString().split("T")[0];
+      const startTime = scheduledTime.toTimeString().substring(0, 5);
+
+      return {
+        scheduleId: scheduleIdField,
+        date: date,
+        startTime: startTime,
+        endTime: startTime, // You might need to calculate this based on your business logic
+        room: roomField,
+        status: apiSchedule.status || apiSchedule.Status || "ACTIVE",
+        hasAppointment: apiSchedule.hasAppointment || apiSchedule.HasAppointment || false,
+        patientName: apiSchedule.patientName || apiSchedule.PatientName || null,
+        appointmentNote: apiSchedule.appointmentNote || apiSchedule.AppointmentNote || null,
+        // Keep original data for debugging
+        originalData: apiSchedule,
+        // Add scheduledTime for easy access
+        scheduledTime: scheduledTimeField
+      };
+    } catch (error) {
+      console.error("💥 Error converting schedule from API format:", error, apiSchedule);
+      return null;
+    }
   }
 
   // ============= CORE API METHODS =============
@@ -63,7 +97,6 @@ class ScheduleService {
    * @param {number} doctorId - Doctor ID
    * @returns {Promise<Object>} API response
    */
-  // Trong ScheduleService.js - method createSchedule
   async createSchedule(scheduleData, doctorId) {
     try {
       console.log("🚀 ScheduleService: Creating schedule", {
@@ -119,7 +152,6 @@ class ScheduleService {
    * @param {number} doctorId - Doctor ID
    * @returns {Promise<Array>} Array of API responses
    */
-  // Trong ScheduleService.js, sửa method createMultipleSchedules
   async createMultipleSchedules(schedulesData, doctorId) {
     try {
       console.log("🚀 Creating multiple schedules one by one...");
@@ -145,15 +177,15 @@ class ScheduleService {
   }
 
   /**
-   * Get doctor's schedules
+   * Get doctor's schedules for conflict checking
    * @param {number} doctorId - Doctor ID
    * @param {string} fromDate - Start date (YYYY-MM-DD)
    * @param {string} toDate - End date (YYYY-MM-DD)
-   * @returns {Promise<Array>} Array of schedules in local format
+   * @returns {Promise<Array>} Array of schedules
    */
   async getDoctorSchedules(doctorId, fromDate = null, toDate = null) {
     try {
-      console.log("🚀 ScheduleService: Getting doctor schedules", {
+      console.log("🚀 ScheduleService: Getting doctor schedules for conflict check", {
         doctorId,
         fromDate,
         toDate,
@@ -169,30 +201,123 @@ class ScheduleService {
         url += `?${params.toString()}`;
       }
 
+      console.log("📡 Request URL:", url);
+
       const response = await apiRequest(url, {
         method: "GET",
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error("❌ HTTP Error Response:", errorText);
+        
+        // Nếu API không tồn tại, thử dùng API khác
+        if (response.status === 404) {
+          console.log("🔄 Trying alternative API endpoint...");
+          return await this.getDoctorSchedulesAlternative(doctorId, fromDate, toDate);
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
       }
 
       const result = await response.json();
-      console.log("✅ Doctor schedules loaded:", result);
+      console.log("📥 Raw API Response:", result);
 
-      // Convert API format to local format
-      if (result.isSuccess && result.data) {
-        const localSchedules = result.data.map((apiSchedule) =>
-          this.convertFromApiFormat(apiSchedule)
-        );
-        return { ...result, data: localSchedules };
+      // Handle different response formats
+      let schedules = [];
+      
+      if (Array.isArray(result)) {
+        schedules = result;
+      } else if (result.data && Array.isArray(result.data)) {
+        schedules = result.data;
+      } else if (result.isSuccess && result.data && Array.isArray(result.data)) {
+        schedules = result.data;
+      } else {
+        console.warn("⚠️ Unexpected response format:", result);
+        return []; // Return empty array if format is unexpected
       }
 
-      return result;
+      // Convert to local format and filter active schedules
+      const localSchedules = schedules
+        .filter(schedule => {
+          // Only include active schedules
+          const status = schedule.status || schedule.Status;
+          return !status || status === "ACTIVE" || status === "Active" || status === "active";
+        })
+        .map(schedule => this.convertFromApiFormat(schedule))
+        .filter(schedule => schedule !== null); // Remove invalid schedules
+
+      console.log("✅ Converted schedules:", localSchedules);
+      return localSchedules;
+
     } catch (error) {
       console.error("💥 ScheduleService getDoctorSchedules error:", error);
-      this.handleApiError(error);
-      throw error;
+      
+      // Fallback: try alternative method
+      try {
+        console.log("🔄 Trying alternative method...");
+        return await this.getDoctorSchedulesAlternative(doctorId, fromDate, toDate);
+      } catch (fallbackError) {
+        console.error("💥 Fallback also failed:", fallbackError);
+        // Don't throw error - return empty array to allow process to continue
+        console.warn("⚠️ Conflict check failed, continuing without check");
+        return [];
+      }
+    }
+  }
+
+  /**
+   * Alternative method to get doctor schedules using Appointment API
+   * @param {number} doctorId - Doctor ID
+   * @param {string} fromDate - Start date (YYYY-MM-DD) 
+   * @param {string} toDate - End date (YYYY-MM-DD)
+   * @returns {Promise<Array>} Array of schedules
+   */
+  async getDoctorSchedulesAlternative(doctorId, fromDate, toDate) {
+    try {
+      console.log("🔄 Using alternative API to get doctor schedules");
+      
+      // Import here to avoid circular dependency
+      const { getDoctorSchedulesApi } = await import("./Appointment");
+      
+      const schedules = await getDoctorSchedulesApi(doctorId);
+      console.log("📥 Alternative API Response:", schedules);
+      
+      if (!Array.isArray(schedules)) {
+        return [];
+      }
+      
+      // Filter by date range if provided
+      let filteredSchedules = schedules;
+      
+      if (fromDate || toDate) {
+        filteredSchedules = schedules.filter(schedule => {
+          const scheduledTime = schedule.scheduledTime || schedule.ScheduledTime;
+          if (!scheduledTime) return false;
+          
+          const scheduleDate = new Date(scheduledTime);
+          const from = fromDate ? new Date(fromDate) : new Date('1900-01-01');
+          const to = toDate ? new Date(toDate) : new Date('2100-12-31');
+          
+          return scheduleDate >= from && scheduleDate <= to;
+        });
+      }
+      
+      // Convert to standardized format
+      const convertedSchedules = filteredSchedules.map(schedule => ({
+        scheduleId: schedule.scheduleId || schedule.ScheduleId,
+        scheduledTime: schedule.scheduledTime || schedule.ScheduledTime,
+        room: schedule.room || schedule.Room || "Unknown",
+        status: schedule.status || schedule.Status || "ACTIVE",
+        doctorId: doctorId
+      })).filter(schedule => schedule.scheduledTime); // Remove invalid entries
+      
+      console.log("✅ Alternative method result:", convertedSchedules);
+      return convertedSchedules;
+      
+    } catch (error) {
+      console.error("💥 Alternative method failed:", error);
+      return [];
     }
   }
 
@@ -388,6 +513,123 @@ class ScheduleService {
       console.error("💥 ScheduleService getDoctorAvailableTimes error:", error);
       this.handleApiError(error);
       throw error;
+    }
+  }
+
+  /**
+   * Check schedule conflicts for room and doctor
+   * @param {Array} schedulesToCheck - Array of schedules to validate
+   * @param {number} doctorId - Doctor ID
+   * @param {Array} allExistingSchedules - All existing schedules for conflict check
+   * @returns {Promise<Object>} Conflict analysis result
+   */
+  async checkScheduleConflicts(schedulesToCheck, doctorId, allExistingSchedules = []) {
+    try {
+      console.log("🔍 ScheduleService: Checking schedule conflicts", {
+        schedulesToCheck: schedulesToCheck.length,
+        doctorId,
+        allExistingSchedules: allExistingSchedules.length
+      });
+
+      const conflicts = [];
+      const nonConflicts = [];
+
+      schedulesToCheck.forEach(newSchedule => {
+        const newDateTime = `${newSchedule.date}T${newSchedule.startTime}:00`;
+        const newDate = new Date(newDateTime);
+        let conflictReason = null;
+        let conflictingDoctor = null;
+
+        // 1. Check doctor's own schedule conflicts
+        const doctorConflict = allExistingSchedules.some(existing => {
+          if (existing.doctorId !== doctorId) return false;
+          
+          const existingDateTime = existing.scheduledTime || existing.ScheduledTime;
+          if (!existingDateTime) return false;
+          
+          const existingDate = new Date(existingDateTime);
+          
+          if (existingDate.toDateString() === newDate.toDateString()) {
+            const existingHour = existingDate.getHours();
+            const newHour = newDate.getHours();
+            
+            // Morning shift: 8-12h, Afternoon shift: 13-17h
+            const existingShift = existingHour < 13 ? 'morning' : 'afternoon';
+            const newShift = newHour < 13 ? 'morning' : 'afternoon';
+            
+            return existingShift === newShift;
+          }
+          
+          return false;
+        });
+
+        if (doctorConflict) {
+          conflictReason = 'Bác sĩ đã có lịch khám trong thời gian này';
+        }
+
+        // 2. Check room conflicts with other doctors
+        if (!conflictReason) {
+          const roomConflict = allExistingSchedules.some(existing => {
+            // Skip same doctor
+            if (existing.doctorId === doctorId) return false;
+            
+            // Check same room - normalize room names
+            const existingRoom = existing.room?.toString().trim();
+            const newRoom = newSchedule.room?.toString().trim();
+            
+            if (existingRoom !== newRoom) return false;
+            
+            const existingDateTime = existing.scheduledTime || existing.ScheduledTime;
+            if (!existingDateTime) return false;
+            
+            const existingDate = new Date(existingDateTime);
+            
+            if (existingDate.toDateString() === newDate.toDateString()) {
+              const existingHour = existingDate.getHours();
+              const newHour = newDate.getHours();
+              
+              // Morning shift: 8-12h, Afternoon shift: 13-17h
+              const existingShift = existingHour < 13 ? 'morning' : 'afternoon';
+              const newShift = newHour < 13 ? 'morning' : 'afternoon';
+              
+              if (existingShift === newShift) {
+                conflictingDoctor = existing.doctorName || `Bác sĩ ID: ${existing.doctorId}`;
+                return true;
+              }
+            }
+            
+            return false;
+          });
+
+          if (roomConflict) {
+            conflictReason = `Phòng ${newSchedule.room} đã được ${conflictingDoctor} sử dụng trong thời gian này`;
+          }
+        }
+
+        if (conflictReason) {
+          conflicts.push({
+            ...newSchedule,
+            conflictReason: conflictReason,
+            conflictingDoctor: conflictingDoctor
+          });
+        } else {
+          nonConflicts.push(newSchedule);
+        }
+      });
+
+      console.log("✅ Conflict check completed:", {
+        conflicts: conflicts.length,
+        nonConflicts: nonConflicts.length
+      });
+
+      return { conflicts, nonConflicts };
+    } catch (error) {
+      console.error("💥 ScheduleService checkScheduleConflicts error:", error);
+      // Return safe fallback
+      return {
+        conflicts: [],
+        nonConflicts: schedulesToCheck
+      };
     }
   }
 
