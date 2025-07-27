@@ -129,7 +129,6 @@ const Header = () => {
         </nav>
 
         <div className="header-buttons">
-          <span className="lang-switch">🌐</span>
 
         {role && (
           <div className="notification-container">
