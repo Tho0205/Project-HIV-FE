@@ -47,7 +47,7 @@ const Header = () => {
       const data = await notificationService.getNotifications(userId);
       setNotifications(data);
 
-      const unread = data.filter(n => !n.isRead).length;
+      const unread = data.filter((n) => !n.isRead).length;
       setUnreadCount(unread);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -57,10 +57,12 @@ const Header = () => {
   const handleMarkAsRead = async (notificationId) => {
     try {
       await notificationService.markAsRead(notificationId);
-      setNotifications(notifications.map(n =>
-        n.notificationId === notificationId ? { ...n, isRead: true } : n
-      ));
-      setUnreadCount(prev => prev - 1);
+      setNotifications(
+        notifications.map((n) =>
+          n.notificationId === notificationId ? { ...n, isRead: true } : n
+        )
+      );
+      setUnreadCount((prev) => prev - 1);
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -72,7 +74,7 @@ const Header = () => {
       if (!userId) return;
 
       await notificationService.markAllAsRead(userId);
-      setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+      setNotifications(notifications.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
@@ -131,52 +133,60 @@ const Header = () => {
         <div className="header-buttons">
           <span className="lang-switch">🌐</span>
 
-        {role && (
-          <div className="notification-container">
-            <button
-              className="notification-btn"
-              onClick={() => setShowNotifications(!showNotifications)}
-            >
-              🔔
-              {unreadCount > 0 && (
-                <span className="notification-badge">{unreadCount}</span>
-              )}
-            </button>
+          {role && (
+            <div className="notification-container">
+              <button
+                className="notification-btn"
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                🔔
+                {unreadCount > 0 && (
+                  <span className="notification-badge">{unreadCount}</span>
+                )}
+              </button>
 
-            {showNotifications && (
-              <div className="notification-dropdown">
-                <div className="notification-header">
-                  <h4>Thông báo</h4>
-                  {unreadCount > 0 && (
-                    <button
-                      className="mark-all-read"
-                      onClick={handleMarkAllAsRead}
-                    >
-                      Đánh dấu tất cả đã đọc
-                    </button>
-                  )}
-                </div>
-
-                <div className="notification-list">
-                  {notifications.length === 0 ? (
-                    <div className="no-notifications">Không có thông báo</div>
-                  ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.notificationId}
-                        className={`notification-item ${!notification.isRead ? "unread" : ""}`}
-                        onClick={() => handleMarkAsRead(notification.notificationId)}
+              {showNotifications && (
+                <div className="notification-dropdown">
+                  <div className="notification-header">
+                    <h4>Thông báo</h4>
+                    {unreadCount > 0 && (
+                      <button
+                        className="mark-all-read"
+                        onClick={handleMarkAllAsRead}
                       >
-                        <div className="notification-message">{notification.message}</div>
-                        <div className="notification-time">{notification.timeAgo}</div>
-                      </div>
-                    ))
-                  )}
+                        Đánh dấu tất cả đã đọc
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="notification-list">
+                    {notifications.length === 0 ? (
+                      <div className="no-notifications">Không có thông báo</div>
+                    ) : (
+                      notifications.map((notification) => (
+                        <div
+                          key={notification.notificationId}
+                          className={`notification-item ${
+                            !notification.isRead ? "unread" : ""
+                          }`}
+                          onClick={() =>
+                            handleMarkAsRead(notification.notificationId)
+                          }
+                        >
+                          <div className="notification-message">
+                            {notification.message}
+                          </div>
+                          <div className="notification-time">
+                            {notification.timeAgo}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
           {!role ? (
             <button
               className="btn-primary login"
@@ -217,6 +227,5 @@ const Header = () => {
     </>
   );
 };
-
 
 export default Header;

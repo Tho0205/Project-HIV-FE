@@ -5,13 +5,16 @@ const backendBaseUrl = "https://localhost:7243"; // Hoặc dùng biến môi tr�
 export const notificationService = {
   getNotifications: async (userId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/user/${userId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include"
-      });
+      const response = await fetch(
+        `${backendBaseUrl}/api/Notification/user/${userId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
       return await response.json();
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -21,13 +24,16 @@ export const notificationService = {
 
   markAsRead: async (notificationId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/${notificationId}/read`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include"
-      });
+      const response = await fetch(
+        `${backendBaseUrl}/api/Notification/${notificationId}/read`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -47,22 +53,26 @@ export const notificationService = {
     }
   },
 
-
   markAllAsRead: async (userId) => {
     try {
-      const response = await fetch(`${backendBaseUrl}/api/Notification/user/${userId}/read-all`, {
-        method: "PUT", // hoặc POST nếu API backend cho phép
-        headers: {
-          "Content-Type": "application/json"
-        },
-        credentials: "include"
-      });
+      const response = await fetch(
+        `${backendBaseUrl}/api/Notification/user/${userId}/read-all`,
+        {
+          method: "PUT", // hoặc POST nếu API backend cho phép
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
+      );
 
       if (!response.ok) {
         // Ghi log chi tiết lỗi nếu server trả về lỗi (ví dụ: 405, 404, v.v.)
         const errorText = await response.text();
         console.error(`Error ${response.status}: ${errorText}`);
-        throw new Error(`Failed to mark notifications as read: HTTP ${response.status}`);
+        throw new Error(
+          `Failed to mark notifications as read: HTTP ${response.status}`
+        );
       }
 
       // Tránh lỗi nếu response không có JSON (ví dụ: status 204 No Content)
@@ -72,11 +82,9 @@ export const notificationService = {
       } else {
         return null; // không có nội dung trả về
       }
-
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
       throw error;
     }
   },
-
 };
