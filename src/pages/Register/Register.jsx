@@ -209,13 +209,13 @@ const RegisterForm = () => {
             <span>Đăng ký bằng Google</span>
           </button>
 
-          <button
+          {/* <button
             type="button"
             className="register-social-btn register-facebook"
           >
             <img src="https://www.facebook.com/favicon.ico" alt="Facebook" />
             <span>Đăng ký bằng Facebook</span>
-          </button>
+          </button> */}
         </form>
       </div>
     </div>
