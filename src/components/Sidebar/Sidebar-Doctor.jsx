@@ -40,11 +40,6 @@ export default function SidebarAdmin({ active }) {
               <span>Quản Lý Phác đồ</span>
             </li>
           </Link>
-          <Link to="/Doctor-MedicalRecord" style={{ textDecoration: "none" }}>
-            <li className={active === "Doctor-MedicalRecord" ? "active" : ""}>
-              <span>Hồ sơ bệnh án</span>
-            </li>
-          </Link>
           <Link
             to="/Doctor-Appointment-History"
             style={{ textDecoration: "none" }}
