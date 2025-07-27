@@ -56,9 +56,12 @@ export default function AdminManagementAccount() {
         account.user.fullName.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus =
-      statusFilter === "ALL" || account.status === statusFilter;
+      statusFilter === "ALL" || account.status?.toUpperCase() === statusFilter;
     const matchesRole =
-      roleFilter === "ALL" || account.user?.role === roleFilter;
+      roleFilter === "ALL" ||
+      account.user?.role?.charAt(0).toUpperCase() +
+        account.user?.role?.slice(1).toLowerCase() ===
+        roleFilter;
 
     return matchesSearch && matchesStatus && matchesRole;
   });
@@ -96,8 +99,11 @@ export default function AdminManagementAccount() {
       username: account.username,
       email: account.email || "",
       password: "",
-      status: account.status,
-      role: account.user?.role || "Patient",
+      status: account.status?.toUpperCase(),
+      role: account.user?.role
+        ? account.user.role.charAt(0).toUpperCase() +
+          account.user.role.slice(1).toLowerCase()
+        : "Patient",
     });
     setShowEditModal(true);
     document.body.style.overflow = "hidden";
@@ -183,6 +189,7 @@ export default function AdminManagementAccount() {
 
   // Get status badge
   const getStatusBadge = (status) => {
+    const normalizedStatus = status?.toUpperCase();
     const statusClasses = {
       ACTIVE: "status-active",
       INACTIVE: "status-inactive",
@@ -198,10 +205,10 @@ export default function AdminManagementAccount() {
     return (
       <span
         className={`status-badge-admin ${
-          statusClasses[status] || "status-default-admin"
+          statusClasses[normalizedStatus] || "status-default-admin"
         }`}
       >
-        {statusLabels[status] || status}
+        {statusLabels[normalizedStatus] || "Không xác định"}
       </span>
     );
   };
@@ -213,6 +220,9 @@ export default function AdminManagementAccount() {
         <span className="role-badge-admin role-unknown-admin">Chưa có</span>
       );
 
+    const normalizedRole =
+      role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+
     const roleLabels = {
       Admin: "Quản trị viên",
       Doctor: "Bác sĩ",
@@ -222,8 +232,10 @@ export default function AdminManagementAccount() {
     };
 
     return (
-      <span className={`role-badge-admin role-${role.toLowerCase()}-admin`}>
-        {roleLabels[role] || role}
+      <span
+        className={`role-badge-admin role-${normalizedRole.toLowerCase()}-admin`}
+      >
+        {roleLabels[normalizedRole] || "Vai trò khác"}
       </span>
     );
   };
@@ -361,7 +373,7 @@ export default function AdminManagementAccount() {
                       </button>
 
                       <select
-                        value={account.status}
+                        value={account.status?.toUpperCase()}
                         onChange={(e) =>
                           handleStatusChange(account.accountId, e.target.value)
                         }
@@ -473,7 +485,12 @@ export default function AdminManagementAccount() {
                 <div className="form-group-admin">
                   <label>Vai trò *</label>
                   <select
-                    value={formData.role}
+                    value={
+                      formData.role
+                        ? formData.role.charAt(0).toUpperCase() +
+                          formData.role.slice(1).toLowerCase()
+                        : ""
+                    }
                     onChange={(e) =>
                       setFormData({ ...formData, role: e.target.value })
                     }
@@ -491,7 +508,7 @@ export default function AdminManagementAccount() {
                 <div className="form-group-admin">
                   <label>Trạng thái</label>
                   <select
-                    value={formData.status}
+                    value={formData.status?.toUpperCase()}
                     onChange={(e) =>
                       setFormData({ ...formData, status: e.target.value })
                     }
