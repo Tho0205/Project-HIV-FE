@@ -42,119 +42,132 @@ const DoctorAppointmentHistory = () => {
     setDoctorId(numericUserId);
   }, []);
 
-  // Thay thế function fetchDoctorAppointments trong component
+  // Updated fetchDoctorAppointments to include CANCELLED appointments
+  const fetchDoctorAppointments = useCallback(async () => {
+    if (!doctorId) return;
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Get doctor information
+      const doctorData = await appointmentService.getPatientInfo(doctorId);
+      if (!doctorData) {
+        throw new Error(`Không tìm thấy thông tin bác sĩ cho doctorId: ${doctorId}`);
+      }
+      setDoctorInfo(doctorData);
 
-const fetchDoctorAppointments = useCallback(async () => {
-  if (!doctorId) return;
-  setLoading(true);
-  setError(null);
-  
-  try {
-    // Get doctor information
-    const doctorData = await appointmentService.getPatientInfo(doctorId);
-    if (!doctorData) {
-      throw new Error(`Không tìm thấy thông tin bác sĩ cho doctorId: ${doctorId}`);
-    }
-    setDoctorInfo(doctorData);
-
-    // Get all appointments
-    const allAppointments = await appointmentService.getAppointments();
-    
-    // Filter appointments for this doctor
-    const doctorAppointments = allAppointments.filter(appointment => {
-      const appointmentDoctorId = appointment.doctorId || appointment.DoctorId;
-      return appointmentDoctorId === doctorId;
-    });
-    
-    console.log("Filtered doctor appointments:", doctorAppointments);
-    
-    const allDoctorSchedules = await appointmentService.getAllSchedulesOfDoctor(doctorId);
-    console.log("All doctor schedules from new API:", allDoctorSchedules);
-    
-    const scheduleRoomMap = {};
-    allDoctorSchedules.forEach(schedule => {
-
-      const scheduleId = schedule.scheduleId || schedule.ScheduleId || schedule.id;
-      const room = schedule.room || schedule.Room || schedule.roomName || schedule.RoomName;
-      const status = schedule.status || schedule.Status;
+      // Get all appointments
+      const allAppointments = await appointmentService.getAppointments();
       
-      console.log(`🗺️ Mapping Schedule ID: ${scheduleId} -> Room: ${room} (Status: ${status})`);
-      scheduleRoomMap[scheduleId] = room || "Chưa xác định";
-    });
-    
-    console.log("📋 Complete scheduleRoomMap from all schedules:", scheduleRoomMap);
-    
- 
-    const confirmedAppointments = await Promise.all(
-      doctorAppointments
-        .filter(appointment => appointment.status === "CONFIRMED")
-        .map(async (appointment) => {
-          const dateInfo = appointmentService.formatDate(appointment.appointmentDate);
-          const isPast = appointmentService.isPast(appointment.appointmentDate);
-          
-          // 🔧 Get room from comprehensive schedule map
-          const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
-          const room = scheduleRoomMap[appointmentScheduleId] || "Phòng không xác định";
-          
-          console.log(`🏥 Appointment ID: ${appointment.appointmentId}, Schedule ID: ${appointmentScheduleId}, Room: ${room}`);
-          
-          let patientInfo = {
-            fullName: "Bệnh nhân ẩn danh",
-            phone: "***",
-            gender: "***",
-            birthdate: "***"
-          };
+      // Filter appointments for this doctor
+      const doctorAppointments = allAppointments.filter(appointment => {
+        const appointmentDoctorId = appointment.doctorId || appointment.DoctorId;
+        return appointmentDoctorId === doctorId;
+      });
+      
+      console.log("Filtered doctor appointments:", doctorAppointments);
+      
+      const allDoctorSchedules = await appointmentService.getAllSchedulesOfDoctor(doctorId);
+      console.log("All doctor schedules from new API:", allDoctorSchedules);
+      
+      const scheduleRoomMap = {};
+      allDoctorSchedules.forEach(schedule => {
+        const scheduleId = schedule.scheduleId || schedule.ScheduleId || schedule.id;
+        const room = schedule.room || schedule.Room || schedule.roomName || schedule.RoomName;
+        const status = schedule.status || schedule.Status;
+        
+        console.log(`🗺️ Mapping Schedule ID: ${scheduleId} -> Room: ${room} (Status: ${status})`);
+        scheduleRoomMap[scheduleId] = room || "Chưa xác định";
+      });
+      
+      console.log("📋 Complete scheduleRoomMap from all schedules:", scheduleRoomMap);
+      
+      // Include CONFIRMED and CANCELLED appointments
+      const relevantAppointments = await Promise.all(
+        doctorAppointments
+          .filter(appointment => 
+            appointment.status === "CONFIRMED" || 
+            appointment.status === "CANCELLED" ||
+            appointment.status === "Cancel" // Handle both naming conventions
+          )
+          .map(async (appointment) => {
+            const dateInfo = appointmentService.formatDate(appointment.appointmentDate);
+            const isPast = appointmentService.isPast(appointment.appointmentDate);
+            
+            // Get room from comprehensive schedule map
+            const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
+            const room = scheduleRoomMap[appointmentScheduleId] || "Phòng không xác định";
+            
+            console.log(`🏥 Appointment ID: ${appointment.appointmentId}, Schedule ID: ${appointmentScheduleId}, Room: ${room}`);
+            
+            let patientInfo = {
+              fullName: "Bệnh nhân ẩn danh",
+              phone: "***",
+              gender: "***",
+              birthdate: "***"
+            };
 
-          // Only get patient info if not anonymous
-          if (!appointment.isAnonymous) {
-            try {
-              const patientData = await appointmentService.getPatientInfo(appointment.patientId);
-              if (patientData) {
-                patientInfo = {
-                  fullName: patientData.fullName || "Chưa cập nhật",
-                  phone: patientData.phone || "Chưa cập nhật",
-                  gender: patientData.gender === "Male" ? "Nam" : patientData.gender === "Female" ? "Nữ" : "Chưa cập nhật",
-                  birthdate: patientData.birthdate || "Chưa cập nhật"
-                };
+            // Only get patient info if not anonymous
+            if (!appointment.isAnonymous) {
+              try {
+                const patientData = await appointmentService.getPatientInfo(appointment.patientId);
+                if (patientData) {
+                  patientInfo = {
+                    fullName: patientData.fullName || "Chưa cập nhật",
+                    phone: patientData.phone || "Chưa cập nhật",
+                    gender: patientData.gender === "Male" ? "Nam" : patientData.gender === "Female" ? "Nữ" : "Chưa cập nhật",
+                    birthdate: patientData.birthdate || "Chưa cập nhật"
+                  };
+                }
+              } catch (error) {
+                console.warn(`Could not fetch patient info for ID: ${appointment.patientId}`, error);
               }
-            } catch (error) {
-              console.warn(`Could not fetch patient info for ID: ${appointment.patientId}`, error);
             }
-          }
 
-          return {
-            ...appointment,
-            doctorName: doctorData.fullName || "Bác sĩ",
-            doctorSpecialty: "",
-            patientInfo,
-            room, 
-            formattedDate: dateInfo,
-            isPast,
-            displayStatus: isPast ? "completed" : "upcoming"
-          };
-        })
-    );
+            // Determine display status
+            let displayStatus;
+            if (appointment.status === "CANCELLED" || appointment.status === "Cancel") {
+              displayStatus = "cancelled";
+            } else if (appointment.status === "CONFIRMED") {
+              displayStatus = isPast ? "completed" : "upcoming";
+            } else {
+              displayStatus = "upcoming";
+            }
 
-    confirmedAppointments.sort((a, b) => 
-      new Date(b.appointmentDate) - new Date(a.appointmentDate)
-    );
+            return {
+              ...appointment,
+              doctorName: doctorData.fullName || "Bác sĩ",
+              doctorSpecialty: "",
+              patientInfo,
+              room, 
+              formattedDate: dateInfo,
+              isPast,
+              displayStatus
+            };
+          })
+      );
 
-    console.log("🎯 Final confirmed appointments with rooms:", confirmedAppointments.map(apt => ({
-      id: apt.appointmentId,
-      scheduleId: apt.scheduleId,
-      room: apt.room,
-      status: apt.status
-    })));
-    
-    setAppointments(confirmedAppointments);
-    
-  } catch (err) {
-    console.error("Error fetching doctor appointments:", err);
-    setError(err.message || "Có lỗi xảy ra khi tải lịch hẹn. Vui lòng thử lại.");
-  } finally {
-    setLoading(false);
-  }
-}, [doctorId]);
+      relevantAppointments.sort((a, b) => 
+        new Date(b.appointmentDate) - new Date(a.appointmentDate)
+      );
+
+      console.log("🎯 Final appointments with cancelled included:", relevantAppointments.map(apt => ({
+        id: apt.appointmentId,
+        scheduleId: apt.scheduleId,
+        room: apt.room,
+        status: apt.status,
+        displayStatus: apt.displayStatus
+      })));
+      
+      setAppointments(relevantAppointments);
+      
+    } catch (err) {
+      console.error("Error fetching doctor appointments:", err);
+      setError(err.message || "Có lỗi xảy ra khi tải lịch hẹn. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  }, [doctorId]);
 
   useEffect(() => {
     fetchDoctorAppointments();
@@ -180,6 +193,8 @@ const fetchDoctorAppointments = useCallback(async () => {
       matchesFilter = appointment.displayStatus === "completed";
     else if (filterStatus === "upcoming")
       matchesFilter = appointment.displayStatus === "upcoming";
+    else if (filterStatus === "cancelled")
+      matchesFilter = appointment.displayStatus === "cancelled";
 
     return matchesSearch && matchesFilter;
   });
@@ -193,12 +208,14 @@ const fetchDoctorAppointments = useCallback(async () => {
     ({
       completed: { backgroundColor: "#dcfce7", color: "#15803d" },
       upcoming: { backgroundColor: "#dbeafe", color: "#1e40af" },
+      cancelled: { backgroundColor: "#fee2e2", color: "#dc2626" },
     }[displayStatus] || { backgroundColor: "#f3f4f6", color: "#1f2937" });
 
   const getStatusText = (displayStatus) =>
     ({
       completed: "Đã khám",
       upcoming: "Sắp tới",
+      cancelled: "Đã hủy",
     }[displayStatus] || displayStatus);
 
   // Style objects for buttons
@@ -305,7 +322,7 @@ const fetchDoctorAppointments = useCallback(async () => {
         < SidebarAdmin active="Appointment-History"/>
       </div>
       <section className="profile">
-        <h2>Lịch Hẹn Đã Xác Nhận</h2>
+        <h2>Lịch Hẹn Của Bác Sĩ</h2>
         {doctorInfo && (
           <div className="card profile-header">
             <div className="profile-photo">
@@ -383,6 +400,14 @@ const fetchDoctorAppointments = useCallback(async () => {
                   }
                   )
                 </option>
+                <option value="cancelled">
+                  Đã hủy (
+                  {
+                    appointments.filter((a) => a.displayStatus === "cancelled")
+                      .length
+                  }
+                  )
+                </option>
               </select>
             </div>
           </div>
@@ -397,7 +422,7 @@ const fetchDoctorAppointments = useCallback(async () => {
               >
                 <p>Không tìm thấy lịch hẹn nào</p>
                 <p style={{ fontSize: "0.875rem" }}>
-                  Chỉ hiển thị các lịch hẹn đã được xác nhận
+                  Hiển thị các lịch hẹn đã được xác nhận và đã hủy
                 </p>
               </div>
             ) : (
@@ -405,7 +430,12 @@ const fetchDoctorAppointments = useCallback(async () => {
                 <div
                   key={appointment.appointmentId}
                   className="card"
-                  style={{ padding: "1.5rem", marginBottom: "1rem" }}
+                  style={{ 
+                    padding: "1.5rem", 
+                    marginBottom: "1rem",
+                    opacity: appointment.displayStatus === "cancelled" ? 0.8 : 1,
+                    border: appointment.displayStatus === "cancelled" ? "1px solid #fca5a5" : "1px solid #e5e7eb"
+                  }}
                 >
                   <div
                     style={{
@@ -428,7 +458,8 @@ const fetchDoctorAppointments = useCallback(async () => {
                           style={{
                             fontSize: "1.125rem",
                             fontWeight: "600",
-                            color: "#1f2937",
+                            color: appointment.displayStatus === "cancelled" ? "#6b7280" : "#1f2937",
+                            textDecoration: appointment.displayStatus === "cancelled" ? "line-through" : "none"
                           }}
                         >
                           {appointment.patientInfo.fullName}
@@ -447,12 +478,26 @@ const fetchDoctorAppointments = useCallback(async () => {
                             Ẩn danh
                           </span>
                         )}
+                        {appointment.displayStatus === "cancelled" && (
+                          <span
+                            style={{ 
+                              fontSize: "0.75rem", 
+                              color: "#dc2626",
+                              fontWeight: "bold",
+                              backgroundColor: "#fee2e2",
+                              padding: "2px 6px",
+                              borderRadius: "4px"
+                            }}
+                          >
+                            ✗ Đã hủy
+                          </span>
+                        )}
                       </div>
                       <div
                         style={{
                           marginTop: "0.25rem",
                           fontSize: "0.875rem",
-                          color: "#4b5563",
+                          color: appointment.displayStatus === "cancelled" ? "#9ca3af" : "#4b5563",
                         }}
                       >
                         <div
@@ -486,11 +531,10 @@ const fetchDoctorAppointments = useCallback(async () => {
                             alignItems: "center",
                             gap: "1rem",
                             fontSize: "0.75rem",
-                            color: "#6b7280",
+                            color: appointment.displayStatus === "cancelled" ? "#9ca3af" : "#6b7280",
                             marginTop: "0.25rem",
                           }}
                         >
-                          <span>Mã lịch hẹn: #{appointment.appointmentId}</span>
                           <span> Phòng: {appointment.room}</span>
                         </div>
                       </div>
@@ -636,19 +680,27 @@ const fetchDoctorAppointments = useCallback(async () => {
                    Thông tin lịch hẹn
                   </p>
                   <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
-                    <strong>Mã:</strong> #{selectedAppointment.appointmentId}
-                  </p>
-                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                     <strong>Ngày giờ:</strong> {selectedAppointment.formattedDate.dayName}, {selectedAppointment.formattedDate.date} - {selectedAppointment.formattedDate.time}
                   </p>
                   <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                     <strong>Phòng:</strong> {selectedAppointment.room}
                   </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    <strong>Trạng thái:</strong> 
+                    <span style={{
+                      marginLeft: "0.5rem",
+                      padding: "0.25rem 0.5rem",
+                      borderRadius: "0.375rem",
+                      ...getStatusColor(selectedAppointment.displayStatus)
+                    }}>
+                      {getStatusText(selectedAppointment.displayStatus)}
+                    </span>
+                  </p>
                 </div>
 
                 <div
                   style={{
-                    backgroundColor: "#f0f9ff",
+                    backgroundColor: selectedAppointment.displayStatus === "cancelled" ? "#fef2f2" : "#f0f9ff",
                     padding: "0.75rem",
                     borderRadius: "0.375rem",
                     marginBottom: "1rem",
