@@ -960,3 +960,23 @@
   padding: 20px;
   overflow-x: hidden;
 }
+.btn-add-arv-ARVProtocol {
+  display: inline-block;
+  padding: 10px 18px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #007bff; /* Xanh dương chủ đạo */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-add-arv-ARVProtocol:hover {
+  background-color: #0056b3; /* Màu hover xanh đậm */
+  transform: translateY(-1px);
+}
