@@ -29,6 +29,7 @@ const ARVProtocolManagement = () => {
     description: "",
     details: [],
   });
+  const [selectedARVId, setSelectedARVId] = useState("");
   const [selectedStandardProtocol, setSelectedStandardProtocol] =
     useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -560,81 +561,94 @@ const ARVProtocolManagement = () => {
                         placeholder="Nhập mô tả phác đồ"
                       />
                     </div>
+                    
 
                     <div className="arv-selections-ARVProtocol">
                       <h5>Danh sách thuốc ARV:</h5>
+                      <button
+                      className="btn-add-arv-ARVProtocol"
+                      onClick={() =>
+                        setNewProtocolData((prev) => ({
+                          ...prev,
+                          details: [
+                            ...prev.details,
+                            {
+                              arvId: "",
+                              dosage: "",
+                              usageInstruction: "",
+                              status: "ACTIVE",
+                            },
+                          ],
+                        }))
+                      }
+                    >
+                      + Thêm thuốc
+                    </button>
                       {newProtocolData.details.length === 0 ? (
                         <p>Chưa có thuốc ARV nào trong phác đồ</p>
                       ) : (
                         <ul>
-                          {newProtocolData.details.map((detail, index) => {
-                            const arv = availableARVs.find(
-                              (a) => a.arvId === detail.arvId
-                            );
-                            return (
-                              <li key={index}>
-                                <div className="arv-info-ARVProtocol">
-                                  <span className="arv-name-ARVProtocol">
-                                    {arv?.name || "Unknown ARV"}
-                                  </span>
-                                  <div className="arv-dosage-ARVProtocol">
-                                    <label>Liều lượng:</label>
-                                    <input
-                                      type="text"
-                                      value={detail.dosage}
-                                      onChange={(e) => {
-                                        const updatedDetails = [
-                                          ...newProtocolData.details,
-                                        ];
-                                        updatedDetails[index].dosage =
-                                          e.target.value;
-                                        setNewProtocolData({
-                                          ...newProtocolData,
-                                          details: updatedDetails,
-                                        });
-                                      }}
-                                      placeholder="VD: 1 viên/ngày"
-                                    />
-                                  </div>
-                                  <div className="arv-instruction-ARVProtocol">
-                                    <label>Hướng dẫn:</label>
-                                    <input
-                                      type="text"
-                                      value={detail.usageInstruction}
-                                      onChange={(e) => {
-                                        const updatedDetails = [
-                                          ...newProtocolData.details,
-                                        ];
-                                        updatedDetails[index].usageInstruction =
-                                          e.target.value;
-                                        setNewProtocolData({
-                                          ...newProtocolData,
-                                          details: updatedDetails,
-                                        });
-                                      }}
-                                      placeholder="VD: Uống buổi sáng"
-                                    />
-                                  </div>
-                                </div>
-                                <button
-                                  className="btn-remove-ARVProtocol"
-                                  onClick={() => {
-                                    const updatedDetails =
-                                      newProtocolData.details.filter(
-                                        (_, i) => i !== index
-                                      );
-                                    setNewProtocolData({
-                                      ...newProtocolData,
-                                      details: updatedDetails,
-                                    });
-                                  }}
-                                >
-                                  Xóa
-                                </button>
-                              </li>
-                            );
-                          })}
-                        </ul>
+                        {newProtocolData.details.map((detail, index) => (
+                          <li key={index} className="arv-item-ARVProtocol">
+                            <div className="form-group-ARVProtocol">
+                              <label>Thuốc ARV:</label>
+                              <select
+                                value={detail.arvId || ""}
+                                onChange={(e) => {
+                                  const updatedDetails = [...newProtocolData.details];
+                                  updatedDetails[index].arvId = parseInt(e.target.value);
+                                  setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                                }}
+                              >
+                                <option value="">-- Chọn thuốc --</option>
+                                {availableARVs.map((arv) => (
+                                  <option key={arv.arvId} value={arv.arvId}>
+                                    {arv.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="form-group-ARVProtocol">
+                              <label>Liều dùng:</label>
+                              <input
+                                type="text"
+                                placeholder="VD: 1 viên/ngày"
+                                value={detail.dosage}
+                                onChange={(e) => {
+                                  const updatedDetails = [...newProtocolData.details];
+                                  updatedDetails[index].dosage = e.target.value;
+                                  setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                                }}
+                              />
+                            </div>
+
+                            <div className="form-group-ARVProtocol">
+                              <label>Hướng dẫn:</label>
+                              <input
+                                type="text"
+                                placeholder="VD: Uống buổi sáng"
+                                value={detail.usageInstruction}
+                                onChange={(e) => {
+                                  const updatedDetails = [...newProtocolData.details];
+                                  updatedDetails[index].usageInstruction = e.target.value;
+                                  setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                                }}
+                              />
+                            </div>
+
+                            <button
+                              className="btn-remove-ARVProtocol"
+                              onClick={() => {
+                                const updatedDetails = newProtocolData.details.filter((_, i) => i !== index);
+                                setNewProtocolData({ ...newProtocolData, details: updatedDetails });
+                              }}
+                            >
+                              Xoá
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
                       )}
                     </div>
 
