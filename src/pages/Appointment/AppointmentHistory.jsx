@@ -61,52 +61,73 @@ const AppointmentHistory = () => {
       const allAppointments = await appointmentService.getAppointments();
       const doctors = await appointmentService.getDoctors();
 
-      const patientAppointments = allAppointments
-        .filter((app) => {
-          const appPatientId = app.patientId || app.PatientId;
-          return appPatientId === patientId;
-        })
-        .map((appointment) => {
-          const dateInfo = appointmentService.formatDate(
-            appointment.appointmentDate || appointment.createdAt
-          );
-          const isPast = appointmentService.isPast(
-            appointment.appointmentDate || appointment.createdAt
-          );
+      const patientAppointments = await Promise.all(
+        allAppointments
+          .filter((app) => {
+            const appPatientId = app.patientId || app.PatientId;
+            return appPatientId === patientId;
+          })
+          .map(async (appointment) => {
+            const dateInfo = appointmentService.formatDate(
+              appointment.appointmentDate || appointment.createdAt
+            );
+            const isPast = appointmentService.isPast(
+              appointment.appointmentDate || appointment.createdAt
+            );
 
-          // Get doctor information
-          let doctorName = "Bác sĩ không xác định";
-          let doctorSpecialty = "";
-          const doctorId = appointment.doctorId || appointment.DoctorId;
-          if (doctorId && doctors) {
-            const doctor = doctors.find((d) => d.userId === doctorId);
-            if (doctor) {
-              doctorName = doctor.fullName || doctor.name || doctorName;
-              doctorSpecialty = doctor.specialty || "";
+            // Get doctor information
+            let doctorName = "Bác sĩ không xác định";
+            let doctorSpecialty = "";
+            const doctorId = appointment.doctorId || appointment.DoctorId;
+            if (doctorId && doctors) {
+              const doctor = doctors.find((d) => d.userId === doctorId);
+              if (doctor) {
+                doctorName = doctor.fullName || doctor.name || doctorName;
+                doctorSpecialty = doctor.specialty || "";
+              }
             }
-          }
 
-          return {
-            ...appointment,
-            doctorName,
-            doctorSpecialty,
-            formattedDate: dateInfo,
-            isPast,
-            displayStatus: getDisplayStatus(appointment.status, isPast),
-          };
-        })
-        .sort((a, b) => {
-          // Đặt lịch hẹn "Chờ xác nhận hoàn thành" lên đầu
-          const aIsAwaitingConfirm = a.status === "CHECKED_OUT";
-          const bIsAwaitingConfirm = b.status === "CHECKED_OUT";
-          
-          if (aIsAwaitingConfirm && !bIsAwaitingConfirm) return -1;
-          if (!aIsAwaitingConfirm && bIsAwaitingConfirm) return 1;
-          
-          // Nếu cùng loại thì sắp xếp theo thời gian
-          return new Date(b.appointmentDate || b.createdAt) - 
-                 new Date(a.appointmentDate || a.createdAt);
-        });
+            // Get room information from schedule
+            let roomInfo = "Chưa xác định";
+            try {
+              if (appointment.scheduleId && doctorId) {
+                const schedules = await appointmentService.getAllSchedulesOfDoctor(doctorId);
+                const schedule = schedules.find(s => 
+                  (s.scheduleId || s.ScheduleId) === appointment.scheduleId
+                );
+                if (schedule) {
+                  roomInfo = schedule.room || schedule.Room || "Chưa xác định";
+                }
+              }
+            } catch (error) {
+              console.warn("Could not fetch room info:", error);
+            }
+
+            return {
+              ...appointment,
+              doctorName,
+              doctorSpecialty,
+              roomInfo,
+              formattedDate: dateInfo,
+              isPast,
+              displayStatus: getDisplayStatus(appointment.status, isPast),
+            };
+          })
+      );
+
+      // Sort after Promise.all resolves
+      patientAppointments.sort((a, b) => {
+        // Đặt lịch hẹn "Chờ xác nhận hoàn thành" lên đầu
+        const aIsAwaitingConfirm = a.status === "CHECKED_OUT";
+        const bIsAwaitingConfirm = b.status === "CHECKED_OUT";
+        
+        if (aIsAwaitingConfirm && !bIsAwaitingConfirm) return -1;
+        if (!aIsAwaitingConfirm && bIsAwaitingConfirm) return 1;
+        
+        // Nếu cùng loại thì sắp xếp theo thời gian
+        return new Date(b.appointmentDate || b.createdAt) - 
+               new Date(a.appointmentDate || a.createdAt);
+      });
 
       console.log("Patient appointments:", patientAppointments);
       setAppointments(patientAppointments);
@@ -127,7 +148,7 @@ const AppointmentHistory = () => {
   const getDisplayStatus = (status, isPast) => {
     if (status === "Cancel" || status === "CANCELLED") return "cancelled";
     if (status === "COMPLETED") return "completed";
-    if (status === "CHECKED_OUT") return "awaiting_confirmation"; // New status
+    if (status === "CHECKED_OUT") return "awaiting_confirmation";
     if (status === "CHECKED_IN") return "in_progress";
     if (status === "CONFIRMED" && isPast) return "completed";
     if (status === "CONFIRMED" && !isPast) return "upcoming";
@@ -202,7 +223,6 @@ const AppointmentHistory = () => {
       );
       setShowConfirmModal(false);
       setSelectedAppointment(null);
-      // Xóa alert - không hiển thị thông báo
     } catch (err) {
       console.error("Error confirming appointment completion:", err);
       alert(`Lỗi khi xác nhận: ${err.message || "Vui lòng thử lại sau"}`);
@@ -593,6 +613,36 @@ const AppointmentHistory = () => {
                           />
                           <span>{appointment.formattedDate.time}</span>
                         </div>
+                        {appointment.roomInfo && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "1rem",
+                                height: "1rem",
+                                backgroundColor: "#e5e7eb",
+                                borderRadius: "2px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.6rem",
+                                fontWeight: "bold",
+                                color: "#6b7280",
+                              }}
+                            >
+                              P
+                            </div>
+                            <span style={{ fontWeight: "500", color: "#374151" }}>
+                              {appointment.roomInfo}
+                            </span>
+                          </div>
+                        )}
                         {appointment.note && (
                           <div
                             style={{
@@ -650,8 +700,8 @@ const AppointmentHistory = () => {
                         {getStatusText(appointment.displayStatus)}
                       </span>
                       
-                      {/* Nút hủy cho lịch hẹn sắp tới */}
-                      {appointment.displayStatus === "upcoming" && (
+                      {/* Nút hủy cho lịch hẹn sắp tới và chờ xác nhận */}
+                      {(appointment.displayStatus === "upcoming" || appointment.displayStatus === "pending") && (
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           <button
                             onClick={() => handleCancelClick(appointment)}
@@ -829,8 +879,13 @@ const AppointmentHistory = () => {
                     {selectedAppointment.formattedDate.dayName},{" "}
                     {selectedAppointment.formattedDate.date} -{" "}
                     {selectedAppointment.formattedDate.time}
+                    {selectedAppointment.roomInfo && (
+                      <span style={{ marginLeft: "0.5rem", color: "#6b7280" }}>
+                        • {selectedAppointment.roomInfo}
+                      </span>
+                    )}
                   </p>
-                  {selectedAppointment.note && (
+                                    {selectedAppointment.note && (
                     <p
                       style={{
                         fontSize: "0.875rem",
@@ -901,6 +956,11 @@ const AppointmentHistory = () => {
                     {selectedAppointment.formattedDate.dayName},{" "}
                     {selectedAppointment.formattedDate.date} -{" "}
                     {selectedAppointment.formattedDate.time}
+                    {selectedAppointment.roomInfo && (
+                      <span style={{ marginLeft: "0.5rem", color: "#6b7280" }}>
+                        • {selectedAppointment.roomInfo}
+                      </span>
+                    )}
                   </p>
                   {selectedAppointment.note && (
                     <p
@@ -923,7 +983,7 @@ const AppointmentHistory = () => {
                       color: "#15803d",
                     }}
                   >
-                    ✅ Xác nhận này sẽ đánh dấu buổi khám đã hoàn thành
+                    Xác nhận này sẽ đánh dấu buổi khám đã hoàn thành
                   </div>
                 </div>
               </div>

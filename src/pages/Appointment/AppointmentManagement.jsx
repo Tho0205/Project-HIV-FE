@@ -40,19 +40,19 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
-        return { icon: "✅", color: "#10b981", bgColor: "#d1fae5" };
+        return { color: "#10b981", bgColor: "#d1fae5" };
       case "error":
-        return { icon: "❌", color: "#ef4444", bgColor: "#fee2e2" };
+        return { color: "#ef4444", bgColor: "#fee2e2" };
       case "warning":
-        return { icon: "⚠️", color: "#f59e0b", bgColor: "#fef3c7" };
+        return { color: "#f59e0b", bgColor: "#fef3c7" };
       case "confirm":
-        return { icon: "❓", color: "#3b82f6", bgColor: "#dbeafe" };
+        return { color: "#3b82f6", bgColor: "#dbeafe" };
       default:
-        return { icon: "ℹ️", color: "#6b7280", bgColor: "#f3f4f6" };
+        return { color: "#6b7280", bgColor: "#f3f4f6" };
     }
   };
 
-  const { icon, color, bgColor } = getIconAndColor();
+  const { color, bgColor } = getIconAndColor();
 
   return (
     <div style={getPopupStyle()}>
@@ -80,7 +80,6 @@ const CustomPopup = ({
             fontSize: "24px",
           }}
         >
-          {icon}
         </div>
 
         <h3
@@ -171,7 +170,7 @@ const AppointmentManagement = () => {
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("date_desc");
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // New status filter
+  const [statusFilter, setStatusFilter] = useState("all");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [validStatuses, setValidStatuses] = useState([]);
@@ -468,7 +467,7 @@ const AppointmentManagement = () => {
   const getPatientDisplayInfo = (appointment) => {
     if (appointment.isAnonymous) {
       return {
-        name: "🔒 Bệnh nhân ẩn danh",
+        name: "Bệnh nhân ẩn danh",
         phone: "***",
         style: anonymousPatientStyle,
       };
@@ -651,13 +650,28 @@ const AppointmentManagement = () => {
     setPage(1);
   }
 
-  // Quick status change - Simplified to only confirm and cancel
+  // Quick status change - Simplified for confirm/cancel only
   async function handleQuickStatusChange(appointment, newStatus) {
-    const statusText = newStatus === "CONFIRMED" ? "xác nhận" : "hủy";
+    let actionText = "";
+    let confirmMessage = "";
+    
+    switch (newStatus) {
+      case "CONFIRMED":
+        actionText = "xác nhận";
+        confirmMessage = "Bạn có chắc chắn muốn xác nhận lịch khám này?";
+        break;
+      case "CANCELLED":
+        actionText = "hủy";
+        confirmMessage = "Bạn có chắc chắn muốn hủy lịch khám này?";
+        break;
+      default:
+        actionText = "cập nhật";
+        confirmMessage = "Bạn có chắc chắn muốn thực hiện thao tác này?";
+    }
     
     showPopup(
-      `Xác nhận ${statusText}`,
-      `Bạn có chắc chắn muốn ${statusText} lịch khám này?`,
+      `Xác nhận ${actionText}`,
+      confirmMessage,
       "confirm",
       async () => {
         closePopup();
@@ -667,12 +681,12 @@ const AppointmentManagement = () => {
             newStatus,
             null
           );
-          showPopup("Thành công", `${statusText === "xác nhận" ? "Xác nhận" : "Hủy"} lịch khám thành công!`, "success");
+          showPopup("Thành công", `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} lịch khám thành công!`, "success");
           fetchAppointments(page, sort, searchTerm, statusFilter);
         } catch (err) {
           showPopup(
             "Lỗi",
-            `Lỗi khi ${statusText} lịch khám: ${err.message}`,
+            `Lỗi khi ${actionText} lịch khám: ${err.message}`,
             "error"
           );
         }
@@ -680,7 +694,7 @@ const AppointmentManagement = () => {
     );
   }
 
-  // Get status badge style
+  // Get status badge style - Updated with check-in/check-out states
   const getStatusBadgeStyle = (status) => {
     const baseStyle = {
       padding: "4px 12px",
@@ -691,26 +705,32 @@ const AppointmentManagement = () => {
     };
 
     switch (status) {
+      case "SCHEDULED":
+        return { ...baseStyle, backgroundColor: "#fef3c7", color: "#d97706" };
       case "CONFIRMED":
         return { ...baseStyle, backgroundColor: "#dbeafe", color: "#1e40af" };
+      case "CHECKED_IN":
+        return { ...baseStyle, backgroundColor: "#e0e7ff", color: "#4338ca" };
+      case "CHECKED_OUT":
+        return { ...baseStyle, backgroundColor: "#f3e8ff", color: "#7c3aed" };
       case "COMPLETED":
         return { ...baseStyle, backgroundColor: "#dcfce7", color: "#15803d" };
       case "CANCELLED":
         return { ...baseStyle, backgroundColor: "#fee2e2", color: "#b91c1c" };
-      case "SCHEDULED":
-        return { ...baseStyle, backgroundColor: "#fef3c7", color: "#d97706" };
       default:
         return { ...baseStyle, backgroundColor: "#f3f4f6", color: "#1f2937" };
     }
   };
 
-  // Get status text
+  // Get status text - Updated with check-in/check-out states
   const getStatusText = (status) => {
     const texts = {
+      SCHEDULED: "Chờ xét duyệt",
       CONFIRMED: "Đã xác nhận",
+      CHECKED_IN: "Đã check-in",
+      CHECKED_OUT: "Đã check-out",
       COMPLETED: "Đã hoàn thành",
       CANCELLED: "Đã hủy",
-      SCHEDULED: "Chờ xét duyệt",
     };
     return texts[status] || status;
   };
@@ -752,7 +772,7 @@ const AppointmentManagement = () => {
             onChange={handleSearchChange}
           />
 
-          {/* Status Filter */}
+          {/* Status Filter - Updated with new states */}
           <select
             value={statusFilter}
             onChange={handleStatusFilterChange}
@@ -761,6 +781,8 @@ const AppointmentManagement = () => {
             <option value="all">Tất cả trạng thái ({total})</option>
             <option value="SCHEDULED">Chờ xét duyệt</option>
             <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="CHECKED_IN">Đã check-in</option>
+            <option value="CHECKED_OUT">Đã check-out</option>
             <option value="COMPLETED">Đã hoàn thành</option>
             <option value="CANCELLED">Đã hủy</option>
           </select>
@@ -897,7 +919,7 @@ const AppointmentManagement = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            🔒 Thông tin được bảo mật
+                            Thông tin được bảo mật
                           </div>
                         )}
                       </div>
@@ -922,7 +944,7 @@ const AppointmentManagement = () => {
                     <td style={typeStyle}>
                       {appointment.isAnonymous ? (
                         <span style={{ color: "#ef4444", fontWeight: "bold" }}>
-                          🔒 Ẩn danh
+                          Ẩn danh
                         </span>
                       ) : (
                         "Thường"
@@ -948,7 +970,6 @@ const AppointmentManagement = () => {
                                 e.target.style.boxShadow = "none";
                               }}
                             >
-                              <span>✓</span>
                               <span>Xác nhận</span>
                             </button>
                             <button
@@ -966,7 +987,6 @@ const AppointmentManagement = () => {
                                 e.target.style.boxShadow = "none";
                               }}
                             >
-                              <span>✗</span>
                               <span>Hủy</span>
                             </button>
                           </>
@@ -989,22 +1009,30 @@ const AppointmentManagement = () => {
                               e.target.style.boxShadow = "none";
                             }}
                           >
-                            <span>✗</span>
                             <span>Hủy lịch</span>
                           </button>
                         )}
 
                         {/* Hiển thị trạng thái cho các trường hợp khác */}
+                        {(appointment.status === "CHECKED_IN" || appointment.status === "CHECKED_OUT") && (
+                          <div style={{
+                            ...statusDisplayStyle,
+                            backgroundColor: "#e0e7ff",
+                            color: "#4338ca",
+                            border: "1px solid #a5b4fc",
+                          }}>
+                            <span>{getStatusText(appointment.status)}</span>
+                          </div>
+                        )}
+
                         {appointment.status === "COMPLETED" && (
                           <div style={completedStatusStyle}>
-                            <span>✓</span>
                             <span>Đã hoàn thành</span>
                           </div>
                         )}
                         
                         {appointment.status === "CANCELLED" && (
                           <div style={cancelledStatusStyle}>
-                            <span>✗</span>
                             <span>Đã hủy</span>
                           </div>
                         )}
