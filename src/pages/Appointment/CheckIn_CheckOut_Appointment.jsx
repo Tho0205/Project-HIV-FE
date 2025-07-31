@@ -40,19 +40,19 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
-        return { color: "#10b981", bgColor: "#d1fae5" };
+        return { icon: "✅", color: "#10b981", bgColor: "#d1fae5" };
       case "error":
-        return { color: "#ef4444", bgColor: "#fee2e2" };
+        return { icon: "❌", color: "#ef4444", bgColor: "#fee2e2" };
       case "warning":
-        return { color: "#f59e0b", bgColor: "#fef3c7" };
+        return { icon: "⚠️", color: "#f59e0b", bgColor: "#fef3c7" };
       case "confirm":
-        return { color: "#3b82f6", bgColor: "#dbeafe" };
+        return { icon: "❓", color: "#3b82f6", bgColor: "#dbeafe" };
       default:
-        return { color: "#6b7280", bgColor: "#f3f4f6" };
+        return { icon: "ℹ️", color: "#6b7280", bgColor: "#f3f4f6" };
     }
   };
 
-  const { color, bgColor } = getIconAndColor();
+  const { icon, color, bgColor } = getIconAndColor();
 
   return (
     <div style={getPopupStyle()}>
@@ -80,6 +80,7 @@ const CustomPopup = ({
             fontSize: "24px",
           }}
         >
+          {icon}
         </div>
 
         <h3
@@ -149,7 +150,7 @@ const CustomPopup = ({
   );
 };
 
-const AppointmentManagement = () => {
+const StaffCheckinCheckout = () => {
   // Hide navbar and footer with CSS
   React.useEffect(() => {
     const navbar = document.querySelector("nav, .navbar, header");
@@ -171,9 +172,9 @@ const AppointmentManagement = () => {
   const [sort, setSort] = useState("date_desc");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [validStatuses, setValidStatuses] = useState([]);
 
   // Custom popup state
   const [popup, setPopup] = useState({
@@ -207,7 +208,7 @@ const AppointmentManagement = () => {
     });
   };
 
-  // Styles (keeping existing styles)
+  // Styles
   const wrapperStyle = {
     display: "flex",
     height: "100vh",
@@ -354,140 +355,64 @@ const AppointmentManagement = () => {
     color: "#7c3aed",
   };
 
-  const noteStyle = {
-    ...tdStyle,
-    maxWidth: "150px",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
-  };
-
   const statusStyle = {
     ...tdStyle,
     textAlign: "center",
     minWidth: "120px",
   };
 
-  const typeStyle = {
-    ...tdStyle,
-    textAlign: "center",
-    minWidth: "80px",
-    fontStyle: "italic",
-  };
-
   const actionsStyle = {
     ...tdStyle,
-    minWidth: "140px",
+    minWidth: "120px",
     textAlign: "center",
   };
 
-  const actionButtonsStyle = {
-    display: "flex",
-    gap: "8px",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "60px",
-  };
-
-  const buttonStyle = {
-    minWidth: "30px",
-    height: "30px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
+  const actionButtonStyle = {
+    padding: "8px 16px",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
+    fontWeight: "600",
     transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    justifyContent: "center",
+    minWidth: "90px",
   };
 
-  const confirmButtonStyle = {
-    padding: "6px 12px",
+  const checkinButtonStyle = {
+    ...actionButtonStyle,
+    backgroundColor: "#3b82f6",
+    color: "white",
+  };
+
+  const checkoutButtonStyle = {
+    ...actionButtonStyle,
     backgroundColor: "#10b981",
     color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: "600",
-    transition: "all 0.2s ease",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-    minWidth: "80px",
-    justifyContent: "center",
   };
 
-  const cancelButtonStyle = {
-    padding: "6px 12px",
-    backgroundColor: "#ef4444",
+  const waitingConfirmStyle = {
+    ...actionButtonStyle,
+    backgroundColor: "#f59e0b",
     color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontSize: "12px",
-    fontWeight: "600",
-    transition: "all 0.2s ease",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px",
-    minWidth: "80px",
-    justifyContent: "center",
-  };
-
-  const statusDisplayStyle = {
-    fontSize: "12px",
-    fontWeight: "600",
-    padding: "6px 12px",
-    borderRadius: "6px",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: "4px",
-    minWidth: "100px",
-    justifyContent: "center",
+    cursor: "default",
   };
 
   const completedStatusStyle = {
-    ...statusDisplayStyle,
+    ...actionButtonStyle,
     backgroundColor: "#d1fae5",
     color: "#059669",
     border: "1px solid #34d399",
+    cursor: "default",
   };
-
-  const cancelledStatusStyle = {
-    ...statusDisplayStyle,
-    backgroundColor: "#fee2e2",
-    color: "#dc2626",
-    border: "1px solid #f87171",
-  };
-
-  // Helper function to get patient display info including phone
-  const getPatientDisplayInfo = (appointment) => {
-    if (appointment.isAnonymous) {
-      return {
-        name: "Bệnh nhân ẩn danh",
-        phone: "***",
-        style: anonymousPatientStyle,
-      };
-    }
-    return {
-      name: appointment.patientName,
-      phone: appointment.patientPhone || "Chưa có",
-      style: patientNameStyle,
-    };
-  };
-
-  // Fetch appointments
-  useEffect(() => {
-    fetchAppointments(page, sort, searchTerm, statusFilter);
-  }, [page, sort, searchTerm, statusFilter]);
 
   // Check authorization
   useEffect(() => {
     const role = tokenManager.getCurrentUserRole();
-    if (role !== "Staff" && role !== "Manager" && role !== "Doctor") {
+    if (role !== "Staff" && role !== "Manager") {
       showPopup(
         "Không có quyền truy cập",
         "Bạn không có quyền truy cập trang này",
@@ -500,61 +425,107 @@ const AppointmentManagement = () => {
     }
   }, [navigate]);
 
+  // Helper function to get patient display info
+  const getPatientDisplayInfo = (appointment) => {
+    if (appointment.isAnonymous) {
+      return {
+        name: "🔒 Bệnh nhân ẩn danh",
+        phone: "***",
+        style: anonymousPatientStyle,
+      };
+    }
+    return {
+      name: appointment.patientName,
+      phone: appointment.patientPhone || "Chưa có",
+      style: patientNameStyle,
+    };
+  };
+
+  // Fetch appointments for today (CONFIRMED, CHECKED_IN, CHECKED_OUT)
+  useEffect(() => {
+    fetchAppointments(page, sort, searchTerm, statusFilter);
+  }, [page, sort, searchTerm, statusFilter, selectedDate]);
+
   async function fetchAppointments(page, sort, search, statusFilter) {
     setLoading(true);
     try {
-      const [appointmentsData, doctorsData, statusesData] = await Promise.all([
+      const [appointmentsData, doctorsData] = await Promise.all([
         appointmentService.getAppointments(),
         appointmentService.getDoctors(),
-        appointmentService.getValidStatuses(),
       ]);
 
-      // Map appointments with doctor and patient information
+      console.log("📊 Raw appointments data:", appointmentsData);
+      console.log("📅 Selected date:", selectedDate);
+
+      // Filter for selected date's appointments
+      const selectedDateObj = new Date(selectedDate);
+      
       let mappedAppointments = await Promise.all(
-        appointmentsData.map(async (appointment) => {
-          const doctorId = appointment.doctorId || appointment.DoctorId;
-          const patientId = appointment.patientId || appointment.PatientId;
-          const doctor = doctorsData.find((d) => d.userId === doctorId);
-          const dateInfo = appointmentService.formatDate(
-            appointment.appointmentDate || appointment.createdAt
-          );
-
-          // Get patient information - lấy cả tên và số điện thoại
-          let patientName = "Bệnh nhân không xác định";
-          let patientPhone = "Chưa có";
-          
-          if (!appointment.isAnonymous) {
-            try {
-              const patientInfo = await appointmentService.getPatientInfo(
-                patientId
-              );
-              patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
-              patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
-            } catch (error) {
-              patientName = `Bệnh nhân #${patientId}`;
-              patientPhone = "Chưa có";
-            }
-          } else {
-            patientName = "Bệnh nhân ẩn danh";
-            patientPhone = "***";
-          }
-
-          return {
-            ...appointment,
-            doctorName: doctor
-              ? doctor.fullName || doctor.name || "Bác sĩ không xác định"
-              : "Bác sĩ không xác định",
-            doctorSpecialty: doctor ? doctor.specialty || "" : "",
-            patientId: patientId,
-            patientName: patientName,
-            patientPhone: patientPhone,
-            formattedDate: dateInfo,
-            appointmentDateTime: new Date(
+        appointmentsData
+          .filter(appointment => {
+            // Filter by date
+            const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
+            const isDateMatch = appointmentDate.toDateString() === selectedDateObj.toDateString();
+            
+            // Show CONFIRMED, CHECKED_IN, CHECKED_OUT, and COMPLETED appointments
+            const isValidStatus = ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'COMPLETED'].includes(appointment.status);
+            
+            console.log("🧪 Appointment filter:", {
+              id: appointment.appointmentId,
+              status: appointment.status,
+              appointmentDate: appointment.appointmentDate,
+              isDateMatch,
+              isValidStatus,
+              willShow: isDateMatch && isValidStatus
+            });
+            
+            return isDateMatch && isValidStatus;
+          })
+          .map(async (appointment) => {
+            const doctorId = appointment.doctorId || appointment.DoctorId;
+            const patientId = appointment.patientId || appointment.PatientId;
+            const doctor = doctorsData.find((d) => d.userId === doctorId);
+            const dateInfo = appointmentService.formatDate(
               appointment.appointmentDate || appointment.createdAt
-            ),
-          };
-        })
+            );
+
+            // Get patient information
+            let patientName = "Bệnh nhân không xác định";
+            let patientPhone = "Chưa có";
+            
+            if (!appointment.isAnonymous) {
+              try {
+                const patientInfo = await appointmentService.getPatientInfo(patientId);
+                patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
+                patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
+              } catch (error) {
+                patientName = `Bệnh nhân #${patientId}`;
+                patientPhone = "Chưa có";
+              }
+            } else {
+              patientName = "Bệnh nhân ẩn danh";
+              patientPhone = "***";
+            }
+
+            return {
+              ...appointment,
+              doctorName: doctor
+                ? doctor.fullName || doctor.name || "Bác sĩ không xác định"
+                : "Bác sĩ không xác định",
+              doctorSpecialty: doctor ? doctor.specialty || "" : "",
+              patientId: patientId,
+              patientName: patientName,
+              patientPhone: patientPhone,
+              formattedDate: dateInfo,
+              appointmentDateTime: new Date(
+                appointment.appointmentDate || appointment.createdAt
+              ),
+              // Remove check-in/check-out time tracking since we're not displaying them
+            };
+          })
       );
+
+      console.log("✅ Filtered appointments:", mappedAppointments);
 
       // Apply status filter
       if (statusFilter && statusFilter !== "all") {
@@ -569,9 +540,6 @@ const AppointmentManagement = () => {
           const matchesDoctor = appointment.doctorName
             .toLowerCase()
             .includes(search.toLowerCase());
-          const matchesNote =
-            appointment.note &&
-            appointment.note.toLowerCase().includes(search.toLowerCase());
           const matchesPhone = 
             appointment.patientPhone &&
             appointment.patientPhone.includes(search);
@@ -584,7 +552,7 @@ const AppointmentManagement = () => {
                 .includes(search.toLowerCase());
           }
 
-          return matchesDoctor || matchesNote || matchesPatient || matchesPhone;
+          return matchesDoctor || matchesPatient || matchesPhone;
         });
       }
 
@@ -617,9 +585,10 @@ const AppointmentManagement = () => {
         endIndex
       );
 
+      console.log("📄 Final paginated appointments:", paginatedAppointments);
       setAppointments(paginatedAppointments);
-      setValidStatuses(statusesData);
     } catch (err) {
+      console.error("❌ Error in fetchAppointments:", err);
       setAppointments([]);
       setTotal(0);
       showPopup(
@@ -650,24 +619,29 @@ const AppointmentManagement = () => {
     setPage(1);
   }
 
-  // Quick status change - Simplified for confirm/cancel only
-  async function handleQuickStatusChange(appointment, newStatus) {
+  // Handle date change
+  function handleDateChange(e) {
+    setSelectedDate(e.target.value);
+    setPage(1);
+  }
+
+  // Handle Check-in and Check-out workflow
+  async function handleCheckinCheckout(appointment) {
+    let newStatus = "";
     let actionText = "";
     let confirmMessage = "";
     
-    switch (newStatus) {
-      case "CONFIRMED":
-        actionText = "xác nhận";
-        confirmMessage = "Bạn có chắc chắn muốn xác nhận lịch khám này?";
-        break;
-      case "CANCELLED":
-        actionText = "hủy";
-        confirmMessage = "Bạn có chắc chắn muốn hủy lịch khám này?";
-        break;
-      default:
-        actionText = "cập nhật";
-        confirmMessage = "Bạn có chắc chắn muốn thực hiện thao tác này?";
+    if (appointment.status === "CONFIRMED") {
+      newStatus = "CHECKED_IN";
+      actionText = "check-in";
+      confirmMessage = `Bạn có chắc chắn muốn check-in cho bệnh nhân ${appointment.isAnonymous ? "ẩn danh" : appointment.patientName}?`;
+    } else if (appointment.status === "CHECKED_IN") {
+      newStatus = "CHECKED_OUT";
+      actionText = "check-out";
+      confirmMessage = `Bạn có chắc chắn muốn check-out cho bệnh nhân ${appointment.isAnonymous ? "ẩn danh" : appointment.patientName}? Bệnh nhân sẽ cần xác nhận để hoàn thành.`;
     }
+    
+    if (!newStatus) return;
     
     showPopup(
       `Xác nhận ${actionText}`,
@@ -681,12 +655,22 @@ const AppointmentManagement = () => {
             newStatus,
             null
           );
-          showPopup("Thành công", `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} lịch khám thành công!`, "success");
+          
+          let successMessage = "";
+          if (newStatus === "CHECKED_IN") {
+            successMessage = "Check-in thành công!";
+          } else if (newStatus === "CHECKED_OUT") {
+            successMessage = "Check-out thành công! Bệnh nhân sẽ nhận được thông báo để xác nhận.";
+          }
+          
+          showPopup("Thành công", successMessage, "success");
+          
+          // Refresh data
           fetchAppointments(page, sort, searchTerm, statusFilter);
         } catch (err) {
           showPopup(
             "Lỗi",
-            `Lỗi khi ${actionText} lịch khám: ${err.message}`,
+            `Lỗi khi ${actionText}: ${err.message}`,
             "error"
           );
         }
@@ -694,7 +678,7 @@ const AppointmentManagement = () => {
     );
   }
 
-  // Get status badge style - Updated with check-in/check-out states
+  // Get status badge style
   const getStatusBadgeStyle = (status) => {
     const baseStyle = {
       padding: "4px 12px",
@@ -705,49 +689,35 @@ const AppointmentManagement = () => {
     };
 
     switch (status) {
-      case "SCHEDULED":
-        return { ...baseStyle, backgroundColor: "#fef3c7", color: "#d97706" };
       case "CONFIRMED":
         return { ...baseStyle, backgroundColor: "#dbeafe", color: "#1e40af" };
       case "CHECKED_IN":
-        return { ...baseStyle, backgroundColor: "#e0e7ff", color: "#4338ca" };
+        return { ...baseStyle, backgroundColor: "#fef3c7", color: "#d97706" };
       case "CHECKED_OUT":
-        return { ...baseStyle, backgroundColor: "#f3e8ff", color: "#7c3aed" };
+        return { ...baseStyle, backgroundColor: "#fed7d7", color: "#c53030" };
       case "COMPLETED":
         return { ...baseStyle, backgroundColor: "#dcfce7", color: "#15803d" };
-      case "CANCELLED":
-        return { ...baseStyle, backgroundColor: "#fee2e2", color: "#b91c1c" };
       default:
         return { ...baseStyle, backgroundColor: "#f3f4f6", color: "#1f2937" };
     }
   };
 
-  // Get status text - Updated with check-in/check-out states
+  // Get status text
   const getStatusText = (status) => {
     const texts = {
-      SCHEDULED: "Chờ xét duyệt",
-      CONFIRMED: "Đã xác nhận",
+      CONFIRMED: "Chờ check-in",
       CHECKED_IN: "Đã check-in",
-      CHECKED_OUT: "Đã check-out",
-      COMPLETED: "Đã hoàn thành",
-      CANCELLED: "Đã hủy",
+      CHECKED_OUT: "Chờ xác nhận BN",
+      COMPLETED: "Hoàn thành",
     };
     return texts[status] || status;
   };
 
-  // Format date
-  function formatDate(dateStr) {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
-    return d.toLocaleDateString("vi-VN");
-  }
-
   // Format time
   function formatTime(dateStr) {
-    if (!dateStr) return "";
+    if (!dateStr) return "-";
     const d = new Date(dateStr);
-    if (isNaN(d)) return dateStr;
+    if (isNaN(d)) return "-";
     return d.toLocaleTimeString("vi-VN", {
       hour: "2-digit",
       minute: "2-digit",
@@ -757,11 +727,11 @@ const AppointmentManagement = () => {
   return (
     <div style={wrapperStyle}>
       {/* Sidebar */}
-      <Sidebar active="appointment" />
+      <Sidebar active="checkin-checkout" />
 
       {/* Main Content */}
       <main style={contentStyle}>
-        <h1 style={titleStyle}>Quản Lý Lịch Đặt Khám</h1>
+        <h1 style={titleStyle}>Check-in / Check-out Bệnh Nhân</h1>
 
         <div style={headerStyle}>
           <input
@@ -772,19 +742,25 @@ const AppointmentManagement = () => {
             onChange={handleSearchChange}
           />
 
-          {/* Status Filter - Updated with new states */}
+          {/* Date Filter */}
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={handleDateChange}
+            style={filterStyle}
+          />
+
+          {/* Status Filter - Include all relevant statuses */}
           <select
             value={statusFilter}
             onChange={handleStatusFilterChange}
             style={filterStyle}
           >
             <option value="all">Tất cả trạng thái ({total})</option>
-            <option value="SCHEDULED">Chờ xét duyệt</option>
-            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="CONFIRMED">Chờ check-in</option>
             <option value="CHECKED_IN">Đã check-in</option>
-            <option value="CHECKED_OUT">Đã check-out</option>
-            <option value="COMPLETED">Đã hoàn thành</option>
-            <option value="CANCELLED">Đã hủy</option>
+            <option value="CHECKED_OUT">Chờ xác nhận BN</option>
+            <option value="COMPLETED">Hoàn thành</option>
           </select>
 
           {/* Sort Control */}
@@ -803,8 +779,8 @@ const AppointmentManagement = () => {
               onChange={handleSortChange}
               style={selectStyle}
             >
-              <option value="date_desc">Theo Ngày: Mới nhất</option>
-              <option value="date_asc">Theo Ngày: Cũ nhất</option>
+              <option value="date_desc">Theo Giờ: Mới nhất</option>
+              <option value="date_asc">Theo Giờ: Cũ nhất</option>
               <option value="doctor_asc">Theo Bác sĩ: A - Z</option>
               <option value="doctor_desc">Theo Bác sĩ: Z - A</option>
               <option value="status_asc">Theo Trạng thái: A - Z</option>
@@ -817,17 +793,6 @@ const AppointmentManagement = () => {
             style={{ fontSize: "14px", color: "#6b7280", whiteSpace: "nowrap" }}
           >
             Hiển thị {appointments.length} / {total} lịch hẹn
-            {statusFilter !== "all" && (
-              <div
-                style={{
-                  fontWeight: "bold",
-                  color: "#3b82f6",
-                  marginTop: "2px",
-                }}
-              >
-                Lọc: {getStatusText(statusFilter)}
-              </div>
-            )}
           </div>
         </div>
 
@@ -838,11 +803,9 @@ const AppointmentManagement = () => {
               <th style={thStyle}>Bác Sĩ</th>
               <th style={thStyle}>Thông Tin Bệnh Nhân</th>
               <th style={thStyle}>Số Điện Thoại</th>
-              <th style={thStyle}>Ngày Khám</th>
               <th style={thStyle}>Giờ Khám</th>
-              <th style={thStyle}>Ghi Chú</th>
               <th style={thStyle}>Trạng Thái</th>
-              <th style={thStyle}>Loại Hẹn</th>
+
               <th style={thStyle}>Hành Động</th>
             </tr>
           </thead>
@@ -850,7 +813,7 @@ const AppointmentManagement = () => {
             {loading ? (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={7}
                   style={{ ...tdStyle, textAlign: "center", padding: "40px" }}
                 >
                   Đang tải...
@@ -859,14 +822,12 @@ const AppointmentManagement = () => {
             ) : appointments.length === 0 ? (
               <tr>
                 <td
-                  colSpan={10}
+                  colSpan={7}
                   style={{ ...tdStyle, textAlign: "center", padding: "40px" }}
                 >
                   {statusFilter !== "all"
-                    ? `Không có lịch hẹn nào với trạng thái "${getStatusText(
-                        statusFilter
-                      )}"`
-                    : "Không có dữ liệu"}
+                    ? `Không có lịch hẹn nào với trạng thái "${getStatusText(statusFilter)}"`
+                    : "Không có lịch hẹn nào cho ngày đã chọn"}
                 </td>
               </tr>
             ) : (
@@ -919,7 +880,7 @@ const AppointmentManagement = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            Thông tin được bảo mật
+                            🔒 Thông tin được bảo mật
                           </div>
                         )}
                       </div>
@@ -927,116 +888,70 @@ const AppointmentManagement = () => {
                     <td style={phoneStyle}>
                       {patientInfo.phone}
                     </td>
-                    <td style={dateStyle}>
-                      {formatDate(appointment.appointmentDate)}
-                    </td>
                     <td style={timeStyle}>
                       {formatTime(appointment.appointmentDate)}
-                    </td>
-                    <td style={noteStyle} title={appointment.note || "-"}>
-                      {appointment.note || "-"}
                     </td>
                     <td style={statusStyle}>
                       <span style={getStatusBadgeStyle(appointment.status)}>
                         {getStatusText(appointment.status)}
                       </span>
                     </td>
-                    <td style={typeStyle}>
-                      {appointment.isAnonymous ? (
-                        <span style={{ color: "#ef4444", fontWeight: "bold" }}>
-                          Ẩn danh
-                        </span>
-                      ) : (
-                        "Thường"
-                      )}
-                    </td>
+
                     <td style={actionsStyle}>
-                      <div style={actionButtonsStyle}>
-                        {/* Chỉ hiển thị nút xác nhận cho trạng thái SCHEDULED */}
-                        {appointment.status === "SCHEDULED" && (
-                          <>
-                            <button
-                              style={confirmButtonStyle}
-                              onClick={() =>
-                                handleQuickStatusChange(appointment, "CONFIRMED")
-                              }
-                              title="Xác nhận lịch khám"
-                              onMouseEnter={(e) => {
-                                e.target.style.transform = "translateY(-1px)";
-                                e.target.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.4)";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                              }}
-                            >
-                              <span>Xác nhận</span>
-                            </button>
-                            <button
-                              style={cancelButtonStyle}
-                              onClick={() =>
-                                handleQuickStatusChange(appointment, "CANCELLED")
-                              }
-                              title="Hủy lịch khám"
-                              onMouseEnter={(e) => {
-                                e.target.style.transform = "translateY(-1px)";
-                                e.target.style.boxShadow = "0 4px 12px rgba(239, 68, 68, 0.4)";
-                              }}
-                              onMouseLeave={(e) => {
-                                e.target.style.transform = "translateY(0)";
-                                e.target.style.boxShadow = "none";
-                              }}
-                            >
-                              <span>Hủy</span>
-                            </button>
-                          </>
-                        )}
+                      {/* Button hiển thị theo trạng thái */}
+                      {appointment.status === "CONFIRMED" && (
+                        <button
+                          style={checkinButtonStyle}
+                          onClick={() => handleCheckinCheckout(appointment)}
+                          title="Check-in bệnh nhân"
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = "translateY(-1px)";
+                            e.target.style.boxShadow = "0 4px 12px rgba(59, 130, 246, 0.4)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = "translateY(0)";
+                            e.target.style.boxShadow = "none";
+                          }}
+                        >
+                          <span>📋</span>
+                          <span>Check-in</span>
+                        </button>
+                      )}
 
-                        {/* Chỉ hiển thị nút hủy cho trạng thái CONFIRMED */}
-                        {appointment.status === "CONFIRMED" && (
-                          <button
-                            style={cancelButtonStyle}
-                            onClick={() =>
-                              handleQuickStatusChange(appointment, "CANCELLED")
-                            }
-                            title="Hủy lịch khám"
-                            onMouseEnter={(e) => {
-                              e.target.style.transform = "translateY(-1px)";
-                              e.target.style.boxShadow = "0 4px 12px rgba(239, 68, 68, 0.4)";
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.transform = "translateY(0)";
-                              e.target.style.boxShadow = "none";
-                            }}
-                          >
-                            <span>Hủy lịch</span>
-                          </button>
-                        )}
+                      {appointment.status === "CHECKED_IN" && (
+                        <button
+                          style={checkoutButtonStyle}
+                          onClick={() => handleCheckinCheckout(appointment)}
+                          title="Check-out bệnh nhân" 
+                          onMouseEnter={(e) => {
+                            e.target.style.transform = "translateY(-1px)";
+                            e.target.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.4)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.transform = "translateY(0)";
+                            e.target.style.boxShadow = "none";
+                          }}
+                        >
+                          <span>✅</span>  
+                          <span>Check-out</span>
+                        </button>
+                      )}
 
-                        {/* Hiển thị trạng thái cho các trường hợp khác */}
-                        {(appointment.status === "CHECKED_IN" || appointment.status === "CHECKED_OUT") && (
-                          <div style={{
-                            ...statusDisplayStyle,
-                            backgroundColor: "#e0e7ff",
-                            color: "#4338ca",
-                            border: "1px solid #a5b4fc",
-                          }}>
-                            <span>{getStatusText(appointment.status)}</span>
-                          </div>
-                        )}
+                      {/* Trạng thái chờ xác nhận từ bệnh nhân */}
+                      {appointment.status === "CHECKED_OUT" && (
+                        <div style={waitingConfirmStyle}>
+                          <span>⏳</span>
+                          <span>Chờ BN xác nhận</span>
+                        </div>
+                      )}
 
-                        {appointment.status === "COMPLETED" && (
-                          <div style={completedStatusStyle}>
-                            <span>Đã hoàn thành</span>
-                          </div>
-                        )}
-                        
-                        {appointment.status === "CANCELLED" && (
-                          <div style={cancelledStatusStyle}>
-                            <span>Đã hủy</span>
-                          </div>
-                        )}
-                      </div>
+                      {/* Hiển thị trạng thái hoàn thành */}
+                      {appointment.status === "COMPLETED" && (
+                        <div style={completedStatusStyle}>
+                          <span>✓</span>
+                          <span>Đã hoàn thành</span>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
@@ -1067,4 +982,4 @@ const AppointmentManagement = () => {
   );
 };
 
-export default AppointmentManagement;
+export default StaffCheckinCheckout;
