@@ -9,6 +9,7 @@ import {
   ChevronRight,
   AlertCircle,
   FileText,
+  CheckCircle,
 } from "lucide-react";
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from "../../services/account";
@@ -19,6 +20,7 @@ const AppointmentHistory = () => {
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [patientInfo, setPatientInfo] = useState(null);
@@ -60,45 +62,73 @@ const AppointmentHistory = () => {
       const allAppointments = await appointmentService.getAppointments();
       const doctors = await appointmentService.getDoctors();
 
-      const patientAppointments = allAppointments
-        .filter((app) => {
-          const appPatientId = app.patientId || app.PatientId;
-          return appPatientId === patientId;
-        })
-        .map((appointment) => {
-          const dateInfo = appointmentService.formatDate(
-            appointment.appointmentDate || appointment.createdAt
-          );
-          const isPast = appointmentService.isPast(
-            appointment.appointmentDate || appointment.createdAt
-          );
+      const patientAppointments = await Promise.all(
+        allAppointments
+          .filter((app) => {
+            const appPatientId = app.patientId || app.PatientId;
+            return appPatientId === patientId;
+          })
+          .map(async (appointment) => {
+            const dateInfo = appointmentService.formatDate(
+              appointment.appointmentDate || appointment.createdAt
+            );
+            const isPast = appointmentService.isPast(
+              appointment.appointmentDate || appointment.createdAt
+            );
 
-          // Get doctor information
-          let doctorName = "Bác sĩ không xác định";
-          let doctorSpecialty = "";
-          const doctorId = appointment.doctorId || appointment.DoctorId;
-          if (doctorId && doctors) {
-            const doctor = doctors.find((d) => d.userId === doctorId);
-            if (doctor) {
-              doctorName = doctor.fullName || doctor.name || doctorName;
-              doctorSpecialty = doctor.specialty || "";
+            // Get doctor information
+            let doctorName = "Bác sĩ không xác định";
+            let doctorSpecialty = "";
+            const doctorId = appointment.doctorId || appointment.DoctorId;
+            if (doctorId && doctors) {
+              const doctor = doctors.find((d) => d.userId === doctorId);
+              if (doctor) {
+                doctorName = doctor.fullName || doctor.name || doctorName;
+                doctorSpecialty = doctor.specialty || "";
+              }
             }
-          }
 
-          return {
-            ...appointment,
-            doctorName,
-            doctorSpecialty,
-            formattedDate: dateInfo,
-            isPast,
-            displayStatus: getDisplayStatus(appointment.status, isPast),
-          };
-        })
-        .sort(
-          (a, b) =>
-            new Date(b.appointmentDate || b.createdAt) -
-            new Date(a.appointmentDate || a.createdAt)
-        );
+            // Get room information from schedule
+            let roomInfo = "Chưa xác định";
+            try {
+              if (appointment.scheduleId && doctorId) {
+                const schedules = await appointmentService.getAllSchedulesOfDoctor(doctorId);
+                const schedule = schedules.find(s => 
+                  (s.scheduleId || s.ScheduleId) === appointment.scheduleId
+                );
+                if (schedule) {
+                  roomInfo = schedule.room || schedule.Room || "Chưa xác định";
+                }
+              }
+            } catch (error) {
+              console.warn("Could not fetch room info:", error);
+            }
+
+            return {
+              ...appointment,
+              doctorName,
+              doctorSpecialty,
+              roomInfo,
+              formattedDate: dateInfo,
+              isPast,
+              displayStatus: getDisplayStatus(appointment.status, isPast),
+            };
+          })
+      );
+
+      // Sort after Promise.all resolves
+      patientAppointments.sort((a, b) => {
+        // Đặt lịch hẹn "Chờ xác nhận hoàn thành" lên đầu
+        const aIsAwaitingConfirm = a.status === "CHECKED_OUT";
+        const bIsAwaitingConfirm = b.status === "CHECKED_OUT";
+        
+        if (aIsAwaitingConfirm && !bIsAwaitingConfirm) return -1;
+        if (!aIsAwaitingConfirm && bIsAwaitingConfirm) return 1;
+        
+        // Nếu cùng loại thì sắp xếp theo thời gian
+        return new Date(b.appointmentDate || b.createdAt) - 
+               new Date(a.appointmentDate || a.createdAt);
+      });
 
       console.log("Patient appointments:", patientAppointments);
       setAppointments(patientAppointments);
@@ -119,6 +149,8 @@ const AppointmentHistory = () => {
   const getDisplayStatus = (status, isPast) => {
     if (status === "Cancel" || status === "CANCELLED") return "cancelled";
     if (status === "COMPLETED") return "completed";
+    if (status === "CHECKED_OUT") return "awaiting_confirmation";
+    if (status === "CHECKED_IN") return "in_progress";
     if (status === "CONFIRMED" && isPast) return "completed";
     if (status === "CONFIRMED" && !isPast) return "upcoming";
     if (status === "SCHEDULED") return "pending";
@@ -137,6 +169,11 @@ const AppointmentHistory = () => {
     }
     setSelectedAppointment(appointment);
     setShowCancelModal(true);
+  };
+
+  const handleConfirmClick = (appointment) => {
+    setSelectedAppointment(appointment);
+    setShowConfirmModal(true);
   };
 
   const handleConfirmCancel = async () => {
@@ -158,15 +195,48 @@ const AppointmentHistory = () => {
       );
       setShowCancelModal(false);
       setSelectedAppointment(null);
-      // Removed alert for success message
     } catch (err) {
       console.error("Error canceling appointment:", err);
       alert(`Lỗi khi hủy lịch hẹn: ${err.message || "Vui lòng thử lại sau"}`);
     }
   };
 
+  const handleConfirmCompletion = async () => {
+    if (!selectedAppointment?.appointmentId) {
+      alert("Không thể xác nhận lịch hẹn: ID không hợp lệ");
+      return;
+    }
+    try {
+      // Update status to COMPLETED
+      await appointmentService.updateAppointmentStatus(
+        selectedAppointment.appointmentId,
+        "COMPLETED",
+        "Đã xác nhận hoàn thành bởi bệnh nhân"
+      );
+      
+      // Update local state
+      setAppointments(
+        appointments.map((app) =>
+          app.appointmentId === selectedAppointment.appointmentId
+            ? { ...app, status: "COMPLETED", displayStatus: "completed" }
+            : app
+        )
+      );
+      setShowConfirmModal(false);
+      setSelectedAppointment(null);
+    } catch (err) {
+      console.error("Error confirming appointment completion:", err);
+      alert(`Lỗi khi xác nhận: ${err.message || "Vui lòng thử lại sau"}`);
+    }
+  };
+
   const handleCancelModalClose = () => {
     setShowCancelModal(false);
+    setSelectedAppointment(null);
+  };
+
+  const handleConfirmModalClose = () => {
+    setShowConfirmModal(false);
     setSelectedAppointment(null);
   };
 
@@ -185,6 +255,10 @@ const AppointmentHistory = () => {
       matchesFilter = appointment.displayStatus === "cancelled";
     else if (filterStatus === "pending")
       matchesFilter = appointment.displayStatus === "pending";
+    else if (filterStatus === "awaiting_confirmation")
+      matchesFilter = appointment.displayStatus === "awaiting_confirmation";
+    else if (filterStatus === "in_progress")
+      matchesFilter = appointment.displayStatus === "in_progress";
 
     return matchesSearch && matchesFilter;
   });
@@ -200,6 +274,8 @@ const AppointmentHistory = () => {
       upcoming: { backgroundColor: "#dbeafe", color: "#1e40af" },
       cancelled: { backgroundColor: "#fee2e2", color: "#b91c1c" },
       pending: { backgroundColor: "#fef9c3", color: "#a16207" },
+      awaiting_confirmation: { backgroundColor: "#fed7d7", color: "#c53030" },
+      in_progress: { backgroundColor: "#fef3c7", color: "#d97706" },
     }[displayStatus] || { backgroundColor: "#f3f4f6", color: "#1f2937" });
 
   const getStatusText = (displayStatus) =>
@@ -208,9 +284,11 @@ const AppointmentHistory = () => {
       upcoming: "Sắp tới",
       cancelled: "Đã hủy",
       pending: "Chờ xác nhận",
+      awaiting_confirmation: "Chờ xác nhận hoàn thành",
+      in_progress: "Đang khám",
     }[displayStatus] || displayStatus);
 
-  // Style objects for cancel button only
+  // Style objects for buttons
   const baseButtonStyle = {
     padding: "8px 16px",
     minWidth: "100px",
@@ -236,10 +314,23 @@ const AppointmentHistory = () => {
     borderColor: "#ef4444",
   };
 
+  const confirmButtonStyle = {
+    ...baseButtonStyle,
+    backgroundColor: "#10b981",
+    color: "#ffffff",
+    borderColor: "#10b981",
+  };
+
   const cancelButtonHoverStyle = {
     ...cancelButtonStyle,
     backgroundColor: "#dc2626",
     borderColor: "#dc2626",
+  };
+
+  const confirmButtonHoverStyle = {
+    ...confirmButtonStyle,
+    backgroundColor: "#059669",
+    borderColor: "#059669",
   };
 
   if (loading) {
@@ -275,6 +366,7 @@ const AppointmentHistory = () => {
       </div>
     );
   }
+
 
   if (loading) {
     return (
@@ -321,6 +413,7 @@ const AppointmentHistory = () => {
       </div>
     );
   }
+
 
   if (error) {
     return (
@@ -467,6 +560,22 @@ const AppointmentHistory = () => {
                   }
                   )
                 </option>
+                <option value="in_progress">
+                  Đang khám (
+                  {
+                    appointments.filter((a) => a.displayStatus === "in_progress")
+                      .length
+                  }
+                  )
+                </option>
+                <option value="awaiting_confirmation">
+                  Chờ xác nhận hoàn thành (
+                  {
+                    appointments.filter((a) => a.displayStatus === "awaiting_confirmation")
+                      .length
+                  }
+                  )
+                </option>
                 <option value="cancelled">
                   Đã hủy (
                   {
@@ -573,6 +682,36 @@ const AppointmentHistory = () => {
                           />
                           <span>{appointment.formattedDate.time}</span>
                         </div>
+                        {appointment.roomInfo && (
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.5rem",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: "1rem",
+                                height: "1rem",
+                                backgroundColor: "#e5e7eb",
+                                borderRadius: "2px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.6rem",
+                                fontWeight: "bold",
+                                color: "#6b7280",
+                              }}
+                            >
+                              P
+                            </div>
+                            <span style={{ fontWeight: "500", color: "#374151" }}>
+                              {appointment.roomInfo}
+                            </span>
+                          </div>
+                        )}
                         {appointment.note && (
                           <div
                             style={{
@@ -602,7 +741,6 @@ const AppointmentHistory = () => {
                             marginTop: "0.25rem",
                           }}
                         >
-                          {/* <span>Mã lịch hẹn: #{appointment.appointmentId}</span> */}
                           {appointment.isAnonymous && (
                             <span style={{ fontStyle: "italic" }}>
                               • Đặt lịch ẩn danh
@@ -630,7 +768,9 @@ const AppointmentHistory = () => {
                       >
                         {getStatusText(appointment.displayStatus)}
                       </span>
-                      {appointment.displayStatus === "upcoming" && (
+                      
+                      {/* Nút hủy cho lịch hẹn sắp tới và chờ xác nhận */}
+                      {(appointment.displayStatus === "upcoming" || appointment.displayStatus === "pending") && (
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           <button
                             onClick={() => handleCancelClick(appointment)}
@@ -649,6 +789,29 @@ const AppointmentHistory = () => {
                           </button>
                         </div>
                       )}
+
+                      {/* Nút xác nhận hoàn thành cho trạng thái CHECKED_OUT */}
+                      {appointment.displayStatus === "awaiting_confirmation" && (
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <button
+                            onClick={() => handleConfirmClick(appointment)}
+                            style={confirmButtonStyle}
+                            onMouseEnter={(e) => {
+                              Object.assign(
+                                e.target.style,
+                                confirmButtonHoverStyle
+                              );
+                            }}
+                            onMouseLeave={(e) => {
+                              Object.assign(e.target.style, confirmButtonStyle);
+                            }}
+                          >
+                            <CheckCircle style={{ width: "1rem", height: "1rem" }} />
+                            Xác nhận hoàn thành
+                          </button>
+                        </div>
+                      )}
+
                       {appointment.displayStatus === "pending" && (
                         <div
                           style={{
@@ -659,6 +822,17 @@ const AppointmentHistory = () => {
                           }}
                         >
                           Đang chờ xác nhận từ phía bệnh viện
+                        </div>
+                      )}
+
+                      {appointment.displayStatus === "in_progress" && (
+                        <div style={{
+                           fontSize: "0.75rem",
+                           color: "#d97706",
+                           fontStyle: "italic",
+                          textAlign: "right"
+                        }}>
+                          Đang trong quá trình khám
                         </div>
                       )}
                     </div>
@@ -752,6 +926,8 @@ const AppointmentHistory = () => {
             </div>
           )}
         </div>
+
+        {/* Cancel Modal */}
         {showCancelModal && selectedAppointment && (
           <div className="modal" style={{ display: "flex" }}>
             <div className="modal-content">
@@ -774,8 +950,13 @@ const AppointmentHistory = () => {
                     {selectedAppointment.formattedDate.dayName},{" "}
                     {selectedAppointment.formattedDate.date} -{" "}
                     {selectedAppointment.formattedDate.time}
+                    {selectedAppointment.roomInfo && (
+                      <span style={{ marginLeft: "0.5rem", color: "#6b7280" }}>
+                        • {selectedAppointment.roomInfo}
+                      </span>
+                    )}
                   </p>
-                  {selectedAppointment.note && (
+                                    {selectedAppointment.note && (
                     <p
                       style={{
                         fontSize: "0.875rem",
@@ -816,6 +997,97 @@ const AppointmentHistory = () => {
                   }}
                 >
                   Xác nhận hủy
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Confirm Completion Modal */}
+        {showConfirmModal && selectedAppointment && (
+          <div className="modal" style={{ display: "flex" }}>
+            <div className="modal-content">
+              <h3>Xác nhận hoàn thành lịch khám</h3>
+              <div style={{ marginBottom: "1rem", color: "#4b5563" }}>
+                <p style={{ marginBottom: "0.5rem" }}>
+                  Bạn có chắc chắn đã hoàn thành buổi khám này và muốn xác nhận?
+                </p>
+                <div
+                  style={{
+                    backgroundColor: "#f0fdf4",
+                    padding: "0.75rem",
+                    borderRadius: "0.375rem",
+                    border: "1px solid #bbf7d0",
+                  }}
+                >
+                  <p style={{ fontWeight: "500", color: "#1f2937" }}>
+                    {selectedAppointment.doctorName}
+                  </p>
+                  <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                    {selectedAppointment.formattedDate.dayName},{" "}
+                    {selectedAppointment.formattedDate.date} -{" "}
+                    {selectedAppointment.formattedDate.time}
+                    {selectedAppointment.roomInfo && (
+                      <span style={{ marginLeft: "0.5rem", color: "#6b7280" }}>
+                        • {selectedAppointment.roomInfo}
+                      </span>
+                    )}
+                  </p>
+                  {selectedAppointment.note && (
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        marginTop: "0.25rem",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {selectedAppointment.note}
+                    </p>
+                  )}
+                  <div
+                    style={{
+                      marginTop: "0.5rem",
+                      padding: "0.5rem",
+                      backgroundColor: "#dcfce7",
+                      borderRadius: "0.25rem",
+                      fontSize: "0.875rem",
+                      color: "#15803d",
+                    }}
+                  >
+                    Xác nhận này sẽ đánh dấu buổi khám đã hoàn thành
+                  </div>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "0.75rem",
+                  justifyContent: "flex-end",
+                }}
+              >
+                <button
+                  onClick={handleConfirmModalClose}
+                  className="btn-purple"
+                  style={{
+                    padding: "8px 16px",
+                    minWidth: "80px",
+                    height: "36px",
+                  }}
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleConfirmCompletion}
+                  className="btn-green"
+                  style={{
+                    padding: "8px 16px",
+                    minWidth: "120px",
+                    height: "36px",
+                    backgroundColor: "#10b981",
+                  }}
+                >
+                  <CheckCircle style={{ width: "1rem", height: "1rem", marginRight: "0.25rem" }} />
+                  Xác nhận hoàn thành
                 </button>
               </div>
             </div>

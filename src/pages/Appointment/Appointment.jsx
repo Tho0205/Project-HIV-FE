@@ -115,7 +115,7 @@ const Appointment = () => {
     }
   };
 
-  // Fixed Load schedules for selected doctor
+  // Fixed Load schedules for selected doctor - Only show future schedules
   const loadSchedules = async (doctorId) => {
     try {
       setLoading(true);
@@ -147,9 +147,8 @@ const Appointment = () => {
 
       console.log("Normalized schedules:", normalizedSchedules); // Debug log
 
-      // Filter schedules: only show future schedules and past schedules within 3 days
+      // Filter schedules: only show FUTURE schedules
       const now = new Date();
-      const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
       
       const filteredSchedules = normalizedSchedules.filter(schedule => {
         // Check if schedule has required fields
@@ -166,33 +165,26 @@ const Appointment = () => {
           return false;
         }
 
-        // Show if schedule is in the future OR within the last 3 days
-        // Also check if status is ACTIVE (if status field exists)
-        const isInTimeRange = scheduleDate >= threeDaysAgo;
+        // Only show FUTURE schedules and check if status is ACTIVE
+        const isFuture = scheduleDate > now;
         const isActive = !schedule.status || schedule.status === "ACTIVE" || schedule.status === "Active";
         
         console.log("Schedule filter check:", {
           scheduleId: schedule.scheduleId,
           scheduledTime: schedule.scheduledTime,
           status: schedule.status,
-          isInTimeRange,
+          isFuture,
           isActive,
-          willShow: isInTimeRange && isActive
+          willShow: isFuture && isActive
         });
 
-        return isInTimeRange && isActive;
+        return isFuture && isActive;
       });
 
       console.log("Filtered schedules:", filteredSchedules); // Debug log
       
       setSchedules(filteredSchedules);
       setSelectedScheduleId(null);
-
-      // Show info message if no schedules after filtering
-      if (schedulesArray.length > 0 && filteredSchedules.length === 0) {
-        console.log("All schedules were filtered out");
-        showError("Bác sĩ hiện không có lịch khám khả dụng trong thời gian này.");
-      }
 
     } catch (error) {
       console.error("Error loading schedules:", error);
@@ -326,21 +318,7 @@ const Appointment = () => {
     return new Date(dateString) < new Date();
   };
 
-  // Helper function to check if schedule is within the last 3 days
-  const isScheduleWithinLast3Days = (dateString) => {
-    const scheduleDate = new Date(dateString);
-    const now = new Date();
-    const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
-    return scheduleDate >= threeDaysAgo && scheduleDate <= now;
-  };
-
   const selectedDoctor = doctors.find((d) => d.userId === selectedDoctorId);
-  
-  // Separate schedules into future and past (within 3 days)
-  const futureSchedules = schedules.filter(schedule => !isSchedulePast(schedule.scheduledTime));
-  const pastSchedules = schedules.filter(schedule => 
-    isSchedulePast(schedule.scheduledTime) && isScheduleWithinLast3Days(schedule.scheduledTime)
-  );
 
   return (
     <div
@@ -616,7 +594,7 @@ const Appointment = () => {
                   )}
                 </div>
 
-                                  {/* Time Selection */}
+                {/* Time Selection - Only Future Schedules */}
                 <div style={{ marginBottom: "2rem" }}>
                   <label
                     style={{
@@ -630,18 +608,17 @@ const Appointment = () => {
                     Thời gian khám*
                   </label>
 
-                  {/* Schedule Buttons Container - Added scroll container */}
+                  {/* Schedule Buttons Container */}
                   <div
                     style={{
-                      maxHeight: "400px", // Giới hạn chiều cao
-                      overflowY: "auto", // Thêm scroll dọc
-                      overflowX: "hidden", // Ẩn scroll ngang
+                      maxHeight: "400px",
+                      overflowY: "auto",
+                      overflowX: "hidden",
                       padding: "0.5rem",
                       border: "1px solid #e5e7eb",
                       borderRadius: "0.75rem",
                       backgroundColor: "#fafafa",
                       marginBottom: "1rem",
-                      // Custom scrollbar
                       scrollbarWidth: "thin",
                       scrollbarColor: "#cbd5e1 #f1f5f9"
                     }}
@@ -699,34 +676,32 @@ const Appointment = () => {
                         </div>
                       ) : (
                         <>
-                          {/* Section header for future schedules */}
-                          {futureSchedules.length > 0 && (
-                            <div style={{
-                              gridColumn: "1 / -1",
-                              padding: "0.5rem 0",
-                              borderBottom: "2px solid #e5e7eb",
-                              marginBottom: "0.75rem"
+                          {/* Section header for available schedules */}
+                          <div style={{
+                            gridColumn: "1 / -1",
+                            padding: "0.5rem 0",
+                            borderBottom: "2px solid #e5e7eb",
+                            marginBottom: "0.75rem"
+                          }}>
+                            <h4 style={{
+                              fontSize: "0.875rem",
+                              fontWeight: "600",
+                              color: "#059669",
+                              margin: 0,
+                              display: "flex",
+                              alignItems: "center"
                             }}>
-                              <h4 style={{
-                                fontSize: "0.875rem",
-                                fontWeight: "600",
-                                color: "#059669",
-                                margin: 0,
-                                display: "flex",
-                                alignItems: "center"
-                              }}>
-                                <CheckCircle style={{ 
-                                  width: "1rem", 
-                                  height: "1rem", 
-                                  marginRight: "0.5rem" 
-                                }} />
-                                Lịch khám khả dụng ({futureSchedules.length})
-                              </h4>
-                            </div>
-                          )}
+                              <CheckCircle style={{ 
+                                width: "1rem", 
+                                height: "1rem", 
+                                marginRight: "0.5rem" 
+                              }} />
+                              Lịch khám khả dụng ({schedules.length})
+                            </h4>
+                          </div>
 
-                          {/* Render future schedules first */}
-                          {futureSchedules.map((schedule) => {
+                          {/* Render only future schedules */}
+                          {schedules.map((schedule) => {
                             const { date, dayName, time } = formatScheduleTime(
                               schedule.scheduledTime
                             );
@@ -798,100 +773,6 @@ const Appointment = () => {
                                   }}
                                 >
                                   Còn trống
-                                </div>
-                              </button>
-                            );
-                          })}
-                          
-                          {/* Section header for past schedules */}
-                          {pastSchedules.length > 0 && (
-                            <div style={{
-                              gridColumn: "1 / -1",
-                              padding: "0.5rem 0",
-                              borderBottom: "2px solid #e5e7eb",
-                              marginTop: futureSchedules.length > 0 ? "1rem" : "0",
-                              marginBottom: "0.75rem"
-                            }}>
-                              <h4 style={{
-                                fontSize: "0.875rem",
-                                fontWeight: "600",
-                                color: "#6b7280",
-                                margin: 0,
-                                display: "flex",
-                                alignItems: "center"
-                              }}>
-                                <Clock style={{ 
-                                  width: "1rem", 
-                                  height: "1rem", 
-                                  marginRight: "0.5rem" 
-                                }} />
-                                Lịch khám đã qua ({pastSchedules.length})
-                              </h4>
-                            </div>
-                          )}
-
-                          {/* Show past schedules (within 3 days) with disabled state */}
-                          {pastSchedules.map((schedule) => {
-                            const { date, dayName, time } = formatScheduleTime(
-                              schedule.scheduledTime
-                            );
-
-                            return (
-                              <button
-                                key={schedule.scheduleId}
-                                type="button"
-                                disabled={true}
-                                style={{
-                                  padding: "0.75rem 1rem",
-                                  borderRadius: "0.5rem",
-                                  fontWeight: "500",
-                                  textAlign: "center",
-                                  border: "2px solid transparent",
-                                  cursor: "not-allowed",
-                                  backgroundColor: "#f3f4f6",
-                                  color: "#6b7280",
-                                  opacity: 0.6,
-                                  fontSize: "0.875rem",
-                                  transition: "all 0.2s",
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    fontSize: "1.125rem",
-                                    fontWeight: "bold",
-                                    textDecoration: "line-through",
-                                  }}
-                                >
-                                  {date.getDate()}/{date.getMonth() + 1}
-                                </div>
-                                <div style={{ fontSize: "0.875rem" }}>
-                                  {dayName}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    marginTop: "0.25rem",
-                                  }}
-                                >
-                                  {time}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    color: "#6b7280",
-                                  }}
-                                >
-                                  Phòng {schedule.room || "N/A"}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    marginTop: "0.25rem",
-                                    color: "#dc2626",
-                                    fontWeight: "600"
-                                  }}
-                                >
-                                  Đã qua
                                 </div>
                               </button>
                             );
