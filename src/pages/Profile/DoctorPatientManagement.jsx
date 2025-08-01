@@ -492,7 +492,7 @@ export default function DoctorPatientManagement() {
               <>
                 {/* Patient Info */}
                 <div className="patient-info-section">
-                  <h3>🗎 Thông Tin Bệnh Nhân</h3>
+                  <h3>Thông Tin Bệnh Nhân</h3>
                   <div className="patient-detail-grid">
                     <div className="info-item">
                       <span className="info-label">Họ tên:</span>
@@ -529,7 +529,7 @@ export default function DoctorPatientManagement() {
 
                 {/* Appointments */}
                 <div className="info-section-admin">
-                  <h3>📅 Lịch Hẹn Khám</h3>
+                  <h3>Lịch Hẹn Khám</h3>
                   {patientHistory?.appointments?.length > 0 ? (
                     <div className="appointment-list">
                       {patientHistory.appointments.map((appointment) => (
@@ -563,8 +563,7 @@ export default function DoctorPatientManagement() {
                           {appointment.status === "CANCELLED" &&
                             appointment.note?.includes("bác sĩ mới") && (
                               <div className="transfer-warning">
-                                ⚠️ Lịch hẹn này đã bị hủy tự động do bệnh
-                                nhânchuyển sang bác sĩ khác
+                                Lịch hẹn này đã bị hủy tự động do bệnh nhân chuyển sang bác sĩ khác
                               </div>
                             )}
                         </div>
@@ -578,7 +577,7 @@ export default function DoctorPatientManagement() {
                 {/* Examinations - Hiển thị cho cả hai tab */}
                 <div className="info-section-admin">
                   <div className="section-header-no-border">
-                    <h3>🔬 Kết Quả Xét Nghiệm</h3>
+                    <h3>Kết Quả Xét Nghiệm</h3>
                     {!patientHistory?.viewOnly && ( // Chỉ hiện nút khi không phải viewOnly
                       <button
                         className="btn-add-small"
