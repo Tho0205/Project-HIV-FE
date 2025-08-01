@@ -49,6 +49,7 @@ const AppointmentHistory = () => {
     setError(null);
     try {
       const patientData = await appointmentService.getPatientInfo(patientId);
+      console.log("dâta " + patientData.gender);
       if (!patientData) {
         throw new Error(
           `Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`
@@ -245,17 +246,35 @@ const AppointmentHistory = () => {
     return (
       <div className="container">
         <div className="sidebar-Profile">
-          <Sidebar active="consultation"/>
+          <Sidebar active="consultation" />
         </div>
         <section className="profile">
-          <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
-            <div style={{ animation: 'spin 1s linear infinite', borderRadius: '9999px', height: '3rem', width: '3rem', borderBottom: '2px solid #00c497' }}></div>
-            <span style={{ marginLeft: '0.75rem', color: '#4b5563' }}>Đang tải lịch sử khám...</span>
-            </div>
-      </section>
-    </div>
-  );
-}
+          <div
+            className="card"
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: "3rem 0",
+            }}
+          >
+            <div
+              style={{
+                animation: "spin 1s linear infinite",
+                borderRadius: "9999px",
+                height: "3rem",
+                width: "3rem",
+                borderBottom: "2px solid #00c497",
+              }}
+            ></div>
+            <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>
+              Đang tải lịch sử khám...
+            </span>
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -298,7 +317,7 @@ const AppointmentHistory = () => {
               Đang tải lịch sử khám...
             </span>
           </div>
-         </div>
+        </div>
       </div>
     );
   }
@@ -357,13 +376,15 @@ const AppointmentHistory = () => {
               <strong>{patientInfo.fullName || "Chưa cập nhật"}</strong>
               <p>#{patientInfo.userId}</p>
               <p>{patientInfo.phone || "Chưa cập nhật"}</p>
-              <p>
+              <p>{patientInfo.role || "Chưa cập nhật"}</p>
+
+              {/* <p>
                 {patientInfo.gender === "Male"
                   ? "Nam"
                   : patientInfo.gender === "Female"
                   ? "Nữ"
                   : "Chưa cập nhật"}
-              </p>
+              </p> */}
             </div>
           </div>
         )}
@@ -629,12 +650,14 @@ const AppointmentHistory = () => {
                         </div>
                       )}
                       {appointment.displayStatus === "pending" && (
-                        <div style={{
-                           fontSize: "0.75rem",
-                           color: "#6b7280",
-                           fontStyle: "italic",
-                          textAlign: "right"
-                        }}>
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "#6b7280",
+                            fontStyle: "italic",
+                            textAlign: "right",
+                          }}
+                        >
                           Đang chờ xác nhận từ phía bệnh viện
                         </div>
                       )}
