@@ -650,7 +650,7 @@ const AppointmentManagement = () => {
     setPage(1);
   }
 
-  // Quick status change - Simplified for confirm/cancel only
+  // Quick status change - Updated to only change status, no longer creates Examination/Protocol
   async function handleQuickStatusChange(appointment, newStatus) {
     let actionText = "";
     let confirmMessage = "";
@@ -658,7 +658,7 @@ const AppointmentManagement = () => {
     switch (newStatus) {
       case "CONFIRMED":
         actionText = "xác nhận";
-        confirmMessage = "Bạn có chắc chắn muốn xác nhận lịch khám này?";
+        confirmMessage = "Bạn có chắc chắn muốn xác nhận lịch khám này? (Lưu ý: Examination và CustomizedArvProtocol sẽ được tạo khi staff thực hiện check-in)";
         break;
       case "CANCELLED":
         actionText = "hủy";
@@ -676,12 +676,21 @@ const AppointmentManagement = () => {
       async () => {
         closePopup();
         try {
+          // Chỉ cập nhật status, không tạo examination và customizedArvProtocol nữa
           await appointmentService.updateAppointmentStatus(
             appointment.appointmentId,
             newStatus,
             null
           );
-          showPopup("Thành công", `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} lịch khám thành công!`, "success");
+          
+          let successMessage = "";
+          if (newStatus === "CONFIRMED") {
+            successMessage = "Xác nhận lịch khám thành công!";
+          } else {
+            successMessage = `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} lịch khám thành công!`;
+          }
+          
+          showPopup("Thành công", successMessage, "success");
           fetchAppointments(page, sort, searchTerm, statusFilter);
         } catch (err) {
           showPopup(
