@@ -66,3 +66,17 @@ export const getMedicalRecordsByPatient = async (patientId) => {
   if (response.status === 204) return [];
   return await response.json().catch(() => []);
 };
+
+// Lấy danh sách bệnh nhân của doctor
+export const getDoctorPatients = async (doctorId) => {
+  const response = await apiRequest(`${API_BASE}/doctor/${doctorId}/patients`);
+  if (response.status === 204) return [];
+  return await response.json().catch(() => []);
+};
+
+// Lấy medical records của 1 bệnh nhân cho doctor
+export const getPatientRecordsForDoctor = async (doctorId, patientId) => {
+  const response = await apiRequest(`${API_BASE}/doctor/${doctorId}/patient/${patientId}`);
+  if (response.status === 204) return [];
+  return await response.json().catch(() => []);
+};
