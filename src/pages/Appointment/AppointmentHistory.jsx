@@ -811,12 +811,14 @@ const AppointmentHistory = () => {
                         )}
 
                         {appointment.displayStatus === "pending" && (
-                          <div style={{
-                             fontSize: "0.75rem",
-                             color: "#6b7280",
-                             fontStyle: "italic",
-                            textAlign: "right"
-                          }}>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#6b7280",
+                              fontStyle: "italic",
+                              textAlign: "right",
+                            }}
+                          >
                             Đang chờ xác nhận từ phía bệnh viện
                           </div>
                         )}
