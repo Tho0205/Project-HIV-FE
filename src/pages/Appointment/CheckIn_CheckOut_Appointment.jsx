@@ -714,15 +714,21 @@ const StaffCheckinCheckout = () => {
   };
 
   // Format time
-  function formatTime(dateStr) {
-    if (!dateStr) return "-";
-    const d = new Date(dateStr);
-    if (isNaN(d)) return "-";
-    return d.toLocaleTimeString("vi-VN", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+  // Format time with SA/CH indicator
+function formatTime(dateStr) {
+  if (!dateStr) return "-";
+  const d = new Date(dateStr);
+  if (isNaN(d)) return "-";
+  
+  const hours = d.getHours();
+  const minutes = d.getMinutes();
+  const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  
+  // Determine if it's morning (SA) or afternoon (CH)
+  const period = hours < 12 ? 'SA' : 'CH';
+  
+  return `${timeString} ${period}`;
+}
 
   return (
     <div style={wrapperStyle}>

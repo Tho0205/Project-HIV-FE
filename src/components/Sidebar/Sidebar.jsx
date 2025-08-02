@@ -53,7 +53,7 @@ export default function Sidebar({ active }) {
               <li className={active === "appointment" ? "active" : ""}>
                 <Link to="/Appointment-Management">
                   <span className="icon">📅</span>
-                  <span>Quản Lí Lịch Đặt Khám</span>
+                  <span>Xác Nhận Lịch Hẹn</span>
                 </Link>
               </li>
               {/* NEW: Check-in/Check-out Menu Item */}

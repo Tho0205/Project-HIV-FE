@@ -145,32 +145,58 @@ export const getDoctorSchedulesApi = async (doctorId) => {
 };
 
 // Create new appointment
+// Fixed createAppointmentApi function
 export const createAppointmentApi = async (appointmentData) => {
   try {
-    console.log("🚀 Creating appointment with data:", appointmentData);
+    console.log("\n🚀 === CREATE APPOINTMENT API ===");
+    console.log("Input appointmentData:", appointmentData);
+    console.log("appointmentDate type:", typeof appointmentData.appointmentDate);
+    console.log("appointmentDate value:", appointmentData.appointmentDate);
+    
+    // Nếu appointmentDate là Date object, cần convert cẩn thận
+    let finalAppointmentData = { ...appointmentData };
+    
+    if (appointmentData.appointmentDate instanceof Date) {
+      console.log("⚠️ appointmentDate is Date object, converting...");
+      finalAppointmentData.appointmentDate = appointmentData.appointmentDate.toISOString();
+    } else if (typeof appointmentData.appointmentDate === 'string') {
+      console.log("✅ appointmentDate is already string");
+      // Giữ nguyên string format
+      finalAppointmentData.appointmentDate = appointmentData.appointmentDate;
+    } else {
+      console.warn("⚠️ Unknown appointmentDate type, converting to string");
+      finalAppointmentData.appointmentDate = String(appointmentData.appointmentDate);
+    }
+    
+    console.log("📤 Final data to send:", finalAppointmentData);
     
     const response = await fetch(`${API_BASE_URL}/Appointment/create`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(appointmentData),
+      body: JSON.stringify(finalAppointmentData),
     });
 
-    console.log("📡 Create appointment response status:", response.status);
+    console.log("📡 Response status:", response.status);
+    console.log("📡 Response headers:", Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("❌ Create appointment error:", errorText);
+      console.error("❌ API Error Response:", errorText);
       throw new Error(errorText || "Không thể tạo lịch hẹn");
     }
 
-    // Backend returns text "create success", not JSON
+    // Backend trả về text "create success", không phải JSON
     const result = await response.text();
-    console.log("✅ Appointment created successfully:", result);
+    console.log("✅ API Success Response:", result);
+    
+    // Log để kiểm tra xem appointment có được tạo đúng không
+    console.log("🎯 Appointment should be created with appointmentDate:", finalAppointmentData.appointmentDate);
+    
     return result;
   } catch (error) {
-    console.error("💥 Error creating appointment:", error);
+    console.error("💥 Error in createAppointmentApi:", error);
     throw error;
   }
 };
