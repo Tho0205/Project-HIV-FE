@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getMedicalRecordsByDoctor, getMedicalRecordDetail } from "../../services/medicalRecordService";
 import { tokenManager } from "../../services/account";
 import "./MedicalRecordPage.css";
-import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
+import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor"; // Import đúng component
 
 const DoctorMedicalRecordPage = () => {
   const [records, setRecords] = useState([]);
@@ -59,7 +59,7 @@ const DoctorMedicalRecordPage = () => {
 
   return (
     <div className="container">
-      <SidebarDoctor active="Doctor-MedicalRecord"/>
+      <SidebarDoctor active="Doctor-MedicalRecord"/> {/* Sử dụng active đúng */}
       <div className="medi-content">
         <div className="medi-header">
           <h2 className="medi-title">Hồ sơ bệnh nhân bạn phụ trách</h2>
@@ -203,15 +203,6 @@ const DoctorMedicalRecordPage = () => {
                             <h5>Danh sách thuốc ARV:</h5>
                             {selectedRecord.customizedProtocol.arvDetails?.length > 0 ? (
                               <div className="arv-cards">
-                                {/* 
-                                  Thông tin ARV được lấy từ chuỗi quan hệ:
-                                  1. MedicalRecord có CustomProtocolId
-                                  2. CustomProtocolId liên kết với bảng CustomizedArvProtocol
-                                  3. CustomizedArvProtocol có danh sách Details (CustomizedArvProtocolDetail)
-                                  4. Mỗi CustomizedArvProtocolDetail có ArvId liên kết với bảng ARV
-                                  5. Từ bảng ARV lấy thông tin: Name, Description
-                                  6. Từ CustomizedArvProtocolDetail lấy: Dosage, UsageInstruction
-                                */}
                                 {selectedRecord.customizedProtocol.arvDetails.map((arv) => (
                                   <div key={arv.arvId} className="arv-card">
                                     <div className="arv-name">{arv.arvName || "Không tên"}</div>
