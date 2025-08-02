@@ -208,68 +208,101 @@ const Appointment = () => {
     }
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ // Handle form submission - HOÀN TOÀN SỬA LẠI
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const userId = tokenManager.getCurrentUserId();
+  const userId = tokenManager.getCurrentUserId();
 
-    if (!userId || !currentPatientInfo) {
-      showError("Vui lòng đăng nhập để đặt lịch khám");
-      return;
-    }
+  if (!userId || !currentPatientInfo) {
+    showError("Vui lòng đăng nhập để đặt lịch khám");
+    return;
+  }
 
-    if (!selectedScheduleId) {
-      showError("Vui lòng chọn thời gian khám");
-      return;
-    }
+  if (!selectedScheduleId) {
+    showError("Vui lòng chọn thời gian khám");
+    return;
+  }
 
-    if (!termsAccepted) {
-      showError("Vui lòng đồng ý với điều khoản sử dụng");
-      return;
-    }
+  if (!termsAccepted) {
+    showError("Vui lòng đồng ý với điều khoản sử dụng");
+    return;
+  }
 
-    const selectedSchedule = schedules.find(
-      (s) => s.scheduleId === selectedScheduleId
-    );
-    
-    if (!selectedSchedule) {
-      showError("Lịch khám đã chọn không hợp lệ");
-      return;
-    }
+  const selectedSchedule = schedules.find(
+    (s) => s.scheduleId === selectedScheduleId
+  );
+  
+  if (!selectedSchedule) {
+    showError("Lịch khám đã chọn không hợp lệ");
+    return;
+  }
 
-    const appointmentDate = new Date(selectedSchedule.scheduledTime);
+  // ================== QUAN TRỌNG: XỬ LÝ THỜI GIAN ==================
+  console.log("\n🔍 === TIMEZONE DEBUGGING ===");
+  console.log("Selected schedule object:", selectedSchedule);
+  console.log("Original scheduledTime:", selectedSchedule.scheduledTime);
+  console.log("Type of scheduledTime:", typeof selectedSchedule.scheduledTime);
+  
+  // Tạo Date object để kiểm tra
+  const testDate = new Date(selectedSchedule.scheduledTime);
+  console.log("Date object:", testDate);
+  console.log("getHours():", testDate.getHours());
+  console.log("getMinutes():", testDate.getMinutes());
+  console.log("toLocaleString():", testDate.toLocaleString());
+  console.log("toISOString():", testDate.toISOString());
+  console.log("getTimezoneOffset():", testDate.getTimezoneOffset());
 
-    // Additional check: prevent booking past appointments
-    if (isSchedulePast(selectedSchedule.scheduledTime)) {
-      showError("Không thể đặt lịch cho thời gian đã qua");
-      return;
-    }
+  // Additional check: prevent booking past appointments
+  if (isSchedulePast(selectedSchedule.scheduledTime)) {
+    showError("Không thể đặt lịch cho thời gian đã qua");
+    return;
+  }
 
-    const formData = {
-      patientId: parseInt(userId),
-      scheduleId: parseInt(selectedScheduleId),
-      doctorId: parseInt(selectedDoctorId),
-      note: note || null,
-      isAnonymous: isAnonymous,
-      appointmentDate: appointmentDate.toISOString(),
-    };
+  // ================== GỬI ĐÚNG THỜI GIAN GỐC ==================
+  // KHÔNG tạo Date object mới, sử dụng trực tiếp giá trị từ schedule
+  let appointmentDateValue = selectedSchedule.scheduledTime;
+  
+  // Nếu backend mong đợi string format cụ thể, kiểm tra và convert
+  if (typeof appointmentDateValue !== 'string') {
+    appointmentDateValue = appointmentDateValue.toString();
+  }
 
-    try {
-      setLoading(true);
-      await createAppointmentApi(formData);
-      setShowSuccessModal(true);
+  console.log("Final appointmentDate to send:", appointmentDateValue);
 
-      // Reset form
-      resetForm();
-      window.location.reload(); 
-    } catch (error) {
-      console.error("Error:", error);
-      showError(error.message || "Không thể đặt lịch hẹn. Vui lòng thử lại!");
-    } finally {
-      setLoading(false);
-    }
+  const formData = {
+    patientId: parseInt(userId),
+    scheduleId: parseInt(selectedScheduleId),
+    doctorId: parseInt(selectedDoctorId),
+    note: note || null,
+    isAnonymous: isAnonymous,
+    appointmentDate: appointmentDateValue, // SỬ DỤNG GIÁ TRỊ GỐC KHÔNG CONVERT
   };
+
+  console.log("\n📤 Final form data being sent:");
+  console.log(JSON.stringify(formData, null, 2));
+
+  try {
+    setLoading(true);
+    
+    console.log("🚀 Calling createAppointmentApi...");
+    const result = await createAppointmentApi(formData);
+    console.log("✅ API Response:", result);
+    
+    setShowSuccessModal(true);
+
+    // Reset form
+    resetForm();
+    
+    // Thay vì reload, chỉ reset state để debug
+    // window.location.reload(); 
+  } catch (error) {
+    console.error("❌ Error creating appointment:", error);
+    showError(error.message || "Không thể đặt lịch hẹn. Vui lòng thử lại!");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Reset form
   const resetForm = () => {
@@ -304,15 +337,27 @@ const Appointment = () => {
   };
 
   const formatScheduleTime = (dateString) => {
-    const date = new Date(dateString);
-    const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-    const dayName = dayNames[date.getDay()];
-    const time = `${date.getHours()}:${date
-      .getMinutes()
-      .toString()
-      .padStart(2, "0")}`;
-    return { date, dayName, time };
-  };
+  // Tạo Date object và đảm bảo hiển thị theo local timezone
+  const date = new Date(dateString);
+  
+  // Debug log để check giá trị
+  console.log("Original dateString:", dateString);
+  console.log("Parsed date:", date);
+  console.log("Local time:", date.toLocaleString());
+  
+  const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  const dayName = dayNames[date.getDay()];
+  
+  // Sử dụng local time thay vì UTC
+  const time = `${date.getHours().toString().padStart(2, "0")}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}`;
+    
+  console.log("Formatted time:", time);
+  
+  return { date, dayName, time };
+};
 
   const isSchedulePast = (dateString) => {
     return new Date(dateString) < new Date();

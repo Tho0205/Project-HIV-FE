@@ -45,13 +45,36 @@ const AppointmentHistory = () => {
     setPatientId(numericUserId);
   }, []);
 
+  // Helper function to format time with SA/CH
+  const formatTimeWithPeriod = (timeString) => {
+    if (!timeString) return { time: timeString, period: "", periodColor: "", periodBgColor: "" };
+    
+    // Extract hour from time string (assumes format like "14:30")
+    const [hours] = timeString.split(':');
+    const hour = parseInt(hours, 10);
+    
+    if (isNaN(hour)) return { time: timeString, period: "", periodColor: "", periodBgColor: "" };
+    
+    const period = hour < 12 ? 'SA' : 'CH';
+    const periodColor = hour < 12 ? '#f59e0b' : '#ef4444';
+    const periodBgColor = hour < 12 ? '#fef3c7' : '#fee2e2';
+    const periodBorderColor = hour < 12 ? '#fbbf24' : '#f87171';
+    
+    return {
+      time: timeString,
+      period,
+      periodColor,
+      periodBgColor,
+      periodBorderColor
+    };
+  };
+
   const fetchAppointmentHistory = useCallback(async () => {
     if (!patientId) return;
     setLoading(true);
     setError(null);
     try {
       const patientData = await appointmentService.getPatientInfo(patientId);
-      console.log("dâta " + patientData.gender);
       if (!patientData) {
         throw new Error(
           `Không tìm thấy thông tin bệnh nhân cho patientId: ${patientId}`
@@ -116,21 +139,37 @@ const AppointmentHistory = () => {
           })
       );
 
-      // Sort after Promise.all resolves
+      // Enhanced sorting: prioritize new appointments and important statuses
       patientAppointments.sort((a, b) => {
-        // Đặt lịch hẹn "Chờ xác nhận hoàn thành" lên đầu
+        // 1. Ưu tiên lịch hẹn "Chờ xác nhận hoàn thành" lên đầu tiên
         const aIsAwaitingConfirm = a.status === "CHECKED_OUT";
         const bIsAwaitingConfirm = b.status === "CHECKED_OUT";
         
         if (aIsAwaitingConfirm && !bIsAwaitingConfirm) return -1;
         if (!aIsAwaitingConfirm && bIsAwaitingConfirm) return 1;
         
-        // Nếu cùng loại thì sắp xếp theo thời gian
-        return new Date(b.appointmentDate || b.createdAt) - 
-               new Date(a.appointmentDate || a.createdAt);
+        // 2. Ưu tiên các lịch hẹn mới đặt (SCHEDULED/CONFIRMED) lên trước
+        const aIsNew = ["SCHEDULED", "CONFIRMED"].includes(a.status);
+        const bIsNew = ["SCHEDULED", "CONFIRMED"].includes(b.status);
+        
+        if (aIsNew && !bIsNew) return -1;
+        if (!aIsNew && bIsNew) return 1;
+        
+        // 3. Ưu tiên lịch hẹn đang diễn ra (CHECKED_IN)
+        const aIsInProgress = a.status === "CHECKED_IN";
+        const bIsInProgress = b.status === "CHECKED_IN";
+        
+        if (aIsInProgress && !bIsInProgress) return -1;
+        if (!aIsInProgress && bIsInProgress) return 1;
+        
+        // 4. Sắp xếp theo thời gian đặt hẹn (mới nhất trước)
+        const aDate = new Date(a.appointmentDate || a.createdAt);
+        const bDate = new Date(b.appointmentDate || b.createdAt);
+        
+        return bDate - aDate;
       });
 
-      console.log("Patient appointments:", patientAppointments);
+      console.log("Patient appointments (sorted):", patientAppointments);
       setAppointments(patientAppointments);
     } catch (err) {
       console.error("Error fetching appointment history:", err);
@@ -337,83 +376,17 @@ const AppointmentHistory = () => {
     return (
       <div className="container">
         <div className="sidebar-Profile">
-          <Sidebar active="consultation" />
+          <Sidebar active="consultation"/>
         </div>
         <section className="profile">
-          <div
-            className="card"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "3rem 0",
-            }}
-          >
-            <div
-              style={{
-                animation: "spin 1s linear infinite",
-                borderRadius: "9999px",
-                height: "3rem",
-                width: "3rem",
-                borderBottom: "2px solid #00c497",
-              }}
-            ></div>
-            <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>
-              Đang tải lịch sử khám...
-            </span>
-          </div>
-        </section>
-      </div>
-    );
-  }
-
-
-  if (loading) {
-    return (
-      <div
-        style={{
-          maxWidth: "1152px",
-          margin: "0 auto",
-          padding: "1.5rem",
-          backgroundColor: "#f9fafb",
-          minHeight: "100vh",
-        }}
-      >
-        <div
-          style={{
-            backgroundColor: "#ffffff",
-            borderRadius: "0.5rem",
-            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-            padding: "1.5rem",
-          }}
-        >
-          <div
-            className="card"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "3rem 0",
-            }}
-          >
-            <div
-              style={{
-                animation: "spin 1s linear infinite",
-                borderRadius: "9999px",
-                height: "3rem",
-                width: "3rem",
-                borderBottom: "2px solid #00c497",
-              }}
-            ></div>
-            <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>
-              Đang tải lịch sử khám...
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+          <div className="card" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '3rem 0' }}>
+            <div style={{ animation: 'spin 1s linear infinite', borderRadius: '9999px', height: '3rem', width: '3rem', borderBottom: '2px solid #00c497' }}></div>
+            <span style={{ marginLeft: '0.75rem', color: '#4b5563' }}>Đang tải lịch sử khám...</span>
+            </div>
+      </section>
+    </div>
+  );
+}
 
   if (error) {
     return (
@@ -469,15 +442,13 @@ const AppointmentHistory = () => {
               <strong>{patientInfo.fullName || "Chưa cập nhật"}</strong>
               <p>#{patientInfo.userId}</p>
               <p>{patientInfo.phone || "Chưa cập nhật"}</p>
-              <p>{patientInfo.role || "Chưa cập nhật"}</p>
-
-              {/* <p>
+              <p>
                 {patientInfo.gender === "Male"
                   ? "Nam"
                   : patientInfo.gender === "Female"
                   ? "Nữ"
                   : "Chưa cập nhật"}
-              </p> */}
+              </p>
             </div>
           </div>
         )}
@@ -607,238 +578,268 @@ const AppointmentHistory = () => {
                 <p>Không tìm thấy lịch hẹn nào</p>
               </div>
             ) : (
-              currentAppointments.map((appointment) => (
-                <div
-                  key={appointment.appointmentId}
-                  className="card"
-                  style={{ padding: "1.5rem", marginBottom: "1rem" }}
-                >
+              currentAppointments.map((appointment) => {
+                const timeInfo = formatTimeWithPeriod(appointment.formattedDate.time);
+                
+                return (
                   <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: "1rem",
+                    key={appointment.appointmentId}
+                    className="card"
+                    style={{ 
+                      padding: "1.5rem", 
+                      marginBottom: "1rem",
+                      backgroundColor: appointment.status === "CHECKED_OUT" ? 
+                                     "#fef7f0" : "white"
                     }}
                   >
-                    <div style={{ flex: 1 }}>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                          marginBottom: "0.5rem",
-                        }}
-                      >
-                        <User
-                          style={{
-                            width: "1.25rem",
-                            height: "1.25rem",
-                            color: "#4b5563",
-                          }}
-                        />
-                        <h3
-                          style={{
-                            fontSize: "1.125rem",
-                            fontWeight: "600",
-                            color: "#1f2937",
-                          }}
-                        >
-                          {appointment.doctorName}
-                        </h3>
-                        {appointment.doctorSpecialty && (
-                          <span
-                            style={{ fontSize: "0.875rem", color: "#6b7280" }}
-                          >
-                            • {appointment.doctorSpecialty}
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        style={{
-                          marginTop: "0.25rem",
-                          fontSize: "0.875rem",
-                          color: "#4b5563",
-                        }}
-                      >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "1rem",
+                      }}
+                    >
+                      <div style={{ flex: 1 }}>
                         <div
                           style={{
                             display: "flex",
                             alignItems: "center",
                             gap: "0.5rem",
+                            marginBottom: "0.5rem",
                           }}
                         >
-                          <Calendar style={{ width: "1rem", height: "1rem" }} />
-                          <span>
-                            {appointment.formattedDate.dayName},{" "}
-                            {appointment.formattedDate.date}
-                          </span>
-                          <Clock
+                          <User
                             style={{
-                              width: "1rem",
-                              height: "1rem",
-                              marginLeft: "0.5rem",
+                              width: "1.25rem",
+                              height: "1.25rem",
+                              color: "#4b5563",
                             }}
                           />
-                          <span>{appointment.formattedDate.time}</span>
+                          <h3
+                            style={{
+                              fontSize: "1.125rem",
+                              fontWeight: "600",
+                              color: "#1f2937",
+                            }}
+                          >
+                            {appointment.doctorName}
+                          </h3>
+                          {appointment.doctorSpecialty && (
+                            <span
+                              style={{ fontSize: "0.875rem", color: "#6b7280" }}
+                            >
+                              • {appointment.doctorSpecialty}
+                            </span>
+                          )}
                         </div>
-                        {appointment.roomInfo && (
+                        <div
+                          style={{
+                            marginTop: "0.25rem",
+                            fontSize: "0.875rem",
+                            color: "#4b5563",
+                          }}
+                        >
                           <div
                             style={{
                               display: "flex",
                               alignItems: "center",
                               gap: "0.5rem",
-                              marginTop: "0.25rem",
                             }}
                           >
-                            <div
+                            <Calendar style={{ width: "1rem", height: "1rem" }} />
+                            <span>
+                              {appointment.formattedDate.dayName},{" "}
+                              {appointment.formattedDate.date}
+                            </span>
+                            <Clock
                               style={{
                                 width: "1rem",
                                 height: "1rem",
-                                backgroundColor: "#e5e7eb",
-                                borderRadius: "2px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "0.6rem",
-                                fontWeight: "bold",
-                                color: "#6b7280",
+                                marginLeft: "0.5rem",
                               }}
-                            >
-                              P
-                            </div>
-                            <span style={{ fontWeight: "500", color: "#374151" }}>
-                              {appointment.roomInfo}
+                            />
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                              <span>{timeInfo.time}</span>
+                              {timeInfo.period && (
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                    fontWeight: "bold",
+                                    color: timeInfo.periodColor,
+                                    backgroundColor: timeInfo.periodBgColor,
+                                    padding: "1px 4px",
+                                    borderRadius: "3px",
+                                    border: `1px solid ${timeInfo.periodBorderColor}`,
+                                    minWidth: "20px",
+                                    textAlign: "center"
+                                  }}
+                                >
+                                  {timeInfo.period}
+                                </span>
+                              )}
                             </span>
                           </div>
-                        )}
-                        {appointment.note && (
+                          {appointment.roomInfo && (
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.5rem",
+                                marginTop: "0.25rem",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: "1rem",
+                                  height: "1rem",
+                                  backgroundColor: "#e5e7eb",
+                                  borderRadius: "2px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "0.6rem",
+                                  fontWeight: "bold",
+                                  color: "#6b7280",
+                                }}
+                              >
+                                P
+                              </div>
+                              <span style={{ fontWeight: "500", color: "#374151" }}>
+                                {appointment.roomInfo}
+                              </span>
+                            </div>
+                          )}
+                          {appointment.note && (
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "flex-start",
+                                gap: "0.5rem",
+                                marginTop: "0.25rem",
+                              }}
+                            >
+                              <FileText
+                                style={{
+                                  width: "1rem",
+                                  height: "1rem",
+                                  marginTop: "0.125rem",
+                                }}
+                              />
+                              <span>{appointment.note}</span>
+                            </div>
+                          )}
                           <div
                             style={{
                               display: "flex",
-                              alignItems: "flex-start",
-                              gap: "0.5rem",
+                              alignItems: "center",
+                              gap: "1rem",
+                              fontSize: "0.75rem",
+                              color: "#6b7280",
                               marginTop: "0.25rem",
                             }}
                           >
-                            <FileText
-                              style={{
-                                width: "1rem",
-                                height: "1rem",
-                                marginTop: "0.125rem",
-                              }}
-                            />
-                            <span>{appointment.note}</span>
+                            {appointment.isAnonymous && (
+                              <span style={{ fontStyle: "italic" }}>
+                                • Đặt lịch ẩn danh
+                              </span>
+                            )}
                           </div>
-                        )}
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "1rem",
-                            fontSize: "0.75rem",
-                            color: "#6b7280",
-                            marginTop: "0.25rem",
-                          }}
-                        >
-                          {appointment.isAnonymous && (
-                            <span style={{ fontStyle: "italic" }}>
-                              • Đặt lịch ẩn danh
-                            </span>
-                          )}
                         </div>
                       </div>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-end",
-                        gap: "0.5rem",
-                      }}
-                    >
-                      <span
+                      <div
                         style={{
-                          padding: "0.25rem 0.75rem",
-                          borderRadius: "9999px",
-                          fontSize: "0.875rem",
-                          fontWeight: "500",
-                          ...getStatusColor(appointment.displayStatus),
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "flex-end",
+                          gap: "0.5rem",
                         }}
                       >
-                        {getStatusText(appointment.displayStatus)}
-                      </span>
-                      
-                      {/* Nút hủy cho lịch hẹn sắp tới và chờ xác nhận */}
-                      {(appointment.displayStatus === "upcoming" || appointment.displayStatus === "pending") && (
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => handleCancelClick(appointment)}
-                            style={cancelButtonStyle}
-                            onMouseEnter={(e) => {
-                              Object.assign(
-                                e.target.style,
-                                cancelButtonHoverStyle
-                              );
-                            }}
-                            onMouseLeave={(e) => {
-                              Object.assign(e.target.style, cancelButtonStyle);
-                            }}
-                          >
-                            Hủy lịch
-                          </button>
-                        </div>
-                      )}
-
-                      {/* Nút xác nhận hoàn thành cho trạng thái CHECKED_OUT */}
-                      {appointment.displayStatus === "awaiting_confirmation" && (
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                          <button
-                            onClick={() => handleConfirmClick(appointment)}
-                            style={confirmButtonStyle}
-                            onMouseEnter={(e) => {
-                              Object.assign(
-                                e.target.style,
-                                confirmButtonHoverStyle
-                              );
-                            }}
-                            onMouseLeave={(e) => {
-                              Object.assign(e.target.style, confirmButtonStyle);
-                            }}
-                          >
-                            <CheckCircle style={{ width: "1rem", height: "1rem" }} />
-                            Xác nhận hoàn thành
-                          </button>
-                        </div>
-                      )}
-
-                      {appointment.displayStatus === "pending" && (
-                        <div
+                        <span
                           style={{
-                            fontSize: "0.75rem",
-                            color: "#6b7280",
-                            fontStyle: "italic",
-                            textAlign: "right",
+                            padding: "0.25rem 0.75rem",
+                            borderRadius: "9999px",
+                            fontSize: "0.875rem",
+                            fontWeight: "500",
+                            ...getStatusColor(appointment.displayStatus),
                           }}
                         >
-                          Đang chờ xác nhận từ phía bệnh viện
-                        </div>
-                      )}
+                          {getStatusText(appointment.displayStatus)}
+                        </span>
+                        
+                        {/* Nút hủy cho lịch hẹn sắp tới và chờ xác nhận */}
+                        {(appointment.displayStatus === "upcoming" || appointment.displayStatus === "pending") && (
+                          <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <button
+                              onClick={() => handleCancelClick(appointment)}
+                              style={cancelButtonStyle}
+                              onMouseEnter={(e) => {
+                                Object.assign(
+                                  e.target.style,
+                                  cancelButtonHoverStyle
+                                );
+                              }}
+                              onMouseLeave={(e) => {
+                                Object.assign(e.target.style, cancelButtonStyle);
+                              }}
+                            >
+                              Hủy lịch
+                            </button>
+                          </div>
+                        )}
 
-                      {appointment.displayStatus === "in_progress" && (
-                        <div style={{
-                           fontSize: "0.75rem",
-                           color: "#d97706",
-                           fontStyle: "italic",
-                          textAlign: "right"
-                        }}>
-                          Đang trong quá trình khám
-                        </div>
-                      )}
+                        {/* Nút xác nhận hoàn thành cho trạng thái CHECKED_OUT */}
+                        {appointment.displayStatus === "awaiting_confirmation" && (
+                          <div style={{ display: "flex", gap: "0.5rem" }}>
+                            <button
+                              onClick={() => handleConfirmClick(appointment)}
+                              style={confirmButtonStyle}
+                              onMouseEnter={(e) => {
+                                Object.assign(
+                                  e.target.style,
+                                  confirmButtonHoverStyle
+                                );
+                              }}
+                              onMouseLeave={(e) => {
+                                Object.assign(e.target.style, confirmButtonStyle);
+                              }}
+                            >
+                              <CheckCircle style={{ width: "1rem", height: "1rem" }} />
+                              Xác nhận hoàn thành
+                            </button>
+                          </div>
+                        )}
+
+                        {appointment.displayStatus === "pending" && (
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#6b7280",
+                              fontStyle: "italic",
+                              textAlign: "right",
+                            }}
+                          >
+                            Đang chờ xác nhận từ phía bệnh viện
+                          </div>
+                        )}
+
+                        {appointment.displayStatus === "in_progress" && (
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#d97706",
+                              fontStyle: "italic",
+                              textAlign: "right",
+                            }}
+                          >
+                            Đang trong quá trình khám
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
           {totalPages > 1 && (
@@ -949,14 +950,36 @@ const AppointmentHistory = () => {
                   <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                     {selectedAppointment.formattedDate.dayName},{" "}
                     {selectedAppointment.formattedDate.date} -{" "}
-                    {selectedAppointment.formattedDate.time}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                      <span>{selectedAppointment.formattedDate.time}</span>
+                      {(() => {
+                        const timeInfo = formatTimeWithPeriod(selectedAppointment.formattedDate.time);
+                        return timeInfo.period ? (
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              fontWeight: "bold",
+                              color: timeInfo.periodColor,
+                              backgroundColor: timeInfo.periodBgColor,
+                              padding: "1px 4px",
+                              borderRadius: "3px",
+                              border: `1px solid ${timeInfo.periodBorderColor}`,
+                              minWidth: "20px",
+                              textAlign: "center"
+                            }}
+                          >
+                            {timeInfo.period}
+                          </span>
+                        ) : null;
+                      })()}
+                    </span>
                     {selectedAppointment.roomInfo && (
                       <span style={{ marginLeft: "0.5rem", color: "#6b7280" }}>
                         • {selectedAppointment.roomInfo}
                       </span>
                     )}
                   </p>
-                                    {selectedAppointment.note && (
+                  {selectedAppointment.note && (
                     <p
                       style={{
                         fontSize: "0.875rem",
@@ -1026,7 +1049,29 @@ const AppointmentHistory = () => {
                   <p style={{ fontSize: "0.875rem", marginTop: "0.25rem" }}>
                     {selectedAppointment.formattedDate.dayName},{" "}
                     {selectedAppointment.formattedDate.date} -{" "}
-                    {selectedAppointment.formattedDate.time}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                      <span>{selectedAppointment.formattedDate.time}</span>
+                      {(() => {
+                        const timeInfo = formatTimeWithPeriod(selectedAppointment.formattedDate.time);
+                        return timeInfo.period ? (
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              fontWeight: "bold",
+                              color: timeInfo.periodColor,
+                              backgroundColor: timeInfo.periodBgColor,
+                              padding: "1px 4px",
+                              borderRadius: "3px",
+                              border: `1px solid ${timeInfo.periodBorderColor}`,
+                              minWidth: "20px",
+                              textAlign: "center"
+                            }}
+                          >
+                            {timeInfo.period}
+                          </span>
+                        ) : null;
+                      })()}
+                    </span>
                     {selectedAppointment.roomInfo && (
                       <span style={{ marginLeft: "0.5rem", color: "#6b7280" }}>
                         • {selectedAppointment.roomInfo}
