@@ -824,12 +824,14 @@ const AppointmentHistory = () => {
                         )}
 
                         {appointment.displayStatus === "in_progress" && (
-                          <div style={{
-                             fontSize: "0.75rem",
-                             color: "#d97706",
-                             fontStyle: "italic",
-                            textAlign: "right"
-                          }}>
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#d97706",
+                              fontStyle: "italic",
+                              textAlign: "right",
+                            }}
+                          >
                             Đang trong quá trình khám
                           </div>
                         )}
