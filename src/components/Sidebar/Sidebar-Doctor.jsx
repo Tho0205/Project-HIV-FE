@@ -48,6 +48,11 @@ export default function SidebarAdmin({ active }) {
               <span>Lịch tư vấn</span>
             </li>
           </Link>
+          <Link to="/Doctor-MedicalRecord" style={{ textDecoration: "none" }}>
+            <li className={active === "Doctor-MedicalRecord" ? "active" : ""}>
+              <span>Hồ sơ bệnh án</span>
+            </li>
+          </Link>
         </ul>
       </div>
     </aside>

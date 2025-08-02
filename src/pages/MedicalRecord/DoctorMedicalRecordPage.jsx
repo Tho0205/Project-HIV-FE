@@ -1,23 +1,62 @@
 import React, { useEffect, useState } from "react";
-import { getMedicalRecordsByDoctor, getMedicalRecordDetail } from "../../services/medicalRecordService";
+import { 
+  getDoctorPatients, 
+  getPatientRecordsForDoctor, 
+  getMedicalRecordDetail 
+} from "../../services/medicalRecordService";
 import { tokenManager } from "../../services/account";
 import "./MedicalRecordPage.css";
 import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 
 const DoctorMedicalRecordPage = () => {
-  const [records, setRecords] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [selectedPatientRecords, setSelectedPatientRecords] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [recordsLoading, setRecordsLoading] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("examination");
+  const [view, setView] = useState("patients"); // "patients" | "records"
   const doctorId = tokenManager.getCurrentUserId();
 
   useEffect(() => {
-    getMedicalRecordsByDoctor(doctorId)
-      .then(setRecords)
-      .catch((err) => console.error("Failed to fetch doctor records", err))
-      .finally(() => setLoading(false));
+    loadDoctorPatients();
   }, [doctorId]);
+
+  const loadDoctorPatients = async () => {
+    setLoading(true);
+    try {
+      const patientsData = await getDoctorPatients(doctorId);
+      setPatients(patientsData);
+    } catch (err) {
+      console.error("Failed to fetch doctor patients", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePatientClick = async (patient) => {
+    setSelectedPatient(patient);
+    setRecordsLoading(true);
+    setView("records");
+    
+    try {
+      const records = await getPatientRecordsForDoctor(doctorId, patient.patientId);
+      setSelectedPatientRecords(records);
+    } catch (err) {
+      console.error("Failed to fetch patient records", err);
+      setSelectedPatientRecords([]);
+    } finally {
+      setRecordsLoading(false);
+    }
+  };
+
+  const handleBackToPatients = () => {
+    setView("patients");
+    setSelectedPatient(null);
+    setSelectedPatientRecords([]);
+  };
 
   const handleViewDetail = async (recordId) => {
     setDetailLoading(true);
@@ -55,6 +94,14 @@ const DoctorMedicalRecordPage = () => {
     return timeString;
   };
 
+  const calculateAge = (birthdate) => {
+    if (!birthdate) return "N/A";
+    const today = new Date();
+    const birth = new Date(birthdate);
+    const age = today.getFullYear() - birth.getFullYear();
+    return age;
+  };
+
   if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>;
 
   return (
@@ -62,48 +109,128 @@ const DoctorMedicalRecordPage = () => {
       <SidebarDoctor active="Doctor-MedicalRecord"/>
       <div className="medi-content">
         <div className="medi-header">
-          <h2 className="medi-title">Hồ sơ bệnh nhân bạn phụ trách</h2>
-        </div>
-
-        <div className="medi-list">
-          {records.length === 0 ? (
-            <div className="medi-empty-message">Không có hồ sơ nào.</div>
+          {view === "patients" ? (
+            <h2 className="medi-title">Danh sách bệnh nhân bạn phụ trách</h2>
           ) : (
-            records.map((r) => (
-              <div key={r.recordId} className="medi-card">
-                <div className="medi-main">
-                  <div>
-                    <h3 className="medi-patient-name">Bệnh nhân: {r.patientName}</h3>
-                    <div className="medi-datetime">
-                      <span className="medi-exam-date">{formatDate(r.examDate)}</span>
-                      <span className="medi-exam-time">{formatTime(r.examTime)}</span>
-                    </div>
-                  </div>
-                  <div className="medi-actions">
-                    <span className={`medi-status ${r.status?.toLowerCase()}`}>
-                      {r.status}
-                    </span>
-                    <button
-                      className="medi-detail-button"
-                      onClick={() => handleViewDetail(r.recordId)}
-                    >
-                      Xem chi tiết
-                    </button>
-                  </div>
-                </div>
-
-                <div className="medi-summary">
-                  {r.summary || (
-                    <span className="medi-no-summary">Không có ghi chú</span>
-                  )}
-                </div>
-              </div>
-            ))
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+              <button 
+                onClick={handleBackToPatients}
+                className="medi-back-button"
+              >
+                ← Quay lại
+              </button>
+              <h2 className="medi-title">
+                Hồ sơ bệnh án - {selectedPatient?.patientName}
+              </h2>
+            </div>
           )}
         </div>
+
+        {view === "patients" ? (
+          // View danh sách bệnh nhân
+          <div className="medi-list">
+            {patients.length === 0 ? (
+              <div className="medi-empty-message">
+                Không có bệnh nhân nào với appointment đã check-in.
+              </div>
+            ) : (
+              patients.map((patient) => (
+                <div 
+                  key={patient.patientId} 
+                  className="medi-patient-card"
+                  onClick={() => handlePatientClick(patient)}
+                >
+                  <div className="patient-main-info">
+                    <div className="patient-basic">
+                      <h3 className="patient-name">{patient.patientName}</h3>
+                      <div className="patient-details">
+                        <span className="patient-age">
+                          {calculateAge(patient.birthdate)} tuổi
+                        </span>
+                        <span className="patient-gender">
+                          {patient.gender}
+                        </span>
+                        {patient.phone && (
+                          <span className="patient-phone">
+                            {patient.phone}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="patient-stats">
+                      <div className="stat-item">
+                        <span className="stat-label">Tổng hồ sơ:</span>
+                        <span className="stat-value">{patient.totalMedicalRecords}</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-label">Lần khám gần nhất:</span>
+                        <span className="stat-value">
+                          {formatDate(patient.lastAppointmentDate)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="patient-action">
+                    <span className="view-records-hint">
+                      Xem hồ sơ →
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          // View medical records của bệnh nhân
+          <div className="medi-list">
+            {recordsLoading ? (
+              <div className="medi-loading">Đang tải hồ sơ bệnh án...</div>
+            ) : selectedPatientRecords.length === 0 ? (
+              <div className="medi-empty-message">
+                Bệnh nhân này chưa có hồ sơ bệnh án nào.
+              </div>
+            ) : (
+              selectedPatientRecords.map((record) => (
+                <div key={record.recordId} className="medi-card">
+                  <div className="medi-main">
+                    <div>
+                      <h3 className="medi-record-title">
+                        Hồ sơ #{record.recordId}
+                      </h3>
+                      <div className="medi-datetime">
+                        <span className="medi-exam-date">
+                          {formatDate(record.examDate)}
+                        </span>
+                        <span className="medi-exam-time">
+                          {formatTime(record.examTime)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="medi-actions">
+                      <span className={`medi-status ${record.status?.toLowerCase()}`}>
+                        {record.status}
+                      </span>
+                      <button
+                        className="medi-detail-button"
+                        onClick={() => handleViewDetail(record.recordId)}
+                      >
+                        Xem chi tiết
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="medi-summary">
+                    {record.summary || (
+                      <span className="medi-no-summary">Không có ghi chú</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
 
-      {/* Modal chi tiết */}
+      {/* Modal chi tiết (giữ nguyên như cũ) */}
       {selectedRecord && (
         <div className="record-detail-modal" onClick={closeModal}>
           <div className="record-detail-content" onClick={(e) => e.stopPropagation()}>
@@ -203,15 +330,6 @@ const DoctorMedicalRecordPage = () => {
                             <h5>Danh sách thuốc ARV:</h5>
                             {selectedRecord.customizedProtocol.arvDetails?.length > 0 ? (
                               <div className="arv-cards">
-                                {/* 
-                                  Thông tin ARV được lấy từ chuỗi quan hệ:
-                                  1. MedicalRecord có CustomProtocolId
-                                  2. CustomProtocolId liên kết với bảng CustomizedArvProtocol
-                                  3. CustomizedArvProtocol có danh sách Details (CustomizedArvProtocolDetail)
-                                  4. Mỗi CustomizedArvProtocolDetail có ArvId liên kết với bảng ARV
-                                  5. Từ bảng ARV lấy thông tin: Name, Description
-                                  6. Từ CustomizedArvProtocolDetail lấy: Dosage, UsageInstruction
-                                */}
                                 {selectedRecord.customizedProtocol.arvDetails.map((arv) => (
                                   <div key={arv.arvId} className="arv-card">
                                     <div className="arv-name">{arv.arvName || "Không tên"}</div>
