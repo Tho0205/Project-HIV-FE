@@ -48,12 +48,14 @@ export default function ManagementDoctorInfo() {
       // Gọi API lấy danh sách doctors
       const doctorData = await doctorInfoService.getAllDoctors();
       console.log("📦 Dữ liệu nhận được từ API:", doctorData);
-      
+
       // Auto-sync users với role Doctor
       try {
         const syncResult = await doctorInfoService.syncDoctorUsers();
         if (syncResult.newDoctorsAdded > 0) {
-          showMessage(`Đã tự động thêm ${syncResult.newDoctorsAdded} bác sĩ mới từ hệ thống`);
+          showMessage(
+            `Đã tự động thêm ${syncResult.newDoctorsAdded} bác sĩ mới từ hệ thống`
+          );
           // Fetch updated data if new doctors were added
           const updatedDoctorData = await doctorInfoService.getAllDoctors();
           if (Array.isArray(updatedDoctorData)) {
@@ -67,7 +69,7 @@ export default function ManagementDoctorInfo() {
       } catch (syncError) {
         console.log("Auto-sync error:", syncError);
       }
-      
+
       if (Array.isArray(doctorData)) {
         setDoctors(doctorData);
       } else {
@@ -153,12 +155,9 @@ export default function ManagementDoctorInfo() {
         status: formData.status,
       };
 
-      await doctorInfoService.updateDoctor(
-        selectedDoctor.doctorId,
-        updateData
-      );
+      await doctorInfoService.updateDoctor(selectedDoctor.doctorId, updateData);
       showMessage("Cập nhật thông tin bác sĩ thành công!");
-      
+
       setShowModal(false);
       resetForm();
       fetchData();
@@ -226,22 +225,26 @@ export default function ManagementDoctorInfo() {
   };
 
   const filteredDoctors = !searchTerm.trim()
-  ? doctors
-  : doctors.filter((doctor) =>
-      (doctor.doctorName &&
-        doctor.doctorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (doctor.degree &&
-        doctor.degree.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (doctor.specialization &&
-        doctor.specialization.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-
+    ? doctors
+    : doctors.filter(
+        (doctor) =>
+          (doctor.doctorName &&
+            doctor.doctorName
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase())) ||
+          (doctor.degree &&
+            doctor.degree.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (doctor.specialization &&
+            doctor.specialization
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()))
+      );
 
   return (
     <div className="wrapper">
       <Sidebar active="doctor" />
 
-      <main className="content">
+      <main className="content-doctor-info">
         <h1 className="title-doctor-info">Quản Lý Thông Tin Bác Sĩ</h1>
 
         {message.text && (
@@ -367,7 +370,8 @@ export default function ManagementDoctorInfo() {
             <div className="form-modal">
               <div className="form-header">
                 <h2>
-                  <FaEdit style={{ marginRight: 6 }} /> Cập Nhật Thông Tin Bác Sĩ
+                  <FaEdit style={{ marginRight: 6 }} /> Cập Nhật Thông Tin Bác
+                  Sĩ
                 </h2>
                 <button
                   className="close-btn"
