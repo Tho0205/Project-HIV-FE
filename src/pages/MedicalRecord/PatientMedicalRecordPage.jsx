@@ -9,94 +9,87 @@ import {
   ChevronRight,
   AlertCircle,
   FileText,
+  Eye,
+  Activity,
+  Stethoscope,
+  Pill,
+  TrendingUp,
+  Heart,
+  ClipboardList,
 } from "lucide-react";
-import hivExaminationService from "../../services/HIVExaminationService";
-import CustomArvProtocolsService from "../../services/CustomArvProtocolsService";
+import { 
+  getMedicalRecordsByPatient, 
+  getMedicalRecordDetail 
+} from "../../services/medicalRecordService";
 import appointmentService from "../../services/Appointment";
 import { tokenManager } from "../../services/account";
 import SidebarProfile from "../../components/SidebarProfile/SidebarProfile";
 
 const PatientMedicalRecordPage = () => {
-  const [examinations, setExaminations] = useState([]);
-  const [protocolHistory, setProtocolHistory] = useState([]);
+  const [medicalRecords, setMedicalRecords] = useState([]);
+  const [selectedRecord, setSelectedRecord] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState(null);
-  const [mainView, setMainView] = useState("examinations"); // "examinations", "protocols"
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [patientInfo, setPatientInfo] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const patientId = tokenManager.getCurrentUserId();
   const itemsPerPage = 5;
 
   useEffect(() => {
     const userId = tokenManager.getCurrentUserId();
     if (!userId) {
-      setError("Vui lòng đăng nhập để xem lịch sử y tế");
+      setError("Vui lòng đăng nhập để xem hồ sơ bệnh án");
       setLoading(false);
       return;
     }
-    const numericUserId = parseInt(userId, 10);
-    if (isNaN(numericUserId)) {
-      setError("ID người dùng không hợp lệ");
-      setLoading(false);
-      return;
-    }
-    loadAllData();
+    loadMedicalRecords();
   }, [patientId]);
 
-  const loadAllData = useCallback(async () => {
+  const loadMedicalRecords = useCallback(async () => {
     if (!patientId) return;
     setLoading(true);
     setError(null);
     try {
-      // Load patient info (similar to AppointmentHistory)
+      // Load patient info
       try {
-        const patientData = await appointmentService.getPatientInfoApi(
-          patientId
-        );
+        const patientData = await appointmentService.getPatientInfoApi(patientId);
         setPatientInfo(patientData);
       } catch (err) {
         console.warn("Could not load patient info:", err);
-        // Set fallback patient info
         setPatientInfo({
           fullName: tokenManager.getCurrentUserName() || "Người dùng",
           userId: patientId,
         });
       }
 
-      // Load Examination History
-      const examinationsPromise = hivExaminationService
-        .getPatientHistory(patientId)
-        .then((response) => (response.success ? response.data : []))
-        .catch((err) => {
-          console.error("Failed to fetch examinations:", err);
-          return [];
-        });
-
-      // Load Protocol History
-      const protocolsPromise =
-        CustomArvProtocolsService.getPatientProtocolHistory(patientId).catch(
-          (err) => {
-            console.error("Failed to fetch protocol history:", err);
-            return [];
-          }
-        );
-
-      const [exams, protocols] = await Promise.all([
-        examinationsPromise,
-        protocolsPromise,
-      ]);
-
-      setExaminations(exams || []);
-      setProtocolHistory(protocols || []);
+      // Load medical records
+      const records = await getMedicalRecordsByPatient(patientId);
+      setMedicalRecords(records || []);
     } catch (error) {
-      console.error("Error loading patient data:", error);
-      setError("Có lỗi xảy ra khi tải dữ liệu y tế. Vui lòng thử lại.");
+      console.error("Error loading medical records:", error);
+      setError("Có lỗi xảy ra khi tải hồ sơ bệnh án. Vui lòng thử lại.");
     } finally {
       setLoading(false);
     }
   }, [patientId]);
+
+  const loadRecordDetail = async (recordId) => {
+    setLoadingDetail(true);
+    try {
+      const detail = await getMedicalRecordDetail(recordId);
+      setSelectedRecord(detail);
+      setShowDetailModal(true);
+    } catch (error) {
+      console.error("Error loading record detail:", error);
+      alert("Không thể tải chi tiết hồ sơ bệnh án");
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "Không có";
@@ -112,6 +105,15 @@ const PatientMedicalRecordPage = () => {
     }
   };
 
+  const formatTime = (timeString) => {
+    if (!timeString) return "Không có";
+    try {
+      return timeString.substring(0, 5);
+    } catch {
+      return timeString;
+    }
+  };
+
   const getStatusStyle = (status) => {
     const baseStyle = {
       padding: "0.25rem 0.75rem",
@@ -120,62 +122,39 @@ const PatientMedicalRecordPage = () => {
       fontWeight: "500",
     };
 
-    if (!status)
-      return { ...baseStyle, backgroundColor: "#f3f4f6", color: "#1f2937" };
+    if (!status) return { ...baseStyle, backgroundColor: "#f3f4f6", color: "#1f2937" };
 
     const statusLower = status.toLowerCase();
-    if (statusLower.includes("active"))
+    if (statusLower === "active")
       return { ...baseStyle, backgroundColor: "#dcfce7", color: "#15803d" };
-    if (statusLower.includes("completed"))
+    if (statusLower === "completed")
       return { ...baseStyle, backgroundColor: "#dbeafe", color: "#1e40af" };
-    if (statusLower.includes("inactive"))
+    if (statusLower === "pending")
       return { ...baseStyle, backgroundColor: "#fef9c3", color: "#a16207" };
-    if (statusLower.includes("cancelled"))
+    if (statusLower === "cancelled")
       return { ...baseStyle, backgroundColor: "#fee2e2", color: "#b91c1c" };
     return { ...baseStyle, backgroundColor: "#f3f4f6", color: "#1f2937" };
   };
 
-  // Filter logic for examinations
-  const filteredExaminations = examinations.filter((exam) => {
+  // Filter logic
+  const filteredRecords = medicalRecords.filter((record) => {
     const matchesSearch =
-      (exam.doctorName &&
-        exam.doctorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (exam.result &&
-        exam.result.toLowerCase().includes(searchTerm.toLowerCase()));
+      (record.doctorName && record.doctorName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (record.summary && record.summary.toLowerCase().includes(searchTerm.toLowerCase()));
 
     let matchesFilter = true;
-    if (filterStatus === "completed") matchesFilter = exam.status === "ACTIVE";
-    else if (filterStatus === "pending")
-      matchesFilter = exam.status !== "ACTIVE";
+    if (filterStatus === "active") matchesFilter = record.status === "ACTIVE";
+    else if (filterStatus === "pending") matchesFilter = record.status === "PENDING";
+    else if (filterStatus === "completed") matchesFilter = record.status === "COMPLETED";
 
     return matchesSearch && matchesFilter;
   });
 
-  // Filter logic for protocols
-  const filteredProtocols = protocolHistory
-  .filter((protocol) => protocol.baseProtocolId != null) // chỉ lấy protocol có base
-  .filter((protocol) => {
-    const matchesSearch =
-      (protocol.name &&
-        protocol.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (protocol.description &&
-        protocol.description.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    let matchesFilter = true;
-    if (filterStatus === "active") matchesFilter = protocol.status === "ACTIVE";
-    else if (filterStatus === "inactive")
-      matchesFilter = protocol.status !== "ACTIVE";
-
-    return matchesSearch && matchesFilter;
-  });
-
-  // Pagination logic
-  const currentData =
-    mainView === "examinations" ? filteredExaminations : filteredProtocols;
-  const totalPages = Math.ceil(currentData.length / itemsPerPage);
+  // Pagination
+  const totalPages = Math.ceil(filteredRecords.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = currentData.slice(startIndex, endIndex);
+  const currentItems = filteredRecords.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -184,27 +163,9 @@ const PatientMedicalRecordPage = () => {
           <SidebarProfile />
         </div>
         <section className="profile">
-          <div
-            className="card"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              padding: "3rem 0",
-            }}
-          >
-            <div
-              style={{
-                animation: "spin 1s linear infinite",
-                borderRadius: "9999px",
-                height: "3rem",
-                width: "3rem",
-                borderBottom: "2px solid #00c497",
-              }}
-            ></div>
-            <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>
-              Đang tải dữ liệu y tế...
-            </span>
+          <div className="card" style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "3rem 0" }}>
+            <div style={{ animation: "spin 1s linear infinite", borderRadius: "9999px", height: "3rem", width: "3rem", borderBottom: "2px solid #00c497" }}></div>
+            <span style={{ marginLeft: "0.75rem", color: "#4b5563" }}>Đang tải hồ sơ bệnh án...</span>
           </div>
         </section>
       </div>
@@ -218,29 +179,10 @@ const PatientMedicalRecordPage = () => {
           <SidebarProfile />
         </div>
         <section className="profile">
-          <div
-            className="card"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "3rem 0",
-              color: "#dc2626",
-            }}
-          >
-            <AlertCircle
-              style={{
-                width: "1.5rem",
-                height: "1.5rem",
-                marginRight: "0.5rem",
-              }}
-            />
-            <span>{error}</span>
-            <button
-              onClick={loadAllData}
-              className="btn-green"
-              style={{ marginTop: "1rem", padding: "0.5rem 1rem" }}
-            >
+          <div className="card" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "3rem 0", color: "#dc2626" }}>
+            <AlertCircle style={{ width: "3rem", height: "3rem", marginBottom: "1rem" }} />
+            <span style={{ marginBottom: "1rem", textAlign: "center" }}>{error}</span>
+            <button onClick={loadMedicalRecords} className="btn-green" style={{ padding: "0.5rem 1rem" }}>
               Thử lại
             </button>
           </div>
@@ -255,593 +197,177 @@ const PatientMedicalRecordPage = () => {
         <SidebarProfile />
       </div>
       <section className="profile">
-        <h2>Hồ sơ y tế của bạn</h2>
+        <h2 style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "2rem" }}>
+          <ClipboardList style={{ width: "2rem", height: "2rem", color: "#00c497" }} />
+          Hồ sơ bệnh án của bạn
+        </h2>
 
         {/* Statistics Summary */}
-        {/* <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "1.5rem",
-            marginTop: "2rem",
-            padding: "2rem",
-            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-            borderRadius: "1rem",
-            color: "white",
-          }}
-        >
-          <div
-            style={{
-              textAlign: "center",
-              padding: "1rem",
-              background: "rgba(255, 255, 255, 0.1)",
-              borderRadius: "1rem",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "2rem",
-                fontWeight: "800",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {examinations.length}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1.5rem", marginBottom: "2rem" }}>
+          <div style={{ background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", borderRadius: "1rem", padding: "1.5rem", color: "white", textAlign: "center" }}>
+            <div style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "0.5rem" }}>
+              {medicalRecords.length}
             </div>
-            <div
-              style={{ fontSize: "1rem", opacity: "0.9", fontWeight: "500" }}
-            >
-              Lần xét nghiệm
+            <div style={{ fontSize: "1rem", opacity: "0.9", fontWeight: "500" }}>
+              Tổng số hồ sơ
             </div>
           </div>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "1rem",
-              background: "rgba(255, 255, 255, 0.1)",
-              borderRadius: "1rem",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "2rem",
-                fontWeight: "800",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {protocolHistory.length}
+          <div style={{ background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", borderRadius: "1rem", padding: "1.5rem", color: "white", textAlign: "center" }}>
+            <div style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "0.5rem" }}>
+              {medicalRecords.filter(r => r.status === "ACTIVE").length}
             </div>
-            <div
-              style={{ fontSize: "1rem", opacity: "0.9", fontWeight: "500" }}
-            >
-              Phác đồ ARV
+            <div style={{ fontSize: "1rem", opacity: "0.9", fontWeight: "500" }}>
+              Hồ sơ hoạt động
             </div>
           </div>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "1rem",
-              background: "rgba(255, 255, 255, 0.1)",
-              borderRadius: "1rem",
-            }}
-          >
-            <div
-              style={{
-                fontSize: "2rem",
-                fontWeight: "800",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {protocolHistory.filter((p) => p.status === "ACTIVE").length}
+          <div style={{ background: "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", borderRadius: "1rem", padding: "1.5rem", color: "white", textAlign: "center" }}>
+            <div style={{ fontSize: "2.5rem", fontWeight: "800", marginBottom: "0.5rem" }}>
+              {medicalRecords.filter(r => r.examId).length}
             </div>
-            <div
-              style={{ fontSize: "1rem", opacity: "0.9", fontWeight: "500" }}
-            >
-              Phác đồ đang áp dụng
+            <div style={{ fontSize: "1rem", opacity: "0.9", fontWeight: "500" }}>
+              Có kết quả xét nghiệm
             </div>
           </div>
-        </div> */}
+        </div>
 
         <div className="card">
-          {/* Tab Navigation */}
-          <div
-            style={{
-              display: "flex",
-              gap: "0.5rem",
-              marginBottom: "1.5rem",
-              borderBottom: "2px solid #e2e8f0",
-            }}
-          >
-            <button
-              onClick={() => {
-                setMainView("examinations");
-                setCurrentPage(1);
-              }}
-              style={{
-                padding: "1rem 1.5rem",
-                background: "none",
-                border: "none",
-                fontWeight: "600",
-                color: mainView === "examinations" ? "#3b82f6" : "#64748b",
-                cursor: "pointer",
-                borderBottom:
-                  mainView === "examinations"
-                    ? "3px solid #3b82f6"
-                    : "3px solid transparent",
-                transition: "all 0.3s ease",
-              }}
-            >
-              🔬 Lịch sử xét nghiệm ({examinations.length})
-            </button>
-            <button
-              onClick={() => {
-                setMainView("protocols");
-                setCurrentPage(1);
-              }}
-              style={{
-                padding: "1rem 1.5rem",
-                background: "none",
-                border: "none",
-                fontWeight: "600",
-                color: mainView === "protocols" ? "#3b82f6" : "#64748b",
-                cursor: "pointer",
-                borderBottom:
-                  mainView === "protocols"
-                    ? "3px solid #3b82f6"
-                    : "3px solid transparent",
-                transition: "all 0.3s ease",
-              }}
-            >
-              💊 Lịch sử phác đồ ARV ({protocolHistory.filter(p => p.baseProtocolId != null).length})
-            </button>
-          </div>
-
           {/* Search and Filter */}
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              gap: "1rem",
-              marginBottom: "1.5rem",
-            }}
-          >
+          <div style={{ display: "flex", flexDirection: "row", gap: "1rem", marginBottom: "1.5rem" }}>
             <div style={{ flex: "1", position: "relative" }}>
-              <Search
-                style={{
-                  position: "absolute",
-                  left: "0.75rem",
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "#999",
-                  width: "1.25rem",
-                  height: "1.25rem",
-                }}
-              />
+              <Search style={{ position: "absolute", left: "0.75rem", top: "50%", transform: "translateY(-50%)", color: "#999", width: "1.25rem", height: "1.25rem" }} />
               <input
                 type="text"
-                placeholder={
-                  mainView === "examinations"
-                    ? "Tìm kiếm theo bác sĩ hoặc kết quả..."
-                    : "Tìm kiếm theo tên hoặc mô tả phác đồ..."
-                }
+                placeholder="Tìm kiếm theo bác sĩ hoặc tóm tắt..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "0.5rem 1rem 0.5rem 2.5rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  outline: "none",
-                }}
+                style={{ width: "100%", padding: "0.5rem 1rem 0.5rem 2.5rem", border: "1px solid #ccc", borderRadius: "8px", outline: "none" }}
               />
             </div>
-            <div
-              style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
-            >
-              <Filter
-                style={{ color: "#999", width: "1.25rem", height: "1.25rem" }}
-              />
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Filter style={{ color: "#999", width: "1.25rem", height: "1.25rem" }} />
               <select
                 value={filterStatus}
-                onChange={(e) => {
-                  setFilterStatus(e.target.value);
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: "0.5rem 1rem",
-                  border: "1px solid #ccc",
-                  borderRadius: "8px",
-                  outline: "none",
-                }}
+                onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                style={{ padding: "0.5rem 1rem", border: "1px solid #ccc", borderRadius: "8px", outline: "none" }}
               >
-                {mainView === "examinations" ? (
-                  <>
-                    <option value="all">Tất cả ({examinations.length})</option>
-                    <option value="completed">
-                      Đã hoàn thành (
-                      {examinations.filter((e) => e.status === "ACTIVE").length}
-                      )
-                    </option>
-                    <option value="pending">
-                      Đang xử lý (
-                      {examinations.filter((e) => e.status !== "ACTIVE").length}
-                      )
-                    </option>
-                  </>
-                ) : (
-                  <>
-                    <option value="all">
-                     Tất cả ({protocolHistory.filter(p => p.baseProtocolId != null).length})
-                    </option>
-                    <option value="active">
-                      Đang áp dụng (
-                      {
-                        protocolHistory.filter((p) => p.status === "ACTIVE" && p.baseProtocolId != null )
-                          .length
-                      }
-                      )
-                    </option>
-                    <option value="inactive">
-                      Không áp dụng (
-                      {
-                        protocolHistory.filter((p) => p.status !== "ACTIVE" && p.baseProtocolId != null)
-                          .length
-                      }
-                      )
-                    </option>
-                  </>
-                )}
+                <option value="all">Tất cả ({medicalRecords.length})</option>
+                <option value="active">Hoạt động ({medicalRecords.filter(r => r.status === "ACTIVE").length})</option>
+                <option value="pending">Đang xử lý ({medicalRecords.filter(r => r.status === "PENDING").length})</option>
+                <option value="completed">Hoàn thành ({medicalRecords.filter(r => r.status === "COMPLETED").length})</option>
               </select>
             </div>
           </div>
 
-          {/* Content Display */}
+          {/* Medical Records List */}
           <div style={{ marginTop: "1rem" }}>
             {currentItems.length === 0 ? (
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "2rem 0",
-                  color: "#6b7280",
-                }}
-              >
-                {mainView === "examinations" ? (
-                  <>
-                    <div
-                      style={{
-                        fontSize: "4rem",
-                        marginBottom: "1rem",
-                        opacity: "0.5",
-                      }}
-                    >
-                      🔬
-                    </div>
-                    <p>Không tìm thấy lịch sử xét nghiệm nào</p>
-                  </>
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        fontSize: "4rem",
-                        marginBottom: "1rem",
-                        opacity: "0.5",
-                      }}
-                    >
-                      💊
-                    </div>
-                    <p>Không tìm thấy lịch sử phác đồ ARV nào</p>
-                  </>
-                )}
+              <div style={{ textAlign: "center", padding: "3rem 0", color: "#6b7280" }}>
+                <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: "0.5" }}>📋</div>
+                <p style={{ fontSize: "1.2rem", marginBottom: "0.5rem" }}>Không tìm thấy hồ sơ bệnh án nào</p>
+                <p style={{ fontSize: "0.9rem", color: "#9ca3af" }}>Hãy liên hệ với bác sĩ để tạo hồ sơ bệnh án đầu tiên</p>
               </div>
             ) : (
-              currentItems.map((item) => (
-                <div
-                  key={
-                    mainView === "examinations"
-                      ? item.examId
-                      : item.customProtocolId
-                  }
-                  className="card"
-                  style={{ padding: "1.5rem", marginBottom: "1rem" }}
-                >
-                  {mainView === "examinations" ? (
-                    // Examination Card
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "1rem",
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            marginBottom: "0.5rem",
-                          }}
-                        >
-                          <span style={{ fontSize: "1.5rem" }}>🔬</span>
-                          <h3
-                            style={{
-                              fontSize: "1.125rem",
-                              fontWeight: "600",
-                              color: "#1f2937",
-                            }}
-                          >
-                            Xét nghiệm HIV #{item.examId}
-                          </h3>
+              currentItems.map((record) => (
+                <div key={record.recordId} className="card" style={{ padding: "1.5rem", marginBottom: "1rem", border: "1px solid #e2e8f0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+                    <div style={{ flex: 1 }}>
+                      {/* Record Header */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+                        <div style={{ width: "3rem", height: "3rem", backgroundColor: "#00c497", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <FileText style={{ width: "1.5rem", height: "1.5rem", color: "white" }} />
                         </div>
-                        <div
-                          style={{
-                            marginTop: "0.25rem",
-                            fontSize: "0.875rem",
-                            color: "#4b5563",
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
-                            <Calendar
-                              style={{ width: "1rem", height: "1rem" }}
-                            />
-                            <span>{formatDate(item.examDate)}</span>
-                            <User
-                              style={{
-                                width: "1rem",
-                                height: "1rem",
-                                marginLeft: "0.5rem",
-                              }}
-                            />
-                            <span>Bác sĩ: {item.doctorName}</span>
+                        <div>
+                          <h3 style={{ fontSize: "1.2rem", fontWeight: "600", color: "#1f2937", margin: 0 }}>
+                            Hồ sơ bệnh án #{record.recordId}
+                          </h3>
+                          <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "0.25rem", fontSize: "0.875rem", color: "#6b7280" }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                              <Calendar style={{ width: "1rem", height: "1rem" }} />
+                              {formatDate(record.examDate)}
+                            </span>
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                              <Clock style={{ width: "1rem", height: "1rem" }} />
+                              {formatTime(record.examTime)}
+                            </span>
+                            <span style={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
+                              <User style={{ width: "1rem", height: "1rem" }} />
+                              BS. {record.doctorName}
+                            </span>
                           </div>
-                          {item.result && (
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "flex-start",
-                                gap: "0.5rem",
-                                marginTop: "0.25rem",
-                              }}
-                            >
-                              <FileText
-                                style={{
-                                  width: "1rem",
-                                  height: "1rem",
-                                  marginTop: "0.125rem",
-                                }}
-                              />
-                              <span>{item.result}</span>
-                            </div>
-                          )}
-                        </div>
-                        {/* Examination Results */}
-                        <div
-                          style={{
-                            display: "grid",
-                            gridTemplateColumns:
-                              "repeat(auto-fit, minmax(150px, 1fr))",
-                            gap: "0.75rem",
-                            marginTop: "1rem",
-                          }}
-                        >
-                          {item.cd4Count && (
-                            <div
-                              style={{
-                                padding: "0.5rem",
-                                backgroundColor: "#dcfce7",
-                                borderRadius: "0.5rem",
-                                textAlign: "center",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  fontSize: "0.75rem",
-                                  color: "#166534",
-                                }}
-                              >
-                                CD4
-                              </div>
-                              <div
-                                style={{ fontWeight: "700", color: "#059669" }}
-                              >
-                                {item.cd4Count} tế bào/mm³
-                              </div>
-                            </div>
-                          )}
-                          {item.hivLoad && (
-                            <div
-                              style={{
-                                padding: "0.5rem",
-                                backgroundColor: "#fee2e2",
-                                borderRadius: "0.5rem",
-                                textAlign: "center",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  fontSize: "0.75rem",
-                                  color: "#dc2626",
-                                }}
-                              >
-                                Tải lượng HIV
-                              </div>
-                              <div
-                                style={{ fontWeight: "700", color: "#dc2626" }}
-                              >
-                                {item.hivLoad} copies/ml
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: "0.5rem",
-                        }}
-                      >
-                        <span style={getStatusStyle(item.status)}>
-                          {item.status === "ACTIVE"
-                            ? "Hoàn thành"
-                            : item.status}
-                        </span>
-                      </div>
-                    </div>
-                  ) : (
-                    // Protocol Card
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: "1rem",
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "0.5rem",
-                            marginBottom: "0.5rem",
-                          }}
-                        >
-                          <span style={{ fontSize: "1.5rem" }}>💊</span>
-                          <h3
-                            style={{
-                              fontSize: "1.125rem",
-                              fontWeight: "600",
-                              color: "#1f2937",
-                            }}
-                          >
-                            {item.name || "Phác đồ tùy chỉnh"}
-                          </h3>
-                        </div>
-                        <div
-                          style={{
-                            marginTop: "0.25rem",
-                            fontSize: "0.875rem",
-                            color: "#4b5563",
-                          }}
-                        >
-                          {item.baseProtocolName && (
-                            <div style={{ marginBottom: "0.25rem" }}>
-                              <span style={{ fontWeight: "500" }}>
-                                Dựa trên:
-                              </span>{" "}
-                              {item.baseProtocolName}
-                            </div>
-                          )}
-                          {item.description && (
-                            <div style={{ marginBottom: "0.5rem" }}>
-                              {item.description}
-                            </div>
-                          )}
-                        </div>
 
-                        {/* ARV Details */}
-                        <div style={{ marginTop: "1rem" }}>
-                          <h5
-                            style={{
-                              fontSize: "0.875rem",
-                              fontWeight: "600",
-                              color: "#475569",
-                              marginBottom: "0.5rem",
-                            }}
-                          >
-                            Danh sách thuốc ARV:
-                          </h5>
-                          {item.details && item.details.length > 0 ? (
-                            <div
-                              style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "0.5rem",
-                              }}
-                            >
-                              {item.details.slice(0, 3).map((detail, index) => (
-                                <div
-                                  key={index}
-                                  style={{
-                                    display: "grid",
-                                    gridTemplateColumns: "2fr 1fr 2fr",
-                                    gap: "0.5rem",
-                                    padding: "0.5rem",
-                                    backgroundColor: "#f8fafc",
-                                    borderRadius: "0.5rem",
-                                    fontSize: "0.875rem",
-                                  }}
-                                >
-                                  <span
-                                    style={{
-                                      fontWeight: "500",
-                                      color: "#1e293b",
-                                    }}
-                                  >
-                                    {detail.arvName}
-                                  </span>
-                                  <span
-                                    style={{
-                                      color: "#059669",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {detail.dosage}
-                                  </span>
-                                  <span style={{ color: "#64748b" }}>
-                                    {detail.usageInstruction}
-                                  </span>
-                                </div>
-                              ))}
-                              {item.details.length > 3 && (
-                                <div
-                                  style={{
-                                    fontSize: "0.875rem",
-                                    color: "#64748b",
-                                    fontStyle: "italic",
-                                  }}
-                                >
-                                  ... và {item.details.length - 3} thuốc khác
-                                </div>
-                              )}
+                      {/* Quick Info */}
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
+                        {record.examId && (
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem", backgroundColor: "#f0fdf4", borderRadius: "0.5rem", border: "1px solid #bbf7d0" }}>
+                            <Activity style={{ width: "1.25rem", height: "1.25rem", color: "#16a34a" }} />
+                            <div>
+                              <div style={{ fontSize: "0.75rem", color: "#166534", fontWeight: "500" }}>Xét nghiệm</div>
+                              <div style={{ fontSize: "0.875rem", color: "#15803d", fontWeight: "600" }}>ID: {record.examId}</div>
                             </div>
-                          ) : (
-                            <p
-                              style={{
-                                color: "#94a3b8",
-                                fontStyle: "italic",
-                                margin: 0,
-                              }}
-                            >
-                              Chưa có thuốc ARV nào
-                            </p>
-                          )}
-                        </div>
+                          </div>
+                        )}
+                        {record.customProtocolId && (
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.75rem", backgroundColor: "#fef3f2", borderRadius: "0.5rem", border: "1px solid #fecaca" }}>
+                            <Pill style={{ width: "1.25rem", height: "1.25rem", color: "#dc2626" }} />
+                            <div>
+                              <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500" }}>Phác đồ điều trị</div>
+                              <div style={{ fontSize: "0.875rem", color: "#b91c1c", fontWeight: "600" }}>ID: {record.customProtocolId}</div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-end",
-                          gap: "0.5rem",
-                        }}
-                      >
-                        <span style={getStatusStyle(item.status)}>
-                          {item.status === "ACTIVE"
-                            ? "Đang áp dụng"
-                            : item.status}
-                        </span>
+
+                      {/* Summary */}
+                      {record.summary && (
+                        <div style={{ padding: "1rem", backgroundColor: "#f8fafc", borderRadius: "0.5rem", marginBottom: "1rem" }}>
+                          <h5 style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                            <Stethoscope style={{ width: "1rem", height: "1rem" }} />
+                            Tóm tắt khám bệnh:
+                          </h5>
+                          <p style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0, lineHeight: "1.5" }}>
+                            {record.summary}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Issue Date */}
+                      <div style={{ fontSize: "0.75rem", color: "#9ca3af", fontStyle: "italic" }}>
+                        Tạo lúc: {formatDate(record.issuedAt)}
                       </div>
                     </div>
-                  )}
+
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "1rem" }}>
+                      <span style={getStatusStyle(record.status)}>
+                        {record.status === "ACTIVE" ? "Hoạt động" : 
+                         record.status === "PENDING" ? "Đang xử lý" :
+                         record.status === "COMPLETED" ? "Hoàn thành" : record.status}
+                      </span>
+                      <button
+                        onClick={() => loadRecordDetail(record.recordId)}
+                        disabled={loadingDetail}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                          padding: "0.75rem 1.5rem",
+                          backgroundColor: "#3b82f6",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "0.5rem",
+                          fontSize: "0.875rem",
+                          fontWeight: "500",
+                          cursor: loadingDetail ? "not-allowed" : "pointer",
+                          opacity: loadingDetail ? 0.7 : 1,
+                          transition: "all 0.2s ease"
+                        }}
+                      >
+                        <Eye style={{ width: "1rem", height: "1rem" }} />
+                        {loadingDetail ? "Đang tải..." : "Xem chi tiết"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
@@ -849,15 +375,7 @@ const PatientMedicalRecordPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "0.5rem",
-                marginTop: "1.5rem",
-              }}
-            >
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.5rem", marginTop: "1.5rem" }}>
               <button
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
@@ -877,8 +395,7 @@ const PatientMedicalRecordPage = () => {
                   if (
                     index + 1 === 1 ||
                     index + 1 === totalPages ||
-                    (index + 1 >= currentPage - 1 &&
-                      index + 1 <= currentPage + 1)
+                    (index + 1 >= currentPage - 1 && index + 1 <= currentPage + 1)
                   ) {
                     return (
                       <button
@@ -887,43 +404,29 @@ const PatientMedicalRecordPage = () => {
                         style={{
                           padding: "0.25rem 0.75rem",
                           borderRadius: "0.375rem",
-                          backgroundColor:
-                            currentPage === index + 1 ? "#00c497" : "#ffffff",
-                          color:
-                            currentPage === index + 1 ? "#ffffff" : "#000000",
-                          border:
-                            "1px solid " +
-                            (currentPage === index + 1 ? "#00c497" : "#d1d5db"),
+                          backgroundColor: currentPage === index + 1 ? "#00c497" : "#ffffff",
+                          color: currentPage === index + 1 ? "#ffffff" : "#000000",
+                          border: "1px solid " + (currentPage === index + 1 ? "#00c497" : "#d1d5db"),
                           cursor: "pointer",
                         }}
                       >
                         {index + 1}
                       </button>
                     );
-                  } else if (
-                    index + 1 === currentPage - 2 ||
-                    index + 1 === currentPage + 2
-                  ) {
-                    return (
-                      <span key={index} style={{ padding: "0 0.25rem" }}>
-                        ...
-                      </span>
-                    );
+                  } else if (index + 1 === currentPage - 2 || index + 1 === currentPage + 2) {
+                    return <span key={index} style={{ padding: "0 0.25rem" }}>...</span>;
                   }
                   return null;
                 })}
               </div>
               <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 style={{
                   padding: "0.5rem",
                   borderRadius: "0.375rem",
                   opacity: currentPage === totalPages ? "0.5" : "1",
-                  cursor:
-                    currentPage === totalPages ? "not-allowed" : "pointer",
+                  cursor: currentPage === totalPages ? "not-allowed" : "pointer",
                   border: "1px solid #d1d5db",
                   backgroundColor: "#ffffff",
                 }}
@@ -933,6 +436,272 @@ const PatientMedicalRecordPage = () => {
             </div>
           )}
         </div>
+
+        {/* Detail Modal */}
+        {showDetailModal && selectedRecord && (
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "1rem"
+          }}>
+            <div style={{
+              backgroundColor: "white",
+              borderRadius: "1rem",
+              padding: "2rem",
+              maxWidth: "800px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+                <h3 style={{ fontSize: "1.5rem", fontWeight: "700", color: "#1f2937", margin: 0 }}>
+                  Chi tiết hồ sơ bệnh án #{selectedRecord.recordId}
+                </h3>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  style={{
+                    padding: "0.5rem",
+                    backgroundColor: "#f3f4f6",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    cursor: "pointer",
+                    fontSize: "1.5rem",
+                    lineHeight: 1
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+
+              {/* Record Basic Info */}
+              <div style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "#f8fafc", borderRadius: "0.75rem" }}>
+                <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#374151", marginBottom: "1rem" }}>Thông tin chung</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                  <div>
+                    <span style={{ fontSize: "0.875rem", color: "#6b7280", fontWeight: "500" }}>Bác sĩ khám:</span>
+                    <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>BS. {selectedRecord.doctorName}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.875rem", color: "#6b7280", fontWeight: "500" }}>Ngày khám:</span>
+                    <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{formatDate(selectedRecord.examDate)}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.875rem", color: "#6b7280", fontWeight: "500" }}>Giờ khám:</span>
+                    <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{formatTime(selectedRecord.examTime)}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.875rem", color: "#6b7280", fontWeight: "500" }}>Trạng thái:</span>
+                    <span style={getStatusStyle(selectedRecord.status)}>
+                      {selectedRecord.status === "ACTIVE" ? "Hoạt động" : selectedRecord.status}
+                    </span>
+                  </div>
+                </div>
+                {selectedRecord.summary && (
+                  <div style={{ marginTop: "1rem" }}>
+                    <span style={{ fontSize: "0.875rem", color: "#6b7280", fontWeight: "500" }}>Tóm tắt:</span>
+                    <div style={{ fontSize: "1rem", color: "#1f2937", marginTop: "0.25rem", lineHeight: "1.6" }}>
+                      {selectedRecord.summary}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Examination Details */}
+              {selectedRecord.examination && (
+                <div style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "#f0fdf4", borderRadius: "0.75rem", border: "1px solid #bbf7d0" }}>
+                  <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#166534", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Activity style={{ width: "1.25rem", height: "1.25rem" }} />
+                    Kết quả xét nghiệm
+                  </h4>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                    {selectedRecord.examination.cd4Count && (
+                      <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #dcfce7" }}>
+                        <div style={{ fontSize: "0.75rem", color: "#166534", fontWeight: "500", marginBottom: "0.25rem" }}>CD4 Count</div>
+                        <div style={{ fontSize: "1.5rem", color: "#15803d", fontWeight: "700" }}>{selectedRecord.examination.cd4Count}</div>
+                        <div style={{ fontSize: "0.75rem", color: "#166534" }}>tế bào/mm³</div>
+                      </div>
+                    )}
+                    {selectedRecord.examination.hivLoad && (
+                      <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #fed7d7" }}>
+                        <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500", marginBottom: "0.25rem" }}>HIV Load</div>
+                        <div style={{ fontSize: "1.5rem", color: "#dc2626", fontWeight: "700" }}>{selectedRecord.examination.hivLoad}</div>
+                        <div style={{ fontSize: "0.75rem", color: "#dc2626" }}>copies/ml</div>
+                      </div>
+                    )}
+                  </div>
+                  {selectedRecord.examination.result && (
+                    <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem" }}>
+                      <span style={{ fontSize: "0.875rem", color: "#166534", fontWeight: "500" }}>Kết quả chi tiết:</span>
+                      <div style={{ fontSize: "1rem", color: "#1f2937", marginTop: "0.5rem", lineHeight: "1.6" }}>
+                        {selectedRecord.examination.result}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ARV Protocol Details */}
+              {selectedRecord.arvProtocol && (
+                <div style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "#fef2f2", borderRadius: "0.75rem", border: "1px solid #fecaca" }}>
+                  <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#dc2626", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Pill style={{ width: "1.25rem", height: "1.25rem" }} />
+                    Phác đồ điều trị ARV
+                  </h4>
+                  
+                  <div style={{ marginBottom: "1rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
+                      <div>
+                        <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Tên phác đồ:</span>
+                        <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{selectedRecord.arvProtocol.name || "Phác đồ tùy chỉnh"}</div>
+                      </div>
+                      {selectedRecord.arvProtocol.baseProtocolName && (
+                        <div>
+                          <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Dựa trên:</span>
+                          <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{selectedRecord.arvProtocol.baseProtocolName}</div>
+                        </div>
+                      )}
+                      <div>
+                        <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Trạng thái:</span>
+                        <span style={getStatusStyle(selectedRecord.arvProtocol.status)}>
+                          {selectedRecord.arvProtocol.status === "ACTIVE" ? "Đang áp dụng" : selectedRecord.arvProtocol.status}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {selectedRecord.arvProtocol.description && (
+                      <div style={{ marginTop: "1rem" }}>
+                        <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Mô tả:</span>
+                        <div style={{ fontSize: "1rem", color: "#1f2937", marginTop: "0.25rem", lineHeight: "1.6" }}>
+                          {selectedRecord.arvProtocol.description}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* ARV Medications */}
+                  {selectedRecord.arvProtocol.details && selectedRecord.arvProtocol.details.length > 0 && (
+                    <div>
+                      <h5 style={{ fontSize: "1rem", fontWeight: "600", color: "#dc2626", marginBottom: "1rem" }}>
+                        Danh sách thuốc ARV:
+                      </h5>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                        {selectedRecord.arvProtocol.details.map((detail, index) => (
+                          <div key={index} style={{
+                            display: "grid",
+                            gridTemplateColumns: "2fr 1fr 2fr 1fr",
+                            gap: "1rem",
+                            padding: "1rem",
+                            backgroundColor: "white",
+                            borderRadius: "0.5rem",
+                            border: "1px solid #fecaca",
+                            alignItems: "center"
+                          }}>
+                            <div>
+                              <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500" }}>Tên thuốc</div>
+                              <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{detail.arvName}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500" }}>Liều dùng</div>
+                              <div style={{ fontSize: "1rem", color: "#059669", fontWeight: "600" }}>{detail.dosage}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500" }}>Cách dùng</div>
+                              <div style={{ fontSize: "0.875rem", color: "#4b5563" }}>{detail.usageInstruction}</div>
+                            </div>
+                            <div>
+                              <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500" }}>Trạng thái</div>
+                              <span style={getStatusStyle(detail.status)}>
+                                {detail.status === "ACTIVE" ? "Đang dùng" : detail.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Additional Information */}
+              <div style={{ padding: "1.5rem", backgroundColor: "#f1f5f9", borderRadius: "0.75rem" }}>
+                <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#475569", marginBottom: "1rem" }}>Thông tin bổ sung</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                  <div>
+                    <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Ngày tạo hồ sơ:</span>
+                    <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>{formatDate(selectedRecord.issuedAt)}</div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Mã hồ sơ:</span>
+                    <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>#{selectedRecord.recordId}</div>
+                  </div>
+                  {selectedRecord.examId && (
+                    <div>
+                      <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Mã xét nghiệm:</span>
+                      <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>#{selectedRecord.examId}</div>
+                    </div>
+                  )}
+                  {selectedRecord.customProtocolId && (
+                    <div>
+                      <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Mã phác đồ:</span>
+                      <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>#{selectedRecord.customProtocolId}</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "2rem" }}>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "#6b7280",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease"
+                  }}
+                >
+                  Đóng
+                </button>
+                <button
+                  onClick={() => {
+                    window.print();
+                  }}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "#3b82f6",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "0.5rem",
+                    fontSize: "0.875rem",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem"
+                  }}
+                >
+                  <FileText style={{ width: "1rem", height: "1rem" }} />
+                  In hồ sơ
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
