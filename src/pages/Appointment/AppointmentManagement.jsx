@@ -5,6 +5,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import appointmentService from "../../services/Appointment";
+import { FaCheck, FaTimes , FaQuestion, FaInfo, FaExclamationTriangle, FaLock} from "react-icons/fa";
 
 const PAGE_SIZE = 8;
 
@@ -40,6 +41,7 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
+
         return { color: "#10b981", bgColor: "#d1fae5" };
       case "error":
         return { color: "#ef4444", bgColor: "#fee2e2" };
@@ -834,7 +836,9 @@ const AppointmentManagement = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            Thông tin được bảo mật
+                            
+                            <FaLock /> Thông tin được bảo mật
+
                           </div>
                         )}
                       </div>
@@ -854,7 +858,9 @@ const AppointmentManagement = () => {
                     <td style={typeStyle}>
                       {appointment.isAnonymous ? (
                         <span style={{ color: "#ef4444", fontWeight: "bold" }}>
-                          Ẩn danh
+
+                          <FaLock /> Ẩn danh
+
                         </span>
                       ) : (
                         "Thường"
