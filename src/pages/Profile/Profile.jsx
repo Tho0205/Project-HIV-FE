@@ -418,14 +418,14 @@ export default function Profile() {
                 Thay đổi
               </button>
             </div>
-            <div className="toggle-row">
+            {/* <div className="toggle-row">
               <span>Thông báo</span>
               <label className="switch">
                 <input type="checkbox" defaultChecked />
                 <span className="slider"></span>
               </label>
               <span className="label">Bật thông báo</span>
-            </div>
+            </div> */}
           </div>
         </div>
 

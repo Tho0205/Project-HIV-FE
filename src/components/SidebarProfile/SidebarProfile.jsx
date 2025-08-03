@@ -45,7 +45,7 @@ const SidebarProfile = () => {
             activeItem === "consultation" ? "active" : ""
           }`}
         >
-          Lịch tư vấn
+          Lịch Hẹn
         </Link>
       )}
       

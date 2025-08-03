@@ -30,7 +30,7 @@
   background-color: #f5f7fa;
 }
 
-.content {
+.content-doctor-info {
   flex: 1;
   padding: 30px;
   overflow-y: auto;
@@ -490,7 +490,7 @@
 }
 
 @media (max-width: 768px) {
-  .content {
+  .content-doctor-info {
     padding: 20px;
   }
 
@@ -548,9 +548,8 @@
 }
 
 @media (max-width: 480px) {
-
-  .examination-table th:nth-child(n+4),
-  .examination-table td:nth-child(n+4) {
+  .examination-table th:nth-child(n + 4),
+  .examination-table td:nth-child(n + 4) {
     display: none;
   }
 

@@ -5,7 +5,7 @@ const HIVEducation = () => {
   return (
     <div className="hiv-education">
       {/* Main Content */}
-      <div className="container">
+      <div className="container-hiv-edu">
         {/* Sidebar */}
         <aside className="sidebar-edu">
           <h3 className="sidebar-title">Hữu Ích</h3>

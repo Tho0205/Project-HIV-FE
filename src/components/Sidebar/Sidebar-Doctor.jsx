@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Sidebar.css";
 import { toast } from "react-toastify";
 
 export default function SidebarAdmin({ active }) {
+  const [isOpen, setIsOpen] = useState(true);
   const navigate = useNavigate();
 
   function logout() {
@@ -14,42 +15,59 @@ export default function SidebarAdmin({ active }) {
   }
 
   return (
-    <aside
-      className="sidebar-sidebar-doctor"
-      style={{
-        background: "none",
-        borderRight: "2px solid rgba(0, 0, 0, 0.05);",
-        boxShadow: "none",
-      }}
-    >
-      <div className="sidebar-top">
-        <div className="welcome" style={{ fontSize: "20px" }}>
-          Dashboard
-        </div>
-        <ul className="nav">
-          <Link
-            to="/Doctor-Patient-Management"
-            style={{ textDecoration: "none" }}
-          >
-            <li className={active === "Doctor-Patient-Manager" ? "active" : ""}>
-              <span>Quản Lý Bệnh Nhân</span>
-            </li>
-          </Link>
-          <Link to="/Protocol-management" style={{ textDecoration: "none" }}>
-            <li className={active === "Protocol-Manager" ? "active" : ""}>
-              <span>Quản Lý Phác đồ</span>
-            </li>
-          </Link>
-          <Link
-            to="/Doctor-Appointment-History"
-            style={{ textDecoration: "none" }}
-          >
-            <li className={active === "Appointment-History" ? "active" : ""}>
-              <span>Lịch tư vấn</span>
-            </li>
-          </Link>
-        </ul>
-      </div>
+    <aside className={`sidebar${isOpen ? " open" : " closed"}`}>
+      <button
+        className="sidebar-toggle"
+        onClick={() => setIsOpen((prev) => !prev)}
+        aria-label={isOpen ? "Đóng menu" : "Mở menu"}
+      >
+        <span role="img" aria-label={isOpen ? "close" : "menu"}>
+          {isOpen ? "✖" : "☰"}
+        </span>
+      </button>
+      {isOpen && (
+        <>
+          <div className="sidebar-top">
+            <div className="logo">
+              <img
+                src="/assets/image/Logo/LogoHIV.jpg"
+                width={"120px"}
+                height={"90px"}
+                alt="Logo"
+              />
+            </div>
+            <div className="welcome">Chào Mừng Bác Sĩ</div>
+            <ul className="nav">
+              <li className={active === "static" ? "active" : ""}>
+                <Link to="/Doctor-Patient-Management">
+                  <span>Quản Lý Bệnh Nhân</span>
+                </Link>
+              </li>
+              <li className={active === "blog" ? "active" : ""}>
+                <Link to="/Protocol-management">
+                  <span>Quản Lý Phác đồ</span>
+                </Link>
+              </li>
+              <li className={active === "appointment" ? "active" : ""}>
+                <Link to="/Doctor-Appointment-History">
+                  <span>Lịch tư vấn</span>
+                </Link>
+              </li>
+              <li className={active === "appointment" ? "active" : ""}>
+                <Link to="/Doctor-MedicalRecord">
+                  <span>Hồ Sơ Bệnh Án</span>
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div className="sidebar-bottom">
+            <div className="help">❔ Hỗ trợ</div>
+            <div className="logout">
+              <button onClick={logout}>🚪 Đăng xuất</button>
+            </div>
+          </div>
+        </>
+      )}
     </aside>
   );
 }

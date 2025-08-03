@@ -34,6 +34,10 @@ function App() {
     "/Admin-AccountManagement",
     "/DashBoard",
     "/Staff-DoctorInfo",
+    "/Doctor-Patient-Management",
+    "/Protocol-management",
+    "/Doctor-Appointment-History",
+    "/Doctor-MedicalRecord",
   ].includes(location.pathname);
 
   return (
@@ -49,10 +53,10 @@ function App() {
       </main>
       {!hideHeaderFooter && <Footer />}
       <ToastContainer />
-      {tokenManager.isAuthenticated() && 
-        (["Staff", "Patient"].includes(tokenManager.getCurrentUserRole())) && (
+      {tokenManager.isAuthenticated() &&
+        ["Staff", "Patient"].includes(tokenManager.getCurrentUserRole()) && (
           <FloatingChat />
-      )}
+        )}
     </div>
   );
 }

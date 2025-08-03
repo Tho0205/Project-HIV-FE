@@ -26,7 +26,7 @@ import Dashboard from "../pages/Staff/DashBoard";
 import DoctorAppointmentHistory from "../pages/Appointment/DoctorAppointmentHistory";
 import ResetPassword from "../pages/Login/ResetPassword";
 import ForgotPassword from "../pages/Login/ForgotPassword";
-
+import StaffCheckinCheckout from "../pages/Appointment/CheckIn_CheckOut_Appointment";
 export const routes = [
   { path: "/", element: <Home /> },
   { path: "/blog", element: <Blog /> },
@@ -59,4 +59,5 @@ export const routes = [
   },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/reset-password", element: <ResetPassword /> },
+  {path: "/Staff-CheckinCheckout", element: <StaffCheckinCheckout /> },
 ];
