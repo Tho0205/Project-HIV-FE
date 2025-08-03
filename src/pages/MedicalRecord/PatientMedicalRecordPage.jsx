@@ -13,7 +13,6 @@ import {
   Activity,
   Stethoscope,
   Pill,
-  TrendingUp,
   Heart,
   ClipboardList,
 } from "lucide-react";
@@ -80,9 +79,20 @@ const PatientMedicalRecordPage = () => {
   const loadRecordDetail = async (recordId) => {
     setLoadingDetail(true);
     try {
-      const detail = await getMedicalRecordDetail(recordId);
-      setSelectedRecord(detail);
-      setShowDetailModal(true);
+      // Tìm record từ danh sách hiện tại trước
+      const recordFromList = medicalRecords.find(r => r.recordId === recordId);
+      
+      if (recordFromList) {
+        console.log("🔍 Using record from list:", recordFromList);
+        setSelectedRecord(recordFromList);
+        setShowDetailModal(true);
+      } else {
+        // Fallback: gọi API detail nếu không tìm thấy trong danh sách
+        const detail = await getMedicalRecordDetail(recordId);
+        console.log("🔍 Using API detail response:", detail);
+        setSelectedRecord(detail);
+        setShowDetailModal(true);
+      }
     } catch (error) {
       console.error("Error loading record detail:", error);
       alert("Không thể tải chi tiết hồ sơ bệnh án");
@@ -516,41 +526,69 @@ const PatientMedicalRecordPage = () => {
               </div>
 
               {/* Examination Details */}
-              {selectedRecord.examination && (
+              {(selectedRecord.examinationInfo || selectedRecord.examId) && (
                 <div style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "#f0fdf4", borderRadius: "0.75rem", border: "1px solid #bbf7d0" }}>
                   <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#166534", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <Activity style={{ width: "1.25rem", height: "1.25rem" }} />
                     Kết quả xét nghiệm
                   </h4>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
-                    {selectedRecord.examination.cd4Count && (
-                      <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #dcfce7" }}>
-                        <div style={{ fontSize: "0.75rem", color: "#166534", fontWeight: "500", marginBottom: "0.25rem" }}>CD4 Count</div>
-                        <div style={{ fontSize: "1.5rem", color: "#15803d", fontWeight: "700" }}>{selectedRecord.examination.cd4Count}</div>
-                        <div style={{ fontSize: "0.75rem", color: "#166534" }}>tế bào/mm³</div>
+                  
+                  {selectedRecord.examinationInfo ? (
+                    // Hiển thị từ API detail nếu có
+                    <div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                        <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #dcfce7" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#166534", fontWeight: "500", marginBottom: "0.25rem" }}>Ngày xét nghiệm</div>
+                          <div style={{ fontSize: "1rem", color: "#15803d", fontWeight: "600" }}>{formatDate(selectedRecord.examinationInfo.examDate)}</div>
+                        </div>
+                        <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #dcfce7" }}>
+                          <div style={{ fontSize: "0.75rem", color: "#166534", fontWeight: "500", marginBottom: "0.25rem" }}>Trạng thái</div>
+                          <span style={getStatusStyle(selectedRecord.examinationInfo.status)}>
+                            {selectedRecord.examinationInfo.status === "ACTIVE" ? "Hoạt động" : 
+                             selectedRecord.examinationInfo.status === "Completed" ? "Hoàn thành" : 
+                             selectedRecord.examinationInfo.status}
+                          </span>
+                        </div>
+                        {selectedRecord.examinationInfo.cd4Count && (
+                          <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #dcfce7" }}>
+                            <div style={{ fontSize: "0.75rem", color: "#166534", fontWeight: "500", marginBottom: "0.25rem" }}>CD4 Count</div>
+                            <div style={{ fontSize: "1.5rem", color: "#15803d", fontWeight: "700" }}>{selectedRecord.examinationInfo.cd4Count}</div>
+                            <div style={{ fontSize: "0.75rem", color: "#166534" }}>tế bào/mm³</div>
+                          </div>
+                        )}
+                        {selectedRecord.examinationInfo.hivLoad && (
+                          <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #fed7d7" }}>
+                            <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500", marginBottom: "0.25rem" }}>HIV Load</div>
+                            <div style={{ fontSize: "1.5rem", color: "#dc2626", fontWeight: "700" }}>{selectedRecord.examinationInfo.hivLoad}</div>
+                            <div style={{ fontSize: "0.75rem", color: "#dc2626" }}>copies/ml</div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {selectedRecord.examination.hivLoad && (
-                      <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #fed7d7" }}>
-                        <div style={{ fontSize: "0.75rem", color: "#dc2626", fontWeight: "500", marginBottom: "0.25rem" }}>HIV Load</div>
-                        <div style={{ fontSize: "1.5rem", color: "#dc2626", fontWeight: "700" }}>{selectedRecord.examination.hivLoad}</div>
-                        <div style={{ fontSize: "0.75rem", color: "#dc2626" }}>copies/ml</div>
+                      {selectedRecord.examinationInfo.result && (
+                        <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem" }}>
+                          <span style={{ fontSize: "0.875rem", color: "#166534", fontWeight: "500" }}>Kết quả chi tiết:</span>
+                          <div style={{ fontSize: "1rem", color: "#1f2937", marginTop: "0.5rem", lineHeight: "1.6" }}>
+                            {selectedRecord.examinationInfo.result}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // Fallback: hiển thị thông tin cơ bản nếu chỉ có examId
+                    <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", textAlign: "center" }}>
+                      <div style={{ fontSize: "1rem", color: "#166534", fontWeight: "600", marginBottom: "0.5rem" }}>
+                        Xét nghiệm ID: {selectedRecord.examId}
                       </div>
-                    )}
-                  </div>
-                  {selectedRecord.examination.result && (
-                    <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem" }}>
-                      <span style={{ fontSize: "0.875rem", color: "#166534", fontWeight: "500" }}>Kết quả chi tiết:</span>
-                      <div style={{ fontSize: "1rem", color: "#1f2937", marginTop: "0.5rem", lineHeight: "1.6" }}>
-                        {selectedRecord.examination.result}
-                      </div>
+                      <p style={{ color: "#6b7280", fontStyle: "italic", margin: 0 }}>
+                        Đang chờ cập nhật kết quả chi tiết từ bác sĩ
+                      </p>
                     </div>
                   )}
                 </div>
               )}
 
               {/* ARV Protocol Details */}
-              {selectedRecord.arvProtocol && (
+              {selectedRecord.customProtocolInfo && (
                 <div style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "#fef2f2", borderRadius: "0.75rem", border: "1px solid #fecaca" }}>
                   <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#dc2626", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                     <Pill style={{ width: "1.25rem", height: "1.25rem" }} />
@@ -561,40 +599,44 @@ const PatientMedicalRecordPage = () => {
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
                       <div>
                         <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Tên phác đồ:</span>
-                        <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{selectedRecord.arvProtocol.name || "Phác đồ tùy chỉnh"}</div>
+                        <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{selectedRecord.customProtocolInfo.name || "Phác đồ tùy chỉnh"}</div>
                       </div>
-                      {selectedRecord.arvProtocol.baseProtocolName && (
+                      <div>
+                        <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Trạng thái:</span>
+                        <span style={getStatusStyle(selectedRecord.customProtocolInfo.status)}>
+                          {selectedRecord.customProtocolInfo.status === "ACTIVE" || selectedRecord.customProtocolInfo.status === "Active" ? "Đang áp dụng" : selectedRecord.customProtocolInfo.status}
+                        </span>
+                      </div>
+                      {selectedRecord.customProtocolInfo.baseProtocolName && selectedRecord.customProtocolInfo.baseProtocolName !== "No base protocol" && (
                         <div>
                           <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Dựa trên:</span>
-                          <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{selectedRecord.arvProtocol.baseProtocolName}</div>
+                          <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{selectedRecord.customProtocolInfo.baseProtocolName}</div>
                         </div>
                       )}
                       <div>
-                        <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Trạng thái:</span>
-                        <span style={getStatusStyle(selectedRecord.arvProtocol.status)}>
-                          {selectedRecord.arvProtocol.status === "ACTIVE" ? "Đang áp dụng" : selectedRecord.arvProtocol.status}
-                        </span>
+                        <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Mã phác đồ:</span>
+                        <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>#{selectedRecord.customProtocolId}</div>
                       </div>
                     </div>
                     
-                    {selectedRecord.arvProtocol.description && (
+                    {selectedRecord.customProtocolInfo.description && selectedRecord.customProtocolInfo.description !== "No description available" && (
                       <div style={{ marginTop: "1rem" }}>
                         <span style={{ fontSize: "0.875rem", color: "#dc2626", fontWeight: "500" }}>Mô tả:</span>
                         <div style={{ fontSize: "1rem", color: "#1f2937", marginTop: "0.25rem", lineHeight: "1.6" }}>
-                          {selectedRecord.arvProtocol.description}
+                          {selectedRecord.customProtocolInfo.description}
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* ARV Medications */}
-                  {selectedRecord.arvProtocol.details && selectedRecord.arvProtocol.details.length > 0 && (
+                  {selectedRecord.customProtocolInfo.arvDetails && selectedRecord.customProtocolInfo.arvDetails.length > 0 ? (
                     <div>
                       <h5 style={{ fontSize: "1rem", fontWeight: "600", color: "#dc2626", marginBottom: "1rem" }}>
                         Danh sách thuốc ARV:
                       </h5>
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                        {selectedRecord.arvProtocol.details.map((detail, index) => (
+                        {selectedRecord.customProtocolInfo.arvDetails.map((detail, index) => (
                           <div key={index} style={{
                             display: "grid",
                             gridTemplateColumns: "2fr 1fr 2fr 1fr",
@@ -627,36 +669,102 @@ const PatientMedicalRecordPage = () => {
                         ))}
                       </div>
                     </div>
+                  ) : (
+                    <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", textAlign: "center" }}>
+                      <p style={{ color: "#6b7280", fontStyle: "italic", margin: 0 }}>
+                        Chi tiết thuốc ARV sẽ được bác sĩ bổ sung trong lần khám tiếp theo
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Appointment Info if available */}
+                  {selectedRecord.appointmentInfo && (
+                    <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "#fff7ed", borderRadius: "0.5rem", border: "1px solid #fed7aa" }}>
+                      <h6 style={{ fontSize: "0.875rem", fontWeight: "600", color: "#ea580c", marginBottom: "0.5rem" }}>Thông tin cuộc hẹn liên quan:</h6>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.5rem", fontSize: "0.875rem" }}>
+                        <div>
+                          <span style={{ color: "#ea580c", fontWeight: "500" }}>Ngày hẹn: </span>
+                          <span style={{ color: "#1f2937" }}>{formatDate(selectedRecord.appointmentInfo.appointmentDate)}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: "#ea580c", fontWeight: "500" }}>Loại: </span>
+                          <span style={{ color: "#1f2937" }}>{selectedRecord.appointmentInfo.appointmentType}</span>
+                        </div>
+                        <div>
+                          <span style={{ color: "#ea580c", fontWeight: "500" }}>Trạng thái: </span>
+                          <span style={getStatusStyle(selectedRecord.appointmentInfo.status)}>
+                            {selectedRecord.appointmentInfo.status === "COMPLETED" ? "Hoàn thành" : 
+                             selectedRecord.appointmentInfo.status === "Checked_in" ? "Đã check-in" : 
+                             selectedRecord.appointmentInfo.status}
+                          </span>
+                        </div>
+                      </div>
+                      {selectedRecord.appointmentInfo.note && (
+                        <div style={{ marginTop: "0.5rem" }}>
+                          <span style={{ color: "#ea580c", fontWeight: "500", fontSize: "0.875rem" }}>Ghi chú: </span>
+                          <span style={{ color: "#4b5563", fontSize: "0.875rem" }}>{selectedRecord.appointmentInfo.note}</span>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Additional Information */}
-              <div style={{ padding: "1.5rem", backgroundColor: "#f1f5f9", borderRadius: "0.75rem" }}>
-                <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#475569", marginBottom: "1rem" }}>Thông tin bổ sung</h4>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
-                  <div>
-                    <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Ngày tạo hồ sơ:</span>
-                    <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>{formatDate(selectedRecord.issuedAt)}</div>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Mã hồ sơ:</span>
-                    <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>#{selectedRecord.recordId}</div>
-                  </div>
-                  {selectedRecord.examId && (
+              {/* Custom ARV Protocol Information */}
+              {selectedRecord.customProtocolId && (
+                <div style={{ marginBottom: "2rem", padding: "1.5rem", backgroundColor: "#fefbf0", borderRadius: "0.75rem", border: "1px solid #fed7aa" }}>
+                  <h4 style={{ fontSize: "1.1rem", fontWeight: "600", color: "#ea580c", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <Pill style={{ width: "1.25rem", height: "1.25rem" }} />
+                    Thông tin phác đồ ARV tùy chỉnh
+                  </h4>
+                  
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1rem" }}>
                     <div>
-                      <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Mã xét nghiệm:</span>
-                      <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>#{selectedRecord.examId}</div>
+                      <span style={{ fontSize: "0.875rem", color: "#ea580c", fontWeight: "500" }}>Mã phác đồ:</span>
+                      <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>#{selectedRecord.customProtocolId}</div>
                     </div>
-                  )}
-                  {selectedRecord.customProtocolId && (
                     <div>
-                      <span style={{ fontSize: "0.875rem", color: "#64748b", fontWeight: "500" }}>Mã phác đồ:</span>
-                      <div style={{ fontSize: "1rem", color: "#1e293b", fontWeight: "600" }}>#{selectedRecord.customProtocolId}</div>
+                      <span style={{ fontSize: "0.875rem", color: "#ea580c", fontWeight: "500" }}>Bác sĩ phụ trách:</span>
+                      <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>BS. {selectedRecord.doctorName}</div>
                     </div>
-                  )}
+                    <div>
+                      <span style={{ fontSize: "0.875rem", color: "#ea580c", fontWeight: "500" }}>Ngày áp dụng:</span>
+                      <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{formatDate(selectedRecord.examDate)}</div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: "0.875rem", color: "#ea580c", fontWeight: "500" }}>Thời gian tạo:</span>
+                      <div style={{ fontSize: "1rem", color: "#1f2937", fontWeight: "600" }}>{formatDate(selectedRecord.issuedAt)}</div>
+                    </div>
+                  </div>
+
+                  {/* Protocol Usage Instructions */}
+                  <div style={{ padding: "1rem", backgroundColor: "white", borderRadius: "0.5rem", border: "1px solid #fed7aa" }}>
+                    <h5 style={{ fontSize: "0.875rem", fontWeight: "600", color: "#ea580c", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <Heart style={{ width: "1rem", height: "1rem" }} />
+                      Hướng dẫn sử dụng phác đồ:
+                    </h5>
+                    <ul style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0, paddingLeft: "1rem", lineHeight: "1.6" }}>
+                      <li>Tuân thủ nghiêm ngặt thời gian uống thuốc theo chỉ định</li>
+                      <li>Không tự ý thay đổi liều lượng hoặc ngừng thuốc</li>
+                      <li>Uống thuốc đúng giờ hàng ngày để duy trì nồng độ thuốc trong máu</li>
+                      <li>Thông báo ngay cho bác sĩ nếu có tác dụng phụ hoặc bất thường</li>
+                      <li>Tái khám định kỳ theo lịch hẹn để theo dõi hiệu quả điều trị</li>
+                    </ul>
+                  </div>
+
+                  {/* Important Notes */}
+                  <div style={{ marginTop: "1rem", padding: "1rem", backgroundColor: "#fef2f2", borderRadius: "0.5rem", border: "1px solid #fecaca" }}>
+                    <h5 style={{ fontSize: "0.875rem", fontWeight: "600", color: "#dc2626", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <AlertCircle style={{ width: "1rem", height: "1rem" }} />
+                      Lưu ý quan trọng:
+                    </h5>
+                    <p style={{ fontSize: "0.875rem", color: "#7f1d1d", margin: 0, lineHeight: "1.6" }}>
+                      Phác đồ này được bác sĩ thiết kế riêng cho tình trạng sức khỏe của bạn. 
+                      Việc tuân thủ điều trị đúng cách sẽ giúp kiểm soát tốt bệnh và cải thiện chất lượng cuộc sống.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Action Buttons */}
               <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "2rem" }}>
