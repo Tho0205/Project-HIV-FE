@@ -1,8 +1,9 @@
 .sidebar-sidebar-doctor {
   width: 250px;
   min-height: 100vh;
+  height: auto;
   background-color: white;
-  border-right: 2px solid #eee;
+  border: 2px solid black;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

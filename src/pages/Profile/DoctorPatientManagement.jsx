@@ -6,7 +6,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import doctorPatientService from "../../services/DoctorPatientService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
-
+import ManagerPatientNavbar from "../../components/Navbar/Navbar-Doctor-Manager-Patient";
 const PAGE_SIZE = 10;
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
 
@@ -64,9 +64,9 @@ const Modal = ({ show, onClose, title, children, className = "" }) => {
   if (!show) return null;
 
   return (
-    <div className="modal-backdrop-admin" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-backdrop-doctor" onClick={(e) => e.stopPropagation()}>
       <div
-        className={`modal-container-admin ${className}`}
+        className={`modal-container-doctor ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-header-admin">
@@ -148,7 +148,6 @@ export default function DoctorPatientManagement() {
           false // Bỏ hasScheduleOnly
         );
       }
-
 
       if (result.success) {
         setPatients(result.data.data || []);
@@ -334,14 +333,13 @@ export default function DoctorPatientManagement() {
   };
 
   return (
-    <div className="container">
+    <div className="container-m">
       <SidebarDoctor active={"Doctor-Patient-Manager"} />
       <div className="main-content-doctor">
         {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
         </div>
-
         {/* View Mode Tabs */}
         <div className="view-mode-tabs">
           <button
@@ -364,7 +362,6 @@ export default function DoctorPatientManagement() {
             Tất cả bệnh nhân
           </button>
         </div>
-
         {/* Statistics - Chỉ hiển thị khi ở tab "Bệnh nhân của tôi" */}
         {viewMode === "myPatients" && (
           <div className="stats-grid">
@@ -386,7 +383,6 @@ export default function DoctorPatientManagement() {
             <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
           </div>
         )}
-
         {/* Filters */}
         <div className="filters-admin">
           <div className="search-box-admin">
@@ -427,7 +423,6 @@ export default function DoctorPatientManagement() {
             <option value="created_at_desc">Mới nhất</option>
           </select>
         </div>
-
         {/* Table */}
         <div className="accounts-table-container-admin">
           <table className="accounts-table-admin">
@@ -472,21 +467,21 @@ export default function DoctorPatientManagement() {
             </tbody>
           </table>
         </div>
-
         <Pagination
           page={page}
           total={total}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
         />
-
         {/* History Modal */}
+
         <Modal
           show={modals.history}
           onClose={() => closeModal("history")}
           title={`Lịch Sử Khám Bệnh - ${selectedPatient?.fullName}`}
           className="modal-standard"
         >
+          <ManagerPatientNavbar />
           <div className="modal-info-body-admin">
             {patientHistory ? (
               <>
@@ -563,7 +558,8 @@ export default function DoctorPatientManagement() {
                           {appointment.status === "CANCELLED" &&
                             appointment.note?.includes("bác sĩ mới") && (
                               <div className="transfer-warning">
-                                Lịch hẹn này đã bị hủy tự động do bệnh nhân chuyển sang bác sĩ khác
+                                Lịch hẹn này đã bị hủy tự động do bệnh nhân
+                                chuyển sang bác sĩ khác
                               </div>
                             )}
                         </div>
@@ -663,7 +659,6 @@ export default function DoctorPatientManagement() {
             </button>
           </div>
         </Modal>
-
         {/* Exam Modal */}
         <Modal
           show={modals.exam}

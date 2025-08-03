@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { 
-  getDoctorPatients, 
-  getPatientRecordsForDoctor, 
-  getMedicalRecordDetail 
+import {
+  getDoctorPatients,
+  getPatientRecordsForDoctor,
+  getMedicalRecordDetail,
 } from "../../services/medicalRecordService";
 import { tokenManager } from "../../services/account";
 import "./MedicalRecordPage.css";
@@ -40,9 +40,12 @@ const DoctorMedicalRecordPage = () => {
     setSelectedPatient(patient);
     setRecordsLoading(true);
     setView("records");
-    
+
     try {
-      const records = await getPatientRecordsForDoctor(doctorId, patient.patientId);
+      const records = await getPatientRecordsForDoctor(
+        doctorId,
+        patient.patientId
+      );
       setSelectedPatientRecords(records);
     } catch (err) {
       console.error("Failed to fetch patient records", err);
@@ -105,15 +108,15 @@ const DoctorMedicalRecordPage = () => {
   if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>;
 
   return (
-    <div className="container">
-      <SidebarDoctor active="Doctor-MedicalRecord"/>
+    <div className="container-m">
+      <SidebarDoctor active="Doctor-MedicalRecord" />
       <div className="medi-content">
         <div className="medi-header">
           {view === "patients" ? (
             <h2 className="medi-title">Danh sách bệnh nhân bạn phụ trách</h2>
           ) : (
             <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <button 
+              <button
                 onClick={handleBackToPatients}
                 className="medi-back-button"
               >
@@ -135,8 +138,8 @@ const DoctorMedicalRecordPage = () => {
               </div>
             ) : (
               patients.map((patient) => (
-                <div 
-                  key={patient.patientId} 
+                <div
+                  key={patient.patientId}
                   className="medi-patient-card"
                   onClick={() => handlePatientClick(patient)}
                 >
@@ -147,20 +150,18 @@ const DoctorMedicalRecordPage = () => {
                         <span className="patient-age">
                           {calculateAge(patient.birthdate)} tuổi
                         </span>
-                        <span className="patient-gender">
-                          {patient.gender}
-                        </span>
+                        <span className="patient-gender">{patient.gender}</span>
                         {patient.phone && (
-                          <span className="patient-phone">
-                            {patient.phone}
-                          </span>
+                          <span className="patient-phone">{patient.phone}</span>
                         )}
                       </div>
                     </div>
                     <div className="patient-stats">
                       <div className="stat-item">
                         <span className="stat-label">Tổng hồ sơ:</span>
-                        <span className="stat-value">{patient.totalMedicalRecords}</span>
+                        <span className="stat-value">
+                          {patient.totalMedicalRecords}
+                        </span>
                       </div>
                       <div className="stat-item">
                         <span className="stat-label">Lần khám gần nhất:</span>
@@ -171,9 +172,7 @@ const DoctorMedicalRecordPage = () => {
                     </div>
                   </div>
                   <div className="patient-action">
-                    <span className="view-records-hint">
-                      Xem hồ sơ →
-                    </span>
+                    <span className="view-records-hint">Xem hồ sơ →</span>
                   </div>
                 </div>
               ))
@@ -206,7 +205,9 @@ const DoctorMedicalRecordPage = () => {
                       </div>
                     </div>
                     <div className="medi-actions">
-                      <span className={`medi-status ${record.status?.toLowerCase()}`}>
+                      <span
+                        className={`medi-status ${record.status?.toLowerCase()}`}
+                      >
                         {record.status}
                       </span>
                       <button
@@ -233,15 +234,22 @@ const DoctorMedicalRecordPage = () => {
       {/* Modal chi tiết (giữ nguyên như cũ) */}
       {selectedRecord && (
         <div className="record-detail-modal" onClick={closeModal}>
-          <div className="record-detail-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="record-detail-content"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="detail-header">
               <h2>Chi tiết hồ sơ bệnh án</h2>
-              <button className="close-button" onClick={closeModal}>×</button>
+              <button className="close-button" onClick={closeModal}>
+                ×
+              </button>
             </div>
 
             <div className="detail-tabs">
               <button
-                className={`tab-button ${activeTab === "examination" ? "active" : ""}`}
+                className={`tab-button ${
+                  activeTab === "examination" ? "active" : ""
+                }`}
                 onClick={() => setActiveTab("examination")}
               >
                 Thông tin khám bệnh
@@ -266,7 +274,9 @@ const DoctorMedicalRecordPage = () => {
                         <div className="detail-info">
                           <div className="info-row">
                             <span className="info-label">Mã khám:</span>
-                            <span className="info-value">{selectedRecord.examination.examId}</span>
+                            <span className="info-value">
+                              {selectedRecord.examination.examId}
+                            </span>
                           </div>
                           <div className="info-row">
                             <span className="info-label">Ngày khám:</span>
@@ -277,7 +287,8 @@ const DoctorMedicalRecordPage = () => {
                           <div className="info-row">
                             <span className="info-label">Kết quả:</span>
                             <span className="info-value">
-                              {selectedRecord.examination.result || "Chưa có kết quả"}
+                              {selectedRecord.examination.result ||
+                                "Chưa có kết quả"}
                             </span>
                           </div>
                           <div className="info-row">
@@ -298,7 +309,9 @@ const DoctorMedicalRecordPage = () => {
                           </div>
                           <div className="info-row">
                             <span className="info-label">Trạng thái:</span>
-                            <span className={`status-badge ${selectedRecord.examination.status?.toLowerCase()}`}>
+                            <span
+                              className={`status-badge ${selectedRecord.examination.status?.toLowerCase()}`}
+                            >
                               {selectedRecord.examination.status}
                             </span>
                           </div>
@@ -315,46 +328,69 @@ const DoctorMedicalRecordPage = () => {
                       {selectedRecord.customizedProtocol ? (
                         <div className="protocol-info">
                           <div className="protocol-header">
-                            <h4>{selectedRecord.customizedProtocol.name || "Phác đồ tùy chỉnh"}</h4>
+                            <h4>
+                              {selectedRecord.customizedProtocol.name ||
+                                "Phác đồ tùy chỉnh"}
+                            </h4>
                             <p className="protocol-desc">
-                              {selectedRecord.customizedProtocol.description || "Không có mô tả"}
+                              {selectedRecord.customizedProtocol.description ||
+                                "Không có mô tả"}
                             </p>
-                            {selectedRecord.customizedProtocol.baseProtocolName && (
+                            {selectedRecord.customizedProtocol
+                              .baseProtocolName && (
                               <p className="base-protocol">
-                                Dựa trên: <strong>{selectedRecord.customizedProtocol.baseProtocolName}</strong>
+                                Dựa trên:{" "}
+                                <strong>
+                                  {
+                                    selectedRecord.customizedProtocol
+                                      .baseProtocolName
+                                  }
+                                </strong>
                               </p>
                             )}
                           </div>
 
                           <div className="arv-list">
                             <h5>Danh sách thuốc ARV:</h5>
-                            {selectedRecord.customizedProtocol.arvDetails?.length > 0 ? (
+                            {selectedRecord.customizedProtocol.arvDetails
+                              ?.length > 0 ? (
                               <div className="arv-cards">
-                                {selectedRecord.customizedProtocol.arvDetails.map((arv) => (
-                                  <div key={arv.arvId} className="arv-card">
-                                    <div className="arv-name">{arv.arvName || "Không tên"}</div>
-                                    <div className="arv-info">
-                                      <div className="arv-desc">
-                                        {arv.arvDescription || "Không có mô tả"}
+                                {selectedRecord.customizedProtocol.arvDetails.map(
+                                  (arv) => (
+                                    <div key={arv.arvId} className="arv-card">
+                                      <div className="arv-name">
+                                        {arv.arvName || "Không tên"}
                                       </div>
-                                      <div className="arv-dosage">
-                                        <strong>Liều dùng:</strong> {arv.dosage || "Chưa xác định"}
-                                      </div>
-                                      <div className="arv-instruction">
-                                        <strong>Hướng dẫn:</strong>{" "}
-                                        {arv.usageInstruction || "Theo chỉ định của bác sĩ"}
-                                      </div>
-                                      <div className="arv-status">
-                                        <span className={`status-badge ${arv.status?.toLowerCase()}`}>
-                                          {arv.status}
-                                        </span>
+                                      <div className="arv-info">
+                                        <div className="arv-desc">
+                                          {arv.arvDescription ||
+                                            "Không có mô tả"}
+                                        </div>
+                                        <div className="arv-dosage">
+                                          <strong>Liều dùng:</strong>{" "}
+                                          {arv.dosage || "Chưa xác định"}
+                                        </div>
+                                        <div className="arv-instruction">
+                                          <strong>Hướng dẫn:</strong>{" "}
+                                          {arv.usageInstruction ||
+                                            "Theo chỉ định của bác sĩ"}
+                                        </div>
+                                        <div className="arv-status">
+                                          <span
+                                            className={`status-badge ${arv.status?.toLowerCase()}`}
+                                          >
+                                            {arv.status}
+                                          </span>
+                                        </div>
                                       </div>
                                     </div>
-                                  </div>
-                                ))}
+                                  )
+                                )}
                               </div>
                             ) : (
-                              <p className="no-data">Chưa có thuốc ARV nào được chỉ định</p>
+                              <p className="no-data">
+                                Chưa có thuốc ARV nào được chỉ định
+                              </p>
                             )}
                           </div>
                         </div>
