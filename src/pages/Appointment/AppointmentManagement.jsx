@@ -5,6 +5,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import appointmentService from "../../services/Appointment";
+import { FaCheck, FaTimes , FaQuestion, FaInfo, FaExclamationTriangle, FaLock} from "react-icons/fa";
 
 const PAGE_SIZE = 8;
 
@@ -40,15 +41,15 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
-        return { icon: "✅", color: "#10b981", bgColor: "#d1fae5" };
+        return { icon: <FaCheck />, color: "#10b981", bgColor: "#d1fae5" };
       case "error":
-        return { icon: "❌", color: "#ef4444", bgColor: "#fee2e2" };
+        return { icon: <FaTimes />, color: "#ef4444", bgColor: "#fee2e2" };
       case "warning":
-        return { icon: "⚠️", color: "#f59e0b", bgColor: "#fef3c7" };
+        return { icon: <FaExclamationTriangle />, color: "#f59e0b", bgColor: "#fef3c7" };
       case "confirm":
-        return { icon: "❓", color: "#3b82f6", bgColor: "#dbeafe" };
+        return { icon: <FaQuestion />, color: "#3b82f6", bgColor: "#dbeafe" };
       default:
-        return { icon: "ℹ️", color: "#6b7280", bgColor: "#f3f4f6" };
+        return { icon: <FaInfo />, color: "#6b7280", bgColor: "#f3f4f6" };
     }
   };
 
@@ -897,7 +898,7 @@ const AppointmentManagement = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            🔒 Thông tin được bảo mật
+                            <FaLock /> Thông tin được bảo mật
                           </div>
                         )}
                       </div>
@@ -922,7 +923,7 @@ const AppointmentManagement = () => {
                     <td style={typeStyle}>
                       {appointment.isAnonymous ? (
                         <span style={{ color: "#ef4444", fontWeight: "bold" }}>
-                          🔒 Ẩn danh
+                          <FaLock /> Ẩn danh
                         </span>
                       ) : (
                         "Thường"
@@ -989,7 +990,6 @@ const AppointmentManagement = () => {
                               e.target.style.boxShadow = "none";
                             }}
                           >
-                            <span>✗</span>
                             <span>Hủy lịch</span>
                           </button>
                         )}

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Sidebar.css";
 import { toast } from "react-toastify";
+import { FaChartBar,FaNewspaper, FaCalendar , FaHospital , FaHospitalUser , FaPills , FaVial , FaFileAlt, FaUserMd, FaQuestion, FaSignOutAlt     } from "react-icons/fa";
+
 
 export default function Sidebar({ active }) {
   const [isOpen, setIsOpen] = useState(true);
@@ -40,31 +42,31 @@ export default function Sidebar({ active }) {
             <ul className="nav">
               <li className={active === "static" ? "active" : ""}>
                 <Link to="/DashBoard">
-                  <span className="icon">📈</span>
+                  <span className="icon"><FaChartBar/></span>
                   <span> Thống kê</span>
                 </Link>
               </li>
               <li className={active === "blog" ? "active" : ""}>
                 <Link to="/Staff-Blog">
-                  <span className="icon">📝</span>
+                  <span className="icon"><FaNewspaper /></span>
                   <span> Quản Lí Bài Viết</span>
                 </Link>
               </li>
               <li className={active === "appointment" ? "active" : ""}>
                 <Link to="/Appointment-Management">
-                  <span className="icon">📅</span>
+                  <span className="icon"><FaCalendar/></span>
                   <span>Quản Lí Lịch Đặt Khám</span>
                 </Link>
               </li>
               <li className={active === "doctor-schedule" ? "active" : ""}>
                 <Link to="/Staff-DoctorSchedule">
-                  <span className="icon">👨‍⚕️</span>
+                  <span className="icon"><FaHospital/></span>
                   <span>Sắp Xếp Lịch Bác Sĩ</span>
                 </Link>
               </li>
               <li className={active === "patient" ? "active" : ""}>
                 <Link to="/Staff-ManagerPatient">
-                  <span className="icon">👤</span>
+                  <span className="icon"><FaHospitalUser/></span>
                   <span>Quản Lí Thông Tin KH</span>
                 </Link>
               </li>
@@ -76,34 +78,34 @@ export default function Sidebar({ active }) {
           </li> */}
               <li className={active === "result" ? "active" : ""}>
                 <Link to="/HIV-ExaminationManagement">
-                  <span className="icon">🧪</span>
+                  <span className="icon"><FaVial/></span>
                   <span>Quản Lí Kết Quả Xét Nghiệm</span>
                 </Link>
               </li>
               <li className={active === "arv" ? "active" : ""}>
                 <Link to="/arv">
-                  <span className="icon">💊</span>
+                  <span className="icon"><FaPills/></span>
                   <span>Quản Lí ARV</span>
                 </Link>
               </li>
               <li className={active === "arv-protocol" ? "active" : ""}>
                 <Link to="/arv-protocol">
-                  <span className="icon">📋</span>
+                  <span className="icon"><FaFileAlt/></span>
                   <span>Quản Lí ARV Protocol</span>
                 </Link>
               </li>
               <li className={active === "doctor" ? "active" : ""}>
                 <Link to="/Staff-DoctorInfo">
-                  <span className="icon">👨‍⚕️</span>
+                  <span className="icon"><FaUserMd/></span>
                   <span>Quản Lí Thông Tin Bác Sĩ</span>
                 </Link>
               </li>
             </ul>
           </div>
           <div className="sidebar-bottom">
-            <div className="help">❔ Hỗ trợ</div>
+            <div className="help"><FaQuestion/> Hỗ trợ</div>
             <div className="logout">
-              <button onClick={logout}>🚪 Đăng xuất</button>
+              <button onClick={logout}><FaSignOutAlt/> Đăng xuất</button>
             </div>
           </div>
         </>

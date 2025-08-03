@@ -6,7 +6,7 @@ import Pagination from "../../components/Pagination/Pagination";
 import "./ARV.css";
 import { tokenManager } from "../../services/account";
 import { toast } from "react-toastify";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaRegPlusSquare } from "react-icons/fa";
 
 const PAGE_SIZE = 10;
 
@@ -139,7 +139,7 @@ export default function ARV() {
               setShowModal(true);
             }}
           >
-            ➕ Thêm Mới ARV
+            <FaRegPlusSquare /> Thêm Mới ARV
           </button>
         </div>
         {error && <div className="error-message">⚠️ {error}</div>}
