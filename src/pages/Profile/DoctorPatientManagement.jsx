@@ -124,7 +124,9 @@ export default function DoctorPatientManagement() {
     unstablePatients: 0,
   });
   const [viewMode, setViewMode] = useState("myPatients");
-  const [scheduleDate, setScheduleDate] = useState(null);
+  const [scheduleDate, setScheduleDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [modals, setModals] = useState({
     history: false,
     exam: false,
@@ -1028,12 +1030,12 @@ const handleExamSubmit = async (e) => {
                   <p className="protocol-description">
                     {currentProtocol.description}
                   </p>
-                  <p className="protocol-status">
+                  {/* <p className="protocol-status">
                     Trạng thái:{" "}
                     <span className="status-active">
                       {currentProtocol.status}
                     </span>
-                  </p>
+                  </p> */}
                 </div>
                 {currentProtocol.details &&
                   currentProtocol.details.length > 0 && (
@@ -1110,7 +1112,7 @@ const handleExamSubmit = async (e) => {
           {viewMode === "myPatients" && (
             <input
               type="date"
-              value={scheduleDate || ""}
+              value={scheduleDate || new Date().toISOString().split("T")[0]}
               onChange={(e) => {
                 setScheduleDate(e.target.value || null);
                 setPage(1);
