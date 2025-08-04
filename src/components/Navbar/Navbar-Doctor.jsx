@@ -7,6 +7,7 @@ export default function ManagerPatientNavbar({ activeTab, onTabChange }) {
     { key: "appointments", label: "Lịch hẹn khám" },
     { key: "tests", label: "Kết quả xét nghiệm" },
     { key: "treatment", label: "Phác đồ điều trị" },
+    { key: "re-treatment", label: "Đặt lịch tái khám" },
   ];
 
   return (

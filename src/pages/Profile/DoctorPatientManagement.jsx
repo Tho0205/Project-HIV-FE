@@ -10,6 +10,7 @@ import CustomArvProtocolsService from "../../services/CustomArvProtocolsService"
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
 import ManagerPatientNavbar from "../../components/Navbar/Navbar-Doctor";
+import appointmentService from "../../services/Appointment";
 
 const PAGE_SIZE = 5; // Changed from 10 to 5 for max 5 patients per page
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
@@ -130,7 +131,13 @@ export default function DoctorPatientManagement() {
 
   // Active tab state
   const [activeTab, setActiveTab] = useState("info");
-
+  const [showReexamModal, setShowReexamModal] = useState(false);
+  const [reexamData, setReexamData] = useState({
+    scheduleId: "",
+    appointmentDate: "",
+    note: "",
+  });
+  const [doctorSchedules, setDoctorSchedules] = useState([]);
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
 
@@ -381,6 +388,61 @@ export default function DoctorPatientManagement() {
     } catch (error) {
       toast.error("Có lỗi xảy ra khi xóa");
     }
+  };
+
+  //Hàm xử lý tái khám này
+  const handleReexamClick = async () => {
+    try {
+      const schedules = await appointmentService.getDoctorSchedules(doctorId);
+
+      // Lọc chỉ lấy lịch trong tương lai
+      const now = new Date();
+      const futureSchedules = schedules.filter((schedule) => {
+        const scheduleTime = new Date(schedule.scheduledTime);
+        return scheduleTime > now;
+      });
+
+      setDoctorSchedules(futureSchedules);
+      setShowReexamModal(true);
+    } catch (error) {
+      toast.error("Không thể tải lịch bác sĩ");
+    }
+  };
+
+  const handleReexamSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const appointmentData = {
+        patientId: selectedPatient.userId,
+        scheduleId: parseInt(reexamData.scheduleId),
+        doctorId: doctorId,
+        note: reexamData.note || "Lịch tái khám",
+        isAnonymous: false,
+        appointmentDate: reexamData.appointmentDate,
+      };
+
+      await appointmentService.createAppointment(appointmentData);
+      toast.success("Đặt lịch tái khám thành công!");
+
+      setReexamData({ scheduleId: "", appointmentDate: "", note: "" });
+      setShowReexamModal(false);
+
+      // Refresh lại history
+      const historyResult = await doctorPatientService.getPatientHistory(
+        selectedPatient.userId,
+        doctorId
+      );
+      if (historyResult.success) {
+        setPatientHistory(historyResult.data);
+      }
+    } catch (error) {
+      toast.error("Không thể đặt lịch tái khám");
+    }
+  };
+
+  const handleReexamClose = () => {
+    setShowReexamModal(false);
+    setReexamData({ scheduleId: "", appointmentDate: "", note: "" });
   };
 
   const loadPatientProtocol = async (patientId) => {
@@ -699,7 +761,6 @@ export default function DoctorPatientManagement() {
                 </button>
               )}
             </div>
-
             {/* Current Protocol Display */}
             {currentProtocol ? (
               <div className="current-protocol-display">
@@ -751,6 +812,110 @@ export default function DoctorPatientManagement() {
                 )}
               </div>
             )}
+          </div>
+        );
+
+      case "re-treatment":
+        return (
+          <div className="info-section-doctor">
+            <div className="section-header-no-border">
+              <h3>Quản Lý Tái Khám</h3>
+              {!patientHistory?.viewOnly && (
+                <button className="btn-add-small" onClick={handleReexamClick}>
+                  + Đặt lịch tái khám
+                </button>
+              )}
+            </div>
+
+            {/* Hiển thị lịch hẹn sắp tới */}
+            {patientHistory?.appointments?.filter(
+              (apt) =>
+                new Date(apt.appointmentDate) > new Date() &&
+                apt.status !== "CANCELLED"
+            ).length > 0 ? (
+              <div className="upcoming-appointments">
+                <h5>Lịch hẹn sắp tới:</h5>
+                <div className="appointment-list">
+                  {patientHistory.appointments
+                    .filter(
+                      (apt) =>
+                        new Date(apt.appointmentDate) > new Date() &&
+                        apt.status !== "CANCELLED"
+                    )
+                    .map((appointment) => (
+                      <div
+                        key={appointment.appointmentId}
+                        className="history-item"
+                      >
+                        <div className="history-item-header">
+                          <span className="date">
+                            {formatDate(appointment.appointmentDate)}
+                          </span>
+                          {getStatusBadge(appointment.status)}
+                        </div>
+                        {appointment.room && (
+                          <p className="history-detail">
+                            Phòng: {appointment.room}
+                          </p>
+                        )}
+                        {appointment.note && (
+                          <p className="history-detail note">
+                            {appointment.note}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ) : (
+              <div className="no-data-section">
+                <p className="no-data-admin">Chưa có lịch tái khám nào</p>
+              </div>
+            )}
+
+            {/* Lịch sử tái khám */}
+            <div style={{ marginTop: "30px" }}>
+              <h5>Lịch sử tái khám:</h5>
+              {patientHistory?.appointments?.filter(
+                (apt) =>
+                  apt.note?.includes("tái khám") ||
+                  apt.note?.includes("Tái khám")
+              ).length > 0 ? (
+                <div className="appointment-list">
+                  {patientHistory.appointments
+                    .filter(
+                      (apt) =>
+                        apt.note?.includes("tái khám") ||
+                        apt.note?.includes("Tái khám")
+                    )
+                    .map((appointment) => (
+                      <div
+                        key={appointment.appointmentId}
+                        className="history-item"
+                      >
+                        <div className="history-item-header">
+                          <span className="date">
+                            {formatDate(appointment.appointmentDate)}
+                          </span>
+                          {getStatusBadge(appointment.status)}
+                        </div>
+                        {appointment.room && (
+                          <p className="history-detail">
+                            Phòng: {appointment.room}
+                          </p>
+                        )}
+                        {appointment.note && (
+                          <p className="history-detail note">
+                            {appointment.note}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p className="no-data-admin">Chưa có lịch sử tái khám</p>
+              )}
+            </div>
           </div>
         );
 
@@ -1014,6 +1179,118 @@ export default function DoctorPatientManagement() {
               </button>
               <button type="submit" className="btn-save-doctor">
                 {examData?.examId ? "Cập nhật" : "Thêm mới"}
+              </button>
+            </div>
+          </form>
+        </Modal>
+        {/* Reexam Modal - Thêm modal này */}
+        <Modal
+          show={showReexamModal}
+          onClose={handleReexamClose}
+          title="Đặt Lịch Tái Khám"
+          className="modal-standard"
+        >
+          <form onSubmit={handleReexamSubmit} className="modal-form-admin">
+            <div className="patient-info-box">
+              <h4>Thông tin bệnh nhân</h4>
+              <p>
+                <strong>Họ tên:</strong> {selectedPatient?.fullName}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedPatient?.email}
+              </p>
+            </div>
+
+            <div className="form-group-admin">
+              <label>
+                Chọn lịch khám <span className="required-mark">*</span>
+              </label>
+
+              {doctorSchedules.length === 0 ? (
+                <div className="no-schedule-available">
+                  <p
+                    style={{
+                      color: "#666",
+                      fontStyle: "italic",
+                      textAlign: "center",
+                      padding: "20px",
+                    }}
+                  >
+                    Không có lịch khám nào trong tương lai
+                  </p>
+                </div>
+              ) : (
+                <div className="schedule-grid">
+                  {doctorSchedules.map((schedule) => {
+                    const scheduleDate = new Date(schedule.scheduledTime);
+                    const isSelected =
+                      reexamData.scheduleId === schedule.scheduleId.toString();
+
+                    return (
+                      <div
+                        key={schedule.scheduleId}
+                        className={`schedule-card ${
+                          isSelected ? "selected" : ""
+                        }`}
+                        onClick={() => {
+                          setReexamData({
+                            ...reexamData,
+                            scheduleId: schedule.scheduleId.toString(),
+                            appointmentDate: schedule.scheduledTime,
+                          });
+                        }}
+                      >
+                        <div className="schedule-date">
+                          <strong>
+                            {scheduleDate.toLocaleDateString("vi-VN", {
+                              weekday: "short",
+                              day: "2-digit",
+                              month: "2-digit",
+                            })}
+                          </strong>
+                        </div>
+                        <div className="schedule-time">
+                          {scheduleDate.toLocaleTimeString("vi-VN", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                        <div className="schedule-room">
+                          Phòng: {schedule.room}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group-admin">
+              <label>Ghi chú</label>
+              <textarea
+                value={reexamData.note}
+                onChange={(e) =>
+                  setReexamData({ ...reexamData, note: e.target.value })
+                }
+                rows="3"
+                placeholder="Ghi chú cho lịch tái khám..."
+              />
+            </div>
+
+            <div className="modal-actions-doctor">
+              <button
+                type="button"
+                className="btn-cancel-doctor"
+                onClick={handleReexamClose}
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="btn-save-doctor"
+                disabled={!reexamData.scheduleId}
+              >
+                Đặt lịch
               </button>
             </div>
           </form>
