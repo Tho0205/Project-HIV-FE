@@ -61,7 +61,13 @@ const PatientRow = ({ patient, index, page, onViewHistory, viewMode }) => (
     <td>{patient.email}</td>
     <td>{patient.phone || "Chưa có"}</td>
     <td className="text-center">{formatDate(patient.birthdate)}</td>
-    <td className="text-center">{patient.gender || "Khác"}</td>
+    <td className="text-center">
+      {patient.gender === "Male"
+        ? "Nam"
+        : patient.gender === "Female"
+        ? "Nữ"
+        : "Khác"}
+    </td>
     <td className="actions-doctor">
       <button
         onClick={() => onViewHistory(patient)}
@@ -652,7 +658,11 @@ export default function DoctorPatientManagement() {
               <div className="info-item">
                 <span className="info-label">Giới tính:</span>
                 <span className="info-value">
-                  {selectedPatient?.gender || "Other"}
+                  {selectedPatient?.gender === "Male"
+                    ? "Nam"
+                    : selectedPatient?.gender === "Female"
+                    ? "Nữ"
+                    : "Khác"}
                 </span>
               </div>
               {/* <div className="info-item">
