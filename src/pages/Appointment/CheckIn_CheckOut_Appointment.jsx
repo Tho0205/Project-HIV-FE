@@ -5,7 +5,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import appointmentService from "../../services/Appointment";
-import { FaCheck, FaTimes , FaExclamationTriangle , FaQuestion, FaInfo, FaLock, FaCalendarCheck , FaHourglass} from "react-icons/fa";
+import { FaCheck, FaTimes, FaExclamationTriangle, FaQuestion, FaInfo, FaLock, FaCalendarCheck } from "react-icons/fa";
 
 const PAGE_SIZE = 8;
 
@@ -342,12 +342,6 @@ const StaffCheckinCheckout = () => {
     color: "#7c3aed",
   };
 
-  const dateStyle = {
-    ...tdStyle,
-    minWidth: "110px",
-    textAlign: "center",
-  };
-
   const timeStyle = {
     ...tdStyle,
     minWidth: "80px",
@@ -395,13 +389,6 @@ const StaffCheckinCheckout = () => {
     color: "white",
   };
 
-  const waitingConfirmStyle = {
-    ...actionButtonStyle,
-    backgroundColor: "#f59e0b",
-    color: "white",
-    cursor: "default",
-  };
-
   const completedStatusStyle = {
     ...actionButtonStyle,
     backgroundColor: "#d1fae5",
@@ -430,7 +417,7 @@ const StaffCheckinCheckout = () => {
   const getPatientDisplayInfo = (appointment) => {
     if (appointment.isAnonymous) {
       return {
-        name: " Bệnh nhân ẩn danh",
+        name: "Bệnh nhân ẩn danh",
         phone: "***",
         style: anonymousPatientStyle,
       };
@@ -442,7 +429,7 @@ const StaffCheckinCheckout = () => {
     };
   };
 
-  // Fetch appointments for today (CONFIRMED, CHECKED_IN, CHECKED_OUT)
+  // Fetch appointments for today (CONFIRMED, CHECKED_IN, COMPLETED)
   useEffect(() => {
     fetchAppointments(page, sort, searchTerm, statusFilter);
   }, [page, sort, searchTerm, statusFilter, selectedDate]);
@@ -468,10 +455,10 @@ const StaffCheckinCheckout = () => {
             const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
             const isDateMatch = appointmentDate.toDateString() === selectedDateObj.toDateString();
             
-            // Show CONFIRMED, CHECKED_IN, CHECKED_OUT, and COMPLETED appointments
-            const isValidStatus = ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'COMPLETED'].includes(appointment.status);
+            // Show CONFIRMED, CHECKED_IN, and COMPLETED appointments
+            const isValidStatus = ['CONFIRMED', 'CHECKED_IN', 'COMPLETED'].includes(appointment.status);
             
-            console.log(" Appointment filter:", {
+            console.log("🧪 Appointment filter:", {
               id: appointment.appointmentId,
               status: appointment.status,
               appointmentDate: appointment.appointmentDate,
@@ -521,12 +508,11 @@ const StaffCheckinCheckout = () => {
               appointmentDateTime: new Date(
                 appointment.appointmentDate || appointment.createdAt
               ),
-              // Remove check-in/check-out time tracking since we're not displaying them
             };
           })
       );
 
-      console.log(" Filtered appointments:", mappedAppointments);
+      console.log("🔍 Filtered appointments:", mappedAppointments);
 
       // Apply status filter
       if (statusFilter && statusFilter !== "all") {
@@ -637,9 +623,9 @@ const StaffCheckinCheckout = () => {
       actionText = "check-in";
       confirmMessage = `Bạn có chắc chắn muốn check-in cho bệnh nhân ${appointment.isAnonymous ? "ẩn danh" : appointment.patientName}?`;
     } else if (appointment.status === "CHECKED_IN") {
-      newStatus = "CHECKED_OUT";
+      newStatus = "COMPLETED";
       actionText = "check-out";
-      confirmMessage = `Bạn có chắc chắn muốn check-out cho bệnh nhân ${appointment.isAnonymous ? "ẩn danh" : appointment.patientName}? Bệnh nhân sẽ cần xác nhận để hoàn thành.`;
+      confirmMessage = `Bạn có chắc chắn muốn check-out cho bệnh nhân ${appointment.isAnonymous ? "ẩn danh" : appointment.patientName}? Buổi khám sẽ được đánh dấu hoàn thành.`;
     }
     
     if (!newStatus) return;
@@ -660,8 +646,8 @@ const StaffCheckinCheckout = () => {
           let successMessage = "";
           if (newStatus === "CHECKED_IN") {
             successMessage = "Check-in thành công!";
-          } else if (newStatus === "CHECKED_OUT") {
-            successMessage = "Check-out thành công! Bệnh nhân sẽ nhận được thông báo để xác nhận.";
+          } else if (newStatus === "COMPLETED") {
+            successMessage = "Check-out thành công! Buổi khám đã hoàn thành.";
           }
           
           showPopup("Thành công", successMessage, "success");
@@ -694,8 +680,6 @@ const StaffCheckinCheckout = () => {
         return { ...baseStyle, backgroundColor: "#dbeafe", color: "#1e40af" };
       case "CHECKED_IN":
         return { ...baseStyle, backgroundColor: "#fef3c7", color: "#d97706" };
-      case "CHECKED_OUT":
-        return { ...baseStyle, backgroundColor: "#fed7d7", color: "#c53030" };
       case "COMPLETED":
         return { ...baseStyle, backgroundColor: "#dcfce7", color: "#15803d" };
       default:
@@ -708,28 +692,26 @@ const StaffCheckinCheckout = () => {
     const texts = {
       CONFIRMED: "Chờ check-in",
       CHECKED_IN: "Đã check-in",
-      CHECKED_OUT: "Chờ xác nhận BN",
       COMPLETED: "Hoàn thành",
     };
     return texts[status] || status;
   };
 
-  // Format time
   // Format time with SA/CH indicator
-function formatTime(dateStr) {
-  if (!dateStr) return "-";
-  const d = new Date(dateStr);
-  if (isNaN(d)) return "-";
-  
-  const hours = d.getHours();
-  const minutes = d.getMinutes();
-  const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  
-  // Determine if it's morning (SA) or afternoon (CH)
-  const period = hours < 12 ? 'SA' : 'CH';
-  
-  return `${timeString} ${period}`;
-}
+  function formatTime(dateStr) {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return "-";
+    
+    const hours = d.getHours();
+    const minutes = d.getMinutes();
+    const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    // Determine if it's morning (SA) or afternoon (CH)
+    const period = hours < 12 ? 'SA' : 'CH';
+    
+    return `${timeString} ${period}`;
+  }
 
   return (
     <div style={wrapperStyle}>
@@ -757,7 +739,7 @@ function formatTime(dateStr) {
             style={filterStyle}
           />
 
-          {/* Status Filter - Include all relevant statuses */}
+          {/* Status Filter - Only include relevant statuses */}
           <select
             value={statusFilter}
             onChange={handleStatusFilterChange}
@@ -766,7 +748,6 @@ function formatTime(dateStr) {
             <option value="all">Tất cả trạng thái ({total})</option>
             <option value="CONFIRMED">Chờ check-in</option>
             <option value="CHECKED_IN">Đã check-in</option>
-            <option value="CHECKED_OUT">Chờ xác nhận BN</option>
             <option value="COMPLETED">Hoàn thành</option>
           </select>
 
@@ -812,7 +793,6 @@ function formatTime(dateStr) {
               <th style={thStyle}>Số Điện Thoại</th>
               <th style={thStyle}>Giờ Khám</th>
               <th style={thStyle}>Trạng Thái</th>
-
               <th style={thStyle}>Hành Động</th>
             </tr>
           </thead>
@@ -929,7 +909,7 @@ function formatTime(dateStr) {
                         <button
                           style={checkoutButtonStyle}
                           onClick={() => handleCheckinCheckout(appointment)}
-                          title="Check-out bệnh nhân" 
+                          title="Check-out bệnh nhân - Hoàn thành buổi khám" 
                           onMouseEnter={(e) => {
                             e.target.style.transform = "translateY(-1px)";
                             e.target.style.boxShadow = "0 4px 12px rgba(16, 185, 129, 0.4)";
@@ -942,14 +922,6 @@ function formatTime(dateStr) {
                           <span><FaCheck/></span>  
                           <span>Check-out</span>
                         </button>
-                      )}
-
-                      {/* Trạng thái chờ xác nhận từ bệnh nhân */}
-                      {appointment.status === "CHECKED_OUT" && (
-                        <div style={waitingConfirmStyle}>
-                          <span><FaHourglass /></span>
-                          <span>Chờ BN xác nhận</span>
-                        </div>
                       )}
 
                       {/* Hiển thị trạng thái hoàn thành */}
