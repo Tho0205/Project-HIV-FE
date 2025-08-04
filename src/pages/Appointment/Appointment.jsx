@@ -112,7 +112,123 @@ const Appointment = () => {
     }
   };
 
-  // Load schedules with 5-person booking limit
+  // FUNCTIONS FOR DUPLICATE APPOINTMENT PREVENTION
+  
+  // 1. Kiểm tra lịch hẹn trùng lặp chính xác (cùng bác sĩ, cùng schedule)
+  const checkExistingAppointments = async (patientId, doctorId, scheduleId) => {
+    try {
+      // Lấy tất cả lịch hẹn của bệnh nhân
+      const allAppointments = await getAppointmentsApi();
+      
+      // Lọc các lịch hẹn của bệnh nhân hiện tại
+      const patientAppointments = allAppointments.filter(appointment => {
+        const appPatientId = appointment.patientId || appointment.PatientId;
+        return appPatientId === patientId;
+      });
+
+      // Kiểm tra xem có lịch hẹn nào với cùng bác sĩ và cùng schedule không
+      const duplicateAppointment = patientAppointments.find(appointment => {
+        const appDoctorId = appointment.doctorId || appointment.DoctorId;
+        const appScheduleId = appointment.scheduleId || appointment.ScheduleId;
+        const appStatus = appointment.status;
+        
+        // Chỉ kiểm tra các lịch hẹn chưa hủy và chưa hoàn thành
+        const activeStatuses = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'];
+        
+        return (
+          appDoctorId === doctorId && 
+          appScheduleId === scheduleId &&
+          activeStatuses.includes(appStatus)
+        );
+      });
+
+      return duplicateAppointment;
+    } catch (error) {
+      console.error("Error checking existing appointments:", error);
+      return null;
+    }
+  };
+
+  // 2. Kiểm tra lịch hẹn cùng thời gian với bác sĩ (cùng ca)
+  const checkSameDoctorSameTime = async (patientId, doctorId, selectedScheduleTime) => {
+    try {
+      const allAppointments = await getAppointmentsApi();
+      
+      const conflictingAppointments = allAppointments.filter(appointment => {
+        const appPatientId = appointment.patientId || appointment.PatientId;
+        const appDoctorId = appointment.doctorId || appointment.DoctorId;
+        const appStatus = appointment.status;
+        
+        // Chỉ kiểm tra lịch hẹn active của chính bệnh nhân này
+        const activeStatuses = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'];
+        
+        if (appPatientId !== patientId || !activeStatuses.includes(appStatus)) {
+          return false;
+        }
+
+        // Kiểm tra cùng bác sĩ
+        if (appDoctorId === doctorId) {
+          const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
+          const selectedDate = new Date(selectedScheduleTime);
+          
+          // Kiểm tra cùng ngày
+          if (appointmentDate.toDateString() === selectedDate.toDateString()) {
+            // Kiểm tra cùng ca (sáng hoặc chiều)
+            const appointmentHour = appointmentDate.getHours();
+            const selectedHour = selectedDate.getHours();
+            
+            const appointmentShift = appointmentHour < 13 ? 'morning' : 'afternoon';
+            const selectedShift = selectedHour < 13 ? 'morning' : 'afternoon';
+            
+            return appointmentShift === selectedShift;
+          }
+        }
+        
+        return false;
+      });
+
+      return conflictingAppointments;
+    } catch (error) {
+      console.error("Error checking same doctor same time:", error);
+      return [];
+    }
+  };
+
+  // 3. Lọc schedules để loại bỏ những lịch mà bệnh nhân đã đặt
+  const filterSchedulesForPatient = async (schedules, patientId) => {
+    try {
+      const allAppointments = await getAppointmentsApi();
+      
+      // Lấy danh sách scheduleId mà bệnh nhân đã đặt (trạng thái active)
+      const bookedScheduleIds = allAppointments
+        .filter(appointment => {
+          const appPatientId = appointment.patientId || appointment.PatientId;
+          const appStatus = appointment.status;
+          const activeStatuses = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'];
+          
+          return appPatientId === patientId && activeStatuses.includes(appStatus);
+        })
+        .map(appointment => appointment.scheduleId || appointment.ScheduleId);
+
+      // Lọc ra những schedule mà bệnh nhân chưa đặt
+      const availableSchedules = schedules.filter(schedule => {
+        return !bookedScheduleIds.includes(schedule.scheduleId);
+      });
+
+      console.log("Filtered schedules for patient:", {
+        originalCount: schedules.length,
+        bookedScheduleIds,
+        availableCount: availableSchedules.length
+      });
+
+      return availableSchedules;
+    } catch (error) {
+      console.error("Error filtering schedules for patient:", error);
+      return schedules; // Trả về schedules gốc nếu có lỗi
+    }
+  };
+
+  // Load schedules with 5-person booking limit and patient duplicate prevention
   const loadSchedules = async (doctorId) => {
     try {
       setLoading(true);
@@ -202,8 +318,14 @@ const Appointment = () => {
         return isFuture && isActive && hasAvailableSlots;
       });
 
-      // 4. Add booking count info to each schedule for display
-      const schedulesWithBookingInfo = filteredSchedules.map(schedule => {
+      // 4. Filter schedules để loại bỏ những lịch mà bệnh nhân đã đặt
+      const userId = tokenManager.getCurrentUserId();
+      const patientFilteredSchedules = userId ? 
+        await filterSchedulesForPatient(filteredSchedules, parseInt(userId)) : 
+        filteredSchedules;
+
+      // 5. Add booking count info to each schedule for display
+      const schedulesWithBookingInfo = patientFilteredSchedules.map(schedule => {
         const bookingCount = allAppointments.filter(appointment => {
           const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
           const appointmentStatus = appointment.status || appointment.Status;
@@ -221,7 +343,7 @@ const Appointment = () => {
         };
       });
 
-      console.log("Filtered schedules with booking info:", schedulesWithBookingInfo);
+      console.log("Final filtered schedules with booking info:", schedulesWithBookingInfo);
       
       setSchedules(schedulesWithBookingInfo);
       setSelectedScheduleId(null);
@@ -248,7 +370,7 @@ const Appointment = () => {
     }
   };
 
-  // Handle form submission
+  // Handle form submission with duplicate prevention
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -284,48 +406,84 @@ const Appointment = () => {
       return;
     }
 
-    console.log("\n🔍 === TIMEZONE DEBUGGING ===");
-    console.log("Selected schedule object:", selectedSchedule);
-    console.log("Original scheduledTime:", selectedSchedule.scheduledTime);
-    console.log("Type of scheduledTime:", typeof selectedSchedule.scheduledTime);
-    
-    const testDate = new Date(selectedSchedule.scheduledTime);
-    console.log("Date object:", testDate);
-    console.log("getHours():", testDate.getHours());
-    console.log("getMinutes():", testDate.getMinutes());
-    console.log("toLocaleString():", testDate.toLocaleString());
-    console.log("toISOString():", testDate.toISOString());
-    console.log("getTimezoneOffset():", testDate.getTimezoneOffset());
-
     // Additional check: prevent booking past appointments
     if (isSchedulePast(selectedSchedule.scheduledTime)) {
       showError("Không thể đặt lịch cho thời gian đã qua");
       return;
     }
 
-    let appointmentDateValue = selectedSchedule.scheduledTime;
-    
-    if (typeof appointmentDateValue !== 'string') {
-      appointmentDateValue = appointmentDateValue.toString();
-    }
-
-    console.log("Final appointmentDate to send:", appointmentDateValue);
-
-    const formData = {
-      patientId: parseInt(userId),
-      scheduleId: parseInt(selectedScheduleId),
-      doctorId: parseInt(selectedDoctorId),
-      note: note || null,
-      isAnonymous: isAnonymous,
-      appointmentDate: appointmentDateValue,
-    };
-
-    console.log("\n📤 Final form data being sent:");
-    console.log(JSON.stringify(formData, null, 2));
-
+    // KIỂM TRA DUPLICATE APPOINTMENT
     try {
       setLoading(true);
       
+      // 1. Kiểm tra lịch hẹn trùng lặp chính xác
+      const duplicateAppointment = await checkExistingAppointments(
+        parseInt(userId), 
+        parseInt(selectedDoctorId), 
+        parseInt(selectedScheduleId)
+      );
+      
+      if (duplicateAppointment) {
+        showError("Bạn đã có lịch hẹn với bác sĩ này trong thời gian này. Vui lòng chọn thời gian khác hoặc kiểm tra lại lịch sử đặt khám.");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Kiểm tra cùng bác sĩ cùng thời gian (cùng ca)
+      const conflictingAppointments = await checkSameDoctorSameTime(
+        parseInt(userId),
+        parseInt(selectedDoctorId),
+        selectedSchedule.scheduledTime
+      );
+
+      if (conflictingAppointments.length > 0) {
+        const conflictInfo = conflictingAppointments[0];
+        const conflictDate = new Date(conflictInfo.appointmentDate || conflictInfo.createdAt);
+        const formattedDate = conflictDate.toLocaleDateString('vi-VN');
+        const formattedTime = conflictDate.toLocaleTimeString('vi-VN', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        
+        showError(`Bạn đã có lịch hẹn với bác sĩ này vào ${formattedDate} lúc ${formattedTime}. Không thể đặt thêm lịch trong cùng ca khám.`);
+        setLoading(false);
+        return;
+      }
+
+      // 3. Tiếp tục với quy trình đặt lịch bình thường
+      console.log("\n🔍 === TIMEZONE DEBUGGING ===");
+      console.log("Selected schedule object:", selectedSchedule);
+      console.log("Original scheduledTime:", selectedSchedule.scheduledTime);
+      console.log("Type of scheduledTime:", typeof selectedSchedule.scheduledTime);
+      
+      const testDate = new Date(selectedSchedule.scheduledTime);
+      console.log("Date object:", testDate);
+      console.log("getHours():", testDate.getHours());
+      console.log("getMinutes():", testDate.getMinutes());
+      console.log("toLocaleString():", testDate.toLocaleString());
+      console.log("toISOString():", testDate.toISOString());
+      console.log("getTimezoneOffset():", testDate.getTimezoneOffset());
+
+      let appointmentDateValue = selectedSchedule.scheduledTime;
+      
+      if (typeof appointmentDateValue !== 'string') {
+        appointmentDateValue = appointmentDateValue.toString();
+      }
+
+      console.log("Final appointmentDate to send:", appointmentDateValue);
+
+      const formData = {
+        patientId: parseInt(userId),
+        scheduleId: parseInt(selectedScheduleId),
+        doctorId: parseInt(selectedDoctorId),
+        note: note || null,
+        isAnonymous: isAnonymous,
+        appointmentDate: appointmentDateValue,
+      };
+
+      console.log("\n📤 Final form data being sent:");
+      console.log(JSON.stringify(formData, null, 2));
+
       console.log("🚀 Calling createAppointmentApi...");
       const result = await createAppointmentApi(formData);
       console.log("✅ API Response:", result);
@@ -748,17 +906,17 @@ const Appointment = () => {
                             }}
                           />
                           <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
-                            Bác sĩ hiện không có lịch khám còn trống
+                            Bạn đã đặt hết lịch khám có sẵn với bác sĩ này
                           </p>
                           <p
                             style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}
                           >
-                            Vui lòng chọn bác sĩ khác hoặc quay lại sau
+                            Vui lòng chọn bác sĩ khác hoặc kiểm tra lại lịch sử đặt khám
                           </p>
                         </div>
                       ) : (
                         <>
-                          {/* Render schedule buttons - simplified version */}
+                          {/* Render schedule buttons */}
                           {schedules.map((schedule) => {
                             const { date, dayName, time } = formatScheduleTime(schedule.scheduledTime);
                             const isSelected = selectedScheduleId === schedule.scheduleId;
@@ -807,14 +965,14 @@ const Appointment = () => {
                                   Phòng {schedule.room || "N/A"}
                                 </div>
                                 
-                                {/* Simple availability indicator */}
+                                {/* Availability indicator */}
                                 <div style={{
                                   fontSize: "0.75rem",
                                   marginTop: "0.25rem",
                                   color: isSelected ? "rgba(255,255,255,0.9)" : "#059669",
                                   fontWeight: "600"
                                 }}>
-                                  Còn trống
+                                  Còn {schedule.availableSlots || 0} chỗ
                                 </div>
                               </button>
                             );
