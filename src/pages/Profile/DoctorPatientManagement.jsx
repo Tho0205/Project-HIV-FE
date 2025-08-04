@@ -8,10 +8,14 @@ import ARVProtocolService from "../../services/ARVProtocolService";
 import ARVService from "../../services/ARVService";
 import CustomArvProtocolsService from "../../services/CustomArvProtocolsService";
 import { tokenManager } from "../../services/account";
+import {
+  getPatientRecordsForDoctor,
+  getMedicalRecordDetail,
+} from "../../services/medicalRecordService";
 import "./DoctorPatientManagement.css";
 import ManagerPatientNavbar from "../../components/Navbar/Navbar-Doctor";
 
-const PAGE_SIZE = 5; // Changed from 10 to 5 for max 5 patients per page
+const PAGE_SIZE = 5;
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
 
 // Utility functions
@@ -19,6 +23,14 @@ const formatDate = (dateStr) =>
   dateStr ? new Date(dateStr).toLocaleDateString("vi-VN") : "";
 const formatDateTime = (dateStr) =>
   dateStr ? new Date(dateStr).toLocaleString("vi-VN") : "";
+const formatTime = (timeString) => {
+  if (!timeString) return "";
+  const parts = timeString.split(":");
+  if (parts.length >= 2) {
+    return `${parts[0]}:${parts[1]}`;
+  }
+  return timeString;
+};
 
 // Components
 const StatCard = ({ icon, value, label }) => (
@@ -49,13 +61,10 @@ const PatientRow = ({ patient, index, page, onViewHistory, viewMode }) => (
     <td>{patient.phone || "Chưa có"}</td>
     <td className="text-center">{formatDate(patient.birthdate)}</td>
     <td className="text-center">{patient.gender || "Khác"}</td>
-    <td className="text-center">
-      <span className="appointment-badge">{patient.appointmentCount || 0}</span>
-    </td>
     <td className="actions-doctor">
       <button
         onClick={() => onViewHistory(patient)}
-        className="btn-info-admin"
+        className="btn-info-doctor"
         title="Xem lịch sử"
       >
         📋
@@ -101,8 +110,7 @@ export default function DoctorPatientManagement() {
   const [selectedStandardProtocol, setSelectedStandardProtocol] =
     useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [patientsPerPage] = useState(5); // Updated to match PAGE_SIZE
-  // States
+  const [patientsPerPage] = useState(5);
   const [patients, setPatients] = useState([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -117,8 +125,6 @@ export default function DoctorPatientManagement() {
   });
   const [viewMode, setViewMode] = useState("myPatients");
   const [scheduleDate, setScheduleDate] = useState(null);
-
-  // Modal states
   const [modals, setModals] = useState({
     history: false,
     exam: false,
@@ -127,9 +133,11 @@ export default function DoctorPatientManagement() {
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
-
-  // Active tab state
   const [activeTab, setActiveTab] = useState("info");
+  const [patientRecords, setPatientRecords] = useState([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
@@ -160,7 +168,7 @@ export default function DoctorPatientManagement() {
     loadProtocolsAndARVs();
   }, []);
 
-  // Load patients with view mode
+  // Load patients
   const loadPatients = useCallback(async () => {
     if (!doctorId && viewMode === "myPatients") return;
 
@@ -173,7 +181,7 @@ export default function DoctorPatientManagement() {
         result = await doctorPatientService.getAllPatients(
           searchTerm,
           page,
-          PAGE_SIZE, // Use updated PAGE_SIZE (5)
+          PAGE_SIZE,
           sortBy,
           order
         );
@@ -181,7 +189,7 @@ export default function DoctorPatientManagement() {
         result = await doctorPatientService.getDoctorPatients(
           doctorId,
           page,
-          PAGE_SIZE, // Use updated PAGE_SIZE (5)
+          PAGE_SIZE,
           sortBy,
           order,
           scheduleDate,
@@ -215,6 +223,30 @@ export default function DoctorPatientManagement() {
     setIsFirstLoad(false);
   }, [loadPatients, viewMode, isFirstLoad]);
 
+  // Load patient records for medicalhistorys tab
+  const loadPatientRecords = useCallback(
+    async (patientId) => {
+      setRecordsLoading(true);
+      try {
+        const records = await getPatientRecordsForDoctor(doctorId, patientId);
+        setPatientRecords(records || []);
+      } catch (err) {
+        console.error("Failed to fetch patient records", err);
+        toast.error("Không thể tải hồ sơ bệnh án.");
+        setPatientRecords([]);
+      } finally {
+        setRecordsLoading(false);
+      }
+    },
+    [doctorId]
+  );
+
+  useEffect(() => {
+    if (activeTab === "medicalhistorys" && selectedPatient) {
+      loadPatientRecords(selectedPatient.userId);
+    }
+  }, [activeTab, selectedPatient, loadPatientRecords]);
+
   // Filter patients
   const filteredPatients = useMemo(() => {
     if (!searchTerm) return patients;
@@ -233,7 +265,6 @@ export default function DoctorPatientManagement() {
   const closeModal = (modalName) =>
     setModals((prev) => ({ ...prev, [modalName]: false }));
 
-  // Handlers
   const handleExamClose = () => {
     closeModal("exam");
     openModal("history");
@@ -242,10 +273,8 @@ export default function DoctorPatientManagement() {
   const handleViewProtocol = async (patient) => {
     try {
       setSelectedPatient(patient);
-
       const patientId = patient.userId || patient.patientId;
       await loadPatientProtocol(patientId);
-
       setModalType("view");
       setIsModalOpen(true);
     } catch (error) {
@@ -253,6 +282,7 @@ export default function DoctorPatientManagement() {
       toast.error("Không thể tải thông tin phác đồ");
     }
   };
+
   const loadPatientProtocolForHistory = async (patientId) => {
     try {
       const current = await CustomArvProtocolsService.getPatientCurrentProtocol(
@@ -264,6 +294,7 @@ export default function DoctorPatientManagement() {
       setCurrentProtocol(null);
     }
   };
+
   const handleViewHistory = async (patient) => {
     setSelectedPatient(patient);
     try {
@@ -279,10 +310,7 @@ export default function DoctorPatientManagement() {
             ...result.data,
             viewOnly: true,
           });
-
-          // Load protocol for display
           await loadPatientProtocolForHistory(patient.userId);
-
           openModal("history");
         } else {
           toast.error("Không thể tải thông tin bệnh nhân");
@@ -298,10 +326,7 @@ export default function DoctorPatientManagement() {
             ...result.data,
             viewOnly: false,
           });
-
-          // Load protocol for display
           await loadPatientProtocolForHistory(patient.userId);
-
           openModal("history");
         } else {
           toast.error(result.message || "Không thể tải lịch sử bệnh nhân");
@@ -399,13 +424,11 @@ export default function DoctorPatientManagement() {
       setLoading(false);
     }
   };
+
   const handleCreateProtocol = async () => {
     try {
       setLoading(true);
-
-      // Sử dụng selectedPatient.userId thay vì selectedPatient.patientId
       const patientId = selectedPatient.userId || selectedPatient.patientId;
-
       const createdProtocol =
         await CustomArvProtocolsService.createCustomProtocol(
           doctorId,
@@ -414,12 +437,9 @@ export default function DoctorPatientManagement() {
         );
 
       toast.success("Tạo phác đồ thành công!");
-
-      // Reload protocol data
       await loadPatientProtocol(patientId);
       setModalType("view");
 
-      // Reset form data
       setNewProtocolData({
         baseProtocolId: null,
         name: "",
@@ -427,7 +447,6 @@ export default function DoctorPatientManagement() {
         details: [],
       });
 
-      // Reload patients list
       loadPatients();
     } catch (err) {
       console.error("Error creating protocol:", err);
@@ -440,7 +459,6 @@ export default function DoctorPatientManagement() {
   const handleUpdateProtocol = async (protocolId, isCustom) => {
     try {
       setLoading(true);
-
       const patientId = selectedPatient.userId || selectedPatient.patientId;
 
       await CustomArvProtocolsService.updatePatientProtocol(patientId, {
@@ -448,16 +466,11 @@ export default function DoctorPatientManagement() {
         isCustom,
       });
 
-      // Reload protocol data
       await loadPatientProtocol(patientId);
-
-      // Update current protocol in history view
       await loadPatientProtocolForHistory(patientId);
 
       toast.success("Cập nhật phác đồ thành công!");
       setModalType("view");
-
-      // Reload patients list
       loadPatients();
     } catch (err) {
       console.error("Error updating protocol:", err);
@@ -476,6 +489,7 @@ export default function DoctorPatientManagement() {
       return [];
     }
   };
+
   const handleStandardProtocolSelect = async (protocolId) => {
     const protocol = standardProtocols.find((p) => p.protocolId === protocolId);
     if (!protocol) return;
@@ -498,6 +512,23 @@ export default function DoctorPatientManagement() {
         status: "ACTIVE",
       })),
     });
+  };
+
+  const handleViewRecordDetail = async (recordId) => {
+    setDetailLoading(true);
+    try {
+      const detail = await getMedicalRecordDetail(recordId);
+      setSelectedRecord(detail || {});
+    } catch (err) {
+      console.error("Failed to fetch detail", err);
+      toast.error("Không thể tải chi tiết hồ sơ.");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const closeRecordModal = () => {
+    setSelectedRecord(null);
   };
 
   const getStatusBadge = (status) => {
@@ -554,12 +585,12 @@ export default function DoctorPatientManagement() {
                   {selectedPatient?.gender || "Other"}
                 </span>
               </div>
-              <div className="info-item">
+              {/* <div className="info-item">
                 <span className="info-label">Tổng số lần hẹn:</span>
                 <span className="info-value">
                   {selectedPatient?.appointmentCount || 0}
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
         );
@@ -606,6 +637,257 @@ export default function DoctorPatientManagement() {
               </div>
             ) : (
               <p className="no-data-admin">Chưa có lịch hẹn nào</p>
+            )}
+          </div>
+        );
+
+      case "medicalhistorys":
+        return (
+          <div className="info-section-doctor">
+            <h3>Hồ Sơ Bệnh Án</h3>
+            {recordsLoading ? (
+              <div className="medi-loading-medical-record">
+                Đang tải hồ sơ bệnh án...
+              </div>
+            ) : patientRecords.length === 0 ? (
+              <div className="medi-empty-message-medical-record">
+                Bệnh nhân này chưa có hồ sơ bệnh án nào.
+              </div>
+            ) : (
+              <div className="medi-list-medical-record">
+                {patientRecords.map((record) => (
+                  <div
+                    key={record.recordId}
+                    className="medi-card-medical-record"
+                  >
+                    <div className="medi-main-medical-record">
+                      <div>
+                        <h3 className="medi-record-title-medical-record">
+                          Hồ sơ #{record.recordId}
+                        </h3>
+                        <div className="medi-datetime-medical-record">
+                          <span className="medi-exam-date-medical-record">
+                            {formatDate(record.examDate)}
+                          </span>
+                          <span className="medi-exam-time-medical-record">
+                            {formatTime(record.examTime)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="medi-actions-medical-record">
+                        <span
+                          className={`medi-status-medical-record ${record.status?.toLowerCase()}`}
+                        >
+                          {record.status || "N/A"}
+                        </span>
+                        <button
+                          className="medi-detail-button-medical-record"
+                          onClick={() =>
+                            handleViewRecordDetail(record.recordId)
+                          }
+                        >
+                          Xem chi tiết
+                        </button>
+                      </div>
+                    </div>
+                    <div className="medi-summary-medical-record">
+                      {record.summary || (
+                        <span className="medi-no-summary-medical-record">
+                          Không có ghi chú
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {selectedRecord && (
+              <Modal
+                show={!!selectedRecord}
+                onClose={closeRecordModal}
+                title="Chi tiết hồ sơ bệnh án"
+                className="modal-standard"
+              >
+                <div className="detail-tabs-medical-record">
+                  <button
+                    className={`tab-button-medical-record ${
+                      activeTab === "examination" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTab("examination")}
+                  >
+                    Thông tin khám bệnh
+                  </button>
+                  <button
+                    className={`tab-button-medical-record ${
+                      activeTab === "arv" ? "active" : ""
+                    }`}
+                    onClick={() => setActiveTab("arv")}
+                  >
+                    Phác đồ ARV
+                  </button>
+                </div>
+                <div className="detail-body-medical-record">
+                  {detailLoading ? (
+                    <div className="detail-loading-medical-record">
+                      Đang tải thông tin...
+                    </div>
+                  ) : (
+                    <>
+                      {activeTab === "examination" && (
+                        <div className="examination-detail-medical-record">
+                          <h3>Thông tin khám bệnh</h3>
+                          {selectedRecord.examination ? (
+                            <div className="detail-info-medical-record">
+                              <div className="info-row-medical-record">
+                                <span className="info-label-medical-record">
+                                  Mã khám:
+                                </span>
+                                <span className="info-value-medical-record">
+                                  {selectedRecord.examination.examId || "N/A"}
+                                </span>
+                              </div>
+                              <div className="info-row-medical-record">
+                                <span className="info-label-medical-record">
+                                  Ngày khám:
+                                </span>
+                                <span className="info-value-medical-record">
+                                  {formatDate(
+                                    selectedRecord.examination.examDate
+                                  )}
+                                </span>
+                              </div>
+                              <div className="info-row-medical-record">
+                                <span className="info-label-medical-record">
+                                  Kết quả:
+                                </span>
+                                <span className="info-value-medical-record">
+                                  {selectedRecord.examination.result ||
+                                    "Chưa có kết quả"}
+                                </span>
+                              </div>
+                              <div className="info-row-medical-record">
+                                <span className="info-label-medical-record">
+                                  Chỉ số CD4:
+                                </span>
+                                <span className="info-value-medical-record">
+                                  {selectedRecord.examination.cd4Count !== null
+                                    ? `${selectedRecord.examination.cd4Count} tế bào/mm³`
+                                    : "Chưa có"}
+                                </span>
+                              </div>
+                              <div className="info-row-medical-record">
+                                <span className="info-label-medical-record">
+                                  Tải lượng HIV:
+                                </span>
+                                <span className="info-value-medical-record">
+                                  {selectedRecord.examination.hivLoad !== null
+                                    ? `${selectedRecord.examination.hivLoad} copies/ml`
+                                    : "Chưa có"}
+                                </span>
+                              </div>
+                              <div className="info-row-medical-record">
+                                <span className="info-label-medical-record">
+                                  Trạng thái:
+                                </span>
+                                <span
+                                  className={`status-badge-medical-record ${selectedRecord.examination.status?.toLowerCase()}`}
+                                >
+                                  {selectedRecord.examination.status || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="no-data-medical-record">
+                              Không có thông tin khám bệnh
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {activeTab === "arv" && (
+                        <div className="arv-detail-medical-record">
+                          <h3>Thông tin phác đồ ARV</h3>
+                          {selectedRecord.customizedProtocol ? (
+                            <div className="protocol-info-medical-record">
+                              <div className="protocol-header-medical-record">
+                                <h4>
+                                  {selectedRecord.customizedProtocol.name ||
+                                    "Phác đồ tùy chỉnh"}
+                                </h4>
+                                <p className="protocol-desc-medical-record">
+                                  {selectedRecord.customizedProtocol
+                                    .description || "Không có mô tả"}
+                                </p>
+                                {selectedRecord.customizedProtocol
+                                  .baseProtocolName && (
+                                  <p className="base-protocol-medical-record">
+                                    Dựa trên:{" "}
+                                    <strong>
+                                      {
+                                        selectedRecord.customizedProtocol
+                                          .baseProtocolName
+                                      }
+                                    </strong>
+                                  </p>
+                                )}
+                              </div>
+                              <div className="arv-list-medical-record">
+                                <h5>Danh sách thuốc ARV:</h5>
+                                {selectedRecord.customizedProtocol.arvDetails
+                                  ?.length > 0 ? (
+                                  <div className="arv-cards-medical-record">
+                                    {selectedRecord.customizedProtocol.arvDetails.map(
+                                      (arv) => (
+                                        <div
+                                          key={arv.arvId}
+                                          className="arv-card-medical-record"
+                                        >
+                                          <div className="arv-name-medical-record">
+                                            {arv.arvName || "Không tên"}
+                                          </div>
+                                          <div className="arv-info-medical-record">
+                                            <div className="arv-desc-medical-record">
+                                              {arv.arvDescription ||
+                                                "Không có mô tả"}
+                                            </div>
+                                            <div className="arv-dosage-medical-record">
+                                              <strong>Liều dùng:</strong>{" "}
+                                              {arv.dosage || "Chưa xác định"}
+                                            </div>
+                                            <div className="arv-instruction-medical-record">
+                                              <strong>Hướng dẫn:</strong>{" "}
+                                              {arv.usageInstruction ||
+                                                "Theo chỉ định của bác sĩ"}
+                                            </div>
+                                            <div className="arv-status-medical-record">
+                                              <span
+                                                className={`status-badge-medical-record ${arv.status?.toLowerCase()}`}
+                                              >
+                                                {arv.status || "N/A"}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="no-data-medical-record">
+                                    Chưa có thuốc ARV nào được chỉ định
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="no-data-medical-record">
+                              Không có phác đồ ARV
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </Modal>
             )}
           </div>
         );
@@ -685,6 +967,7 @@ export default function DoctorPatientManagement() {
             )}
           </div>
         );
+
       case "treatment":
         return (
           <div className="info-section-doctor">
@@ -699,8 +982,6 @@ export default function DoctorPatientManagement() {
                 </button>
               )}
             </div>
-
-            {/* Current Protocol Display */}
             {currentProtocol ? (
               <div className="current-protocol-display">
                 <div className="protocol-info">
@@ -715,7 +996,6 @@ export default function DoctorPatientManagement() {
                     </span>
                   </p>
                 </div>
-
                 {currentProtocol.details &&
                   currentProtocol.details.length > 0 && (
                     <div className="arv-list-display">
@@ -763,12 +1043,9 @@ export default function DoctorPatientManagement() {
     <div className="container-m">
       <SidebarDoctor active={"Doctor-Patient-Manager"} />
       <div className="main-content-doctor">
-        {/* Header */}
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
         </div>
-
-        {/* View Mode Tabs */}
         <div className="view-mode-tabs">
           <button
             className={`tab-btn ${viewMode === "myPatients" ? "active" : ""}`}
@@ -779,19 +1056,8 @@ export default function DoctorPatientManagement() {
           >
             Bệnh nhân của tôi
           </button>
-          <button
-            className={`tab-btn ${viewMode === "allPatients" ? "active" : ""}`}
-            onClick={() => {
-              setViewMode("allPatients");
-              setPage(1);
-              setScheduleDate(null);
-            }}
-          >
-            Tất cả bệnh nhân
-          </button>
         </div>
 
-        {/* Filters */}
         <div className="filters-admin">
           <div className="search-box-admin">
             <input
@@ -802,7 +1068,6 @@ export default function DoctorPatientManagement() {
               className="search-input-admin"
             />
           </div>
-
           {viewMode === "myPatients" && (
             <input
               type="date"
@@ -815,7 +1080,6 @@ export default function DoctorPatientManagement() {
               title="Lọc theo ngày hẹn"
             />
           )}
-
           <select
             value={sort}
             onChange={(e) => {
@@ -830,8 +1094,6 @@ export default function DoctorPatientManagement() {
             <option value="created_at_desc">Mới nhất</option>
           </select>
         </div>
-
-        {/* Table */}
         <div className="accounts-table-container-admin">
           <table className="accounts-table-admin">
             <thead>
@@ -843,7 +1105,6 @@ export default function DoctorPatientManagement() {
                 <th>Số điện thoại</th>
                 <th>Ngày sinh</th>
                 <th>Giới tính</th>
-                <th>Số lần hẹn</th>
                 <th>Thao tác</th>
               </tr>
             </thead>
@@ -875,15 +1136,12 @@ export default function DoctorPatientManagement() {
             </tbody>
           </table>
         </div>
-
         <Pagination
           page={page}
           total={total}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
         />
-
-        {/* History Modal */}
         <Modal
           show={modals.history}
           onClose={() => {
@@ -899,8 +1157,6 @@ export default function DoctorPatientManagement() {
           />
           <div className="modal-info-body-admin">{renderModalContent()}</div>
         </Modal>
-
-        {/* Exam Modal */}
         <Modal
           show={modals.exam}
           onClose={() => closeModal("exam")}
@@ -921,7 +1177,6 @@ export default function DoctorPatientManagement() {
                 <strong>Email:</strong> {selectedPatient?.email}
               </p>
             </div>
-
             <div className="form-group-admin">
               <label>
                 Ngày xét nghiệm <span className="required-mark">*</span>
@@ -938,7 +1193,6 @@ export default function DoctorPatientManagement() {
                 />
               )}
             </div>
-
             <div className="form-group-admin">
               <label>CD4 Count (cells/μL)</label>
               <input
@@ -952,7 +1206,6 @@ export default function DoctorPatientManagement() {
                 placeholder="VD: 350"
               />
             </div>
-
             <div className="form-group-admin">
               <label>HIV Load (copies/ml)</label>
               <input
@@ -965,7 +1218,6 @@ export default function DoctorPatientManagement() {
                 placeholder="VD: 50000"
               />
             </div>
-
             <div className="form-group-admin">
               <label>
                 Kết quả <span className="required-mark">*</span>
@@ -981,7 +1233,6 @@ export default function DoctorPatientManagement() {
                 placeholder="Nhập kết quả xét nghiệm chi tiết..."
               />
             </div>
-
             <div className="modal-actions-doctor">
               <button
                 type="button"
@@ -1024,7 +1275,6 @@ export default function DoctorPatientManagement() {
                   &times;
                 </button>
               </div>
-
               <div className="modal-body-ARVProtocol">
                 {modalType === "view" && (
                   <div className="protocol-details-ARVProtocol">
@@ -1043,7 +1293,6 @@ export default function DoctorPatientManagement() {
                             <strong>Trạng thái:</strong>{" "}
                             {currentProtocol.status}
                           </p>
-
                           {currentProtocol.details &&
                             currentProtocol.details.length > 0 && (
                               <>
@@ -1061,7 +1310,6 @@ export default function DoctorPatientManagement() {
                               </>
                             )}
                         </div>
-
                         <div className="action-buttons-ARVProtocol">
                           <button
                             className="btn-history-ARVProtocol"
@@ -1090,7 +1338,6 @@ export default function DoctorPatientManagement() {
                     )}
                   </div>
                 )}
-
                 {modalType === "select-standard" && (
                   <div className="select-standard-protocol-ARVProtocol">
                     <h4>Chọn phác đồ chuẩn</h4>
@@ -1113,7 +1360,6 @@ export default function DoctorPatientManagement() {
                         ))}
                       </select>
                     </div>
-
                     {selectedStandardProtocol && (
                       <div className="protocol-preview-ARVProtocol">
                         <h5>Thông tin phác đồ:</h5>
@@ -1124,7 +1370,6 @@ export default function DoctorPatientManagement() {
                           <strong>Mô tả:</strong>{" "}
                           {selectedStandardProtocol.description}
                         </p>
-
                         <h5>Danh sách ARV:</h5>
                         {selectedStandardProtocol.details &&
                         selectedStandardProtocol.details.length > 0 ? (
@@ -1155,7 +1400,6 @@ export default function DoctorPatientManagement() {
                         ) : (
                           <p>Đang tải danh sách ARV...</p>
                         )}
-
                         <div className="action-buttons-ARVProtocol">
                           <button
                             className="btn-customize-ARVProtocol"
@@ -1181,7 +1425,6 @@ export default function DoctorPatientManagement() {
                         </div>
                       </div>
                     )}
-
                     <button
                       className="btn-back-ARVProtocol"
                       onClick={() => setModalType("view")}
@@ -1190,11 +1433,9 @@ export default function DoctorPatientManagement() {
                     </button>
                   </div>
                 )}
-
                 {modalType === "create" && (
                   <div className="create-protocol-ARVProtocol">
                     <h4>Tạo phác đồ mới</h4>
-
                     {selectedStandardProtocol && (
                       <div className="standard-protocol-info-ARVProtocol">
                         <p>
@@ -1203,7 +1444,6 @@ export default function DoctorPatientManagement() {
                         </p>
                       </div>
                     )}
-
                     <div className="form-group-ARVProtocol">
                       <label>Tên phác đồ:</label>
                       <input
@@ -1218,7 +1458,6 @@ export default function DoctorPatientManagement() {
                         placeholder="Nhập tên phác đồ"
                       />
                     </div>
-
                     <div className="form-group-ARVProtocol">
                       <label>Mô tả:</label>
                       <textarea
@@ -1232,7 +1471,6 @@ export default function DoctorPatientManagement() {
                         placeholder="Nhập mô tả phác đồ"
                       />
                     </div>
-
                     <div className="arv-selections-ARVProtocol">
                       <h5>Danh sách thuốc ARV:</h5>
                       <button
@@ -1254,7 +1492,6 @@ export default function DoctorPatientManagement() {
                       >
                         + Thêm thuốc
                       </button>
-
                       {newProtocolData.details.length === 0 ? (
                         <p>Chưa có thuốc ARV nào trong phác đồ</p>
                       ) : (
@@ -1286,7 +1523,6 @@ export default function DoctorPatientManagement() {
                                   ))}
                                 </select>
                               </div>
-
                               <div className="form-group-ARVProtocol">
                                 <label>Liều dùng:</label>
                                 <input
@@ -1306,7 +1542,6 @@ export default function DoctorPatientManagement() {
                                   }}
                                 />
                               </div>
-
                               <div className="form-group-ARVProtocol">
                                 <label>Hướng dẫn:</label>
                                 <input
@@ -1326,7 +1561,6 @@ export default function DoctorPatientManagement() {
                                   }}
                                 />
                               </div>
-
                               <button
                                 className="btn-remove-ARVProtocol"
                                 onClick={() => {
@@ -1347,7 +1581,6 @@ export default function DoctorPatientManagement() {
                         </ul>
                       )}
                     </div>
-
                     <div className="form-actions-ARVProtocol">
                       <button
                         className="btn-cancel-ARVProtocol"
@@ -1375,7 +1608,6 @@ export default function DoctorPatientManagement() {
                     </div>
                   </div>
                 )}
-
                 {modalType === "history" && (
                   <div className="protocol-history-ARVProtocol">
                     <h4>Lịch sử phác đồ</h4>
@@ -1423,7 +1655,6 @@ export default function DoctorPatientManagement() {
                     ) : (
                       <p>Chưa có lịch sử phác đồ</p>
                     )}
-
                     <button
                       className="btn-back-ARVProtocol"
                       onClick={() => setModalType("view")}

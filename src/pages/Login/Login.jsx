@@ -20,21 +20,26 @@ const Login = () => {
     if (token) {
       tokenManager.setToken(token, 60);
       const role = tokenManager.getCurrentUserRole();
-      if (role === "Patient" || role === "Doctor") navigate("/");
+      if (role === "Patient") navigate("/");
       else if (role === "Staff" || role === "Manager") navigate("/DashBoard");
       else if (role === "Admin") navigate("/Admin-AccountManagement");
+      else if (role === "Doctor") {
+        navigate("/Profile-Doctor");
+      }
     }
   }, []);
 
   useEffect(() => {
     if (tokenManager.isAuthenticated()) {
       const role = tokenManager.getCurrentUserRole();
-      if (role === "Patient" || role === "Doctor") {
+      if (role === "Patient") {
         navigate("/");
       } else if (role === "Staff" || role === "Manager") {
         navigate("/DashBoard");
       } else if (role === "Admin") {
         navigate("/Admin-AccountManagement");
+      } else if (role === "Doctor") {
+        navigate("/Profile-Doctor");
       }
     }
     const cookies = document.cookie.split(";");
@@ -79,12 +84,14 @@ const Login = () => {
         tokenManager.setToken(data.token, 60);
 
         const role = tokenManager.getCurrentUserRole();
-        if (role === "Patient" || role === "Doctor") {
+        if (role === "Patient") {
           navigate("/");
         } else if (role === "Staff" || role === "Manager") {
           navigate("/DashBoard");
         } else if (role === "Admin") {
           navigate("/Admin-AccountManagement");
+        } else if (role === "Doctor") {
+          navigate("/Profile-Doctor");
         }
       } else {
         const error = await response.json().catch(() => null);

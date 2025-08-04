@@ -131,7 +131,6 @@ const Header = () => {
         </nav>
 
         <div className="header-buttons">
-
           {role && (
             <div className="notification-container">
               <button
