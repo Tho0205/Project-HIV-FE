@@ -16,11 +16,9 @@ const FloatingChat = () => {
   const [availablePatient, setAvailablePatient] = useState([])
   const [connection, setConnection] = useState(null)
   const [hasNewMessage, setHasNewMessage] = useState(false)
-  const [userNames, setUserNames] = useState({})
   const [isTyping, setIsTyping] = useState(false)
   const chatEndRef = useRef()
 
-  const username = tokenManager.getCurrentUserName()
   const currentUserId = tokenManager.getCurrentUserId()
   const role = tokenManager.getCurrentUserRole()
 

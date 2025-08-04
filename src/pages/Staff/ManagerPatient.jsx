@@ -180,7 +180,7 @@ export default function ManagerPatient() {
           <input type="text" placeholder="Tìm Kiếm..." className="search" />
           <div className="user">
             <span className="notification">
-              🔔<span className="dot"></span>
+              <span className="dot"></span>
             </span>
             <img
               src="https://i.pravatar.cc/40?img=5"

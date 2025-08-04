@@ -4,6 +4,9 @@ import { doctorAvatar } from "../../services/doctorInfo";
 import { getDoctorsApi } from "../../services/Appointment";
 import scheduleService from "../../services/ScheduleService";
 import { tokenManager } from "../../services/account";
+import { FaSearch , FaCalendar, FaTimes, FaCheck, FaExclamationTriangle, FaBan, FaHospital, FaLightbulb, FaArrowLeft,
+  FaChartBar,FaRegSave
+ } from "react-icons/fa";
 
 export default function StaffDoctorSchedule() {
   const [doctors, setDoctors] = useState([]);
@@ -46,13 +49,13 @@ export default function StaffDoctorSchedule() {
   // Method lấy lịch của tất cả bác sĩ trong tháng để kiểm tra xung đột
   const getAllDoctorsSchedulesInMonth = useCallback(async (fromDate, toDate) => {
     try {
-      console.log("🔍 Getting all doctors schedules for conflict check...", { fromDate, toDate });
+      console.log(" Getting all doctors schedules for conflict check...", { fromDate, toDate });
       const allSchedules = [];
 
       // Lấy lịch của từng bác sĩ
       for (const doctor of doctors) {
         try {
-          console.log(`📋 Getting schedules for doctor ${doctor.id} (${doctor.name})`);
+          console.log(` Getting schedules for doctor ${doctor.id} (${doctor.name})`);
           
           let doctorSchedules = [];
           
@@ -60,7 +63,7 @@ export default function StaffDoctorSchedule() {
           try {
             doctorSchedules = await scheduleService.getDoctorSchedules(doctor.id, fromDate, toDate);
           } catch (serviceError) {
-            console.warn(`⚠️ Service method failed for doctor ${doctor.id}:`, serviceError);
+            console.warn(`Service method failed for doctor ${doctor.id}:`, serviceError);
             
             // Fallback: Try using the Appointment API directly
             try {
@@ -86,7 +89,7 @@ export default function StaffDoctorSchedule() {
                 }));
               }
             } catch (fallbackError) {
-              console.warn(`⚠️ Fallback also failed for doctor ${doctor.id}:`, fallbackError);
+              console.warn(` Fallback also failed for doctor ${doctor.id}:`, fallbackError);
             }
           }
           
@@ -97,16 +100,16 @@ export default function StaffDoctorSchedule() {
             doctorName: doctor.name
           }));
           
-          console.log(`✅ Found ${schedulesWithDoctorInfo.length} schedules for ${doctor.name}`);
+          console.log(` Found ${schedulesWithDoctorInfo.length} schedules for ${doctor.name}`);
           allSchedules.push(...schedulesWithDoctorInfo);
           
         } catch (error) {
-          console.warn(`⚠️ Cannot get schedules for doctor ${doctor.id} (${doctor.name}):`, error);
+          console.warn(` Cannot get schedules for doctor ${doctor.id} (${doctor.name}):`, error);
           // Tiếp tục với bác sĩ khác nếu một bác sĩ lỗi
         }
       }
 
-      console.log(`📊 Total schedules collected: ${allSchedules.length}`);
+      console.log(` Total schedules collected: ${allSchedules.length}`);
       return allSchedules;
     } catch (error) {
       console.error("💥 Error getting all doctors schedules:", error);
@@ -117,7 +120,7 @@ export default function StaffDoctorSchedule() {
   // Method kiểm tra xung đột phòng khám và lịch bác sĩ
   const checkScheduleConflicts = useCallback(async (schedulesToCheck, doctorId) => {
     try {
-      console.log("🔍 Checking room and doctor schedule conflicts...", { 
+      console.log(" Checking room and doctor schedule conflicts...", { 
         schedulesToCheck: schedulesToCheck.length, 
         doctorId 
       });
@@ -126,21 +129,21 @@ export default function StaffDoctorSchedule() {
       const fromDate = new Date(year, month - 1, 1).toISOString().split("T")[0];
       const toDate = new Date(year, month, 0).toISOString().split("T")[0];
 
-      console.log("📅 Date range:", { fromDate, toDate });
+      console.log(" Date range:", { fromDate, toDate });
 
       // 1. Lấy lịch của bác sĩ hiện tại
       let doctorSchedules = [];
       try {
         doctorSchedules = await scheduleService.getDoctorSchedules(doctorId, fromDate, toDate);
-        console.log("📋 Doctor existing schedules:", doctorSchedules);
+        console.log(" Doctor existing schedules:", doctorSchedules);
       } catch (error) {
-        console.warn("⚠️ Cannot get doctor schedules:", error);
+        console.warn(" Cannot get doctor schedules:", error);
         doctorSchedules = [];
       }
 
       // 2. Lấy lịch của TẤT CẢ bác sĩ trong tháng để kiểm tra xung đột phòng
       const allDoctorsSchedules = await getAllDoctorsSchedulesInMonth(fromDate, toDate);
-      console.log("🏥 All doctors schedules for room conflict check:", allDoctorsSchedules);
+      console.log(" All doctors schedules for room conflict check:", allDoctorsSchedules);
 
       const conflicts = [];
       const nonConflicts = [];
@@ -151,7 +154,7 @@ export default function StaffDoctorSchedule() {
         let conflictReason = null;
         let conflictingDoctor = null;
 
-        console.log("🔍 Checking schedule:", {
+        console.log(" Checking schedule:", {
           date: newSchedule.date,
           time: newSchedule.startTime,
           room: newSchedule.room,
@@ -174,7 +177,7 @@ export default function StaffDoctorSchedule() {
             const newShift = newHour < 13 ? 'morning' : 'afternoon';
             
             if (existingShift === newShift) {
-              console.log("❌ Doctor conflict found:", {
+              console.log(" Doctor conflict found:", {
                 existing: existingDateTime,
                 new: newDateTime,
                 shift: newShift
@@ -247,14 +250,14 @@ export default function StaffDoctorSchedule() {
         }
       });
 
-      console.log("⚠️ Final conflicts found:", conflicts);
-      console.log("✅ Final non-conflicts:", nonConflicts);
+      console.log(" Final conflicts found:", conflicts);
+      console.log(" Final non-conflicts:", nonConflicts);
 
       return { conflicts, nonConflicts };
     } catch (error) {
-      console.error("💥 Error checking conflicts:", error);
+      console.error(" Error checking conflicts:", error);
       // Nếu không thể kiểm tra, coi như tất cả đều không trùng để tiếp tục
-      console.warn("⚠️ Conflict check failed, allowing all schedules");
+      console.warn(" Conflict check failed, allowing all schedules");
       return { 
         conflicts: [], 
         nonConflicts: schedulesToCheck 
@@ -274,7 +277,7 @@ export default function StaffDoctorSchedule() {
         const token = tokenManager.getToken();
         const isAuthenticated = tokenManager.isAuthenticated();
 
-        console.log("🔐 Auth check:", {
+        console.log(" Auth check:", {
           role,
           hasToken: !!token,
           isAuthenticated,
@@ -291,9 +294,9 @@ export default function StaffDoctorSchedule() {
           );
         }
 
-        console.log("🔍 Fetching doctors from API...");
+        console.log(" Fetching doctors from API...");
         const doctorsData = await getDoctorsApi();
-        console.log("📥 Doctors data received:", doctorsData);
+        console.log(" Doctors data received:", doctorsData);
 
         // Better data validation
         if (!Array.isArray(doctorsData)) {
@@ -317,7 +320,7 @@ export default function StaffDoctorSchedule() {
             originalData: doctor,
           }));
 
-        console.log("🔄 Transformed doctors:", transformedDoctors);
+        console.log(" Transformed doctors:", transformedDoctors);
 
         if (transformedDoctors.length === 0) {
           throw new Error("Không tìm thấy bác sĩ nào trong hệ thống");
@@ -325,7 +328,7 @@ export default function StaffDoctorSchedule() {
 
         setDoctors(transformedDoctors);
       } catch (err) {
-        console.error("💥 Error fetching doctors:", err);
+        console.error(" Error fetching doctors:", err);
 
         if (
           err.message.includes("đăng nhập") ||
@@ -337,7 +340,7 @@ export default function StaffDoctorSchedule() {
           setError("Không thể tải danh sách bác sĩ. Chi tiết: " + err.message);
 
           // Only use fallback for network/API errors
-          console.log("🔄 Using fallback sample data...");
+          console.log(" Using fallback sample data...");
           setDoctors([
             { id: 1, name: "BS. Nguyễn Văn An", room: "Room 1" },
             { id: 2, name: "BS. Trần Thị Bình", room: "Room 2" },
@@ -514,11 +517,11 @@ export default function StaffDoctorSchedule() {
   // Logic tạo lịch nội bộ
   const createSchedulesInternal = async (schedulesToCreate) => {
     if (schedulesToCreate.length === 0) {
-      alert("⚠️ Không có lịch nào để tạo!");
+      alert(" Không có lịch nào để tạo!");
       return;
     }
 
-    console.log("💾 Creating schedules:", {
+    console.log(" Creating schedules:", {
       doctorId: selectedDoctor.id,
       doctorName: selectedDoctor.name,
       month: selectedMonth,
@@ -536,7 +539,7 @@ export default function StaffDoctorSchedule() {
       for (let i = 0; i < schedulesToCreate.length; i += batchSize) {
         const batch = schedulesToCreate.slice(i, i + batchSize);
         console.log(
-          `📦 Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(
+          ` Processing batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(
             schedulesToCreate.length / batchSize
           )}:`,
           batch
@@ -544,13 +547,13 @@ export default function StaffDoctorSchedule() {
 
         for (const schedule of batch) {
           try {
-            console.log("🔄 Creating schedule:", schedule);
+            console.log(" Creating schedule:", schedule);
             const result = await scheduleService.createSchedule(
               schedule,
               selectedDoctor.id
             );
 
-            console.log("📥 API Response:", result);
+            console.log(" API Response:", result);
 
             const isSuccess =
               result &&
@@ -560,7 +563,7 @@ export default function StaffDoctorSchedule() {
 
             if (isSuccess) {
               successCount++;
-              console.log("✅ Schedule created successfully:", {
+              console.log(" Schedule created successfully:", {
                 scheduleId: result.data?.scheduleId,
                 message: result.message,
                 success: result.isSuccess,
@@ -798,7 +801,7 @@ export default function StaffDoctorSchedule() {
                 marginBottom: "16px",
               }}
             >
-              📅 Sắp Xếp Lịch Bác Sĩ Theo Tuần
+              <FaCalendar /> Sắp Xếp Lịch Bác Sĩ Theo Tuần
             </h1>
             <p style={{ marginBottom: "16px", color: "#6b7280" }}>
               Chọn các thứ trong tuần với ca sáng/chiều, áp dụng cho cả tháng.
@@ -830,7 +833,7 @@ export default function StaffDoctorSchedule() {
                 <div
                   style={{ display: "flex", alignItems: "center", gap: "8px" }}
                 >
-                  <span>❌</span>
+                  <span><FaTimes /></span>
                   <span>{error}</span>
                 </div>
               </div>
@@ -927,7 +930,7 @@ export default function StaffDoctorSchedule() {
                         (e.target.style.backgroundColor = "#2563eb")
                       }
                     >
-                      📅 Sắp Xếp Lịch Theo Tuần
+                      <FaCalendar/> Sắp Xếp Lịch Theo Tuần
                     </button>
                   </div>
                 ))}
@@ -942,20 +945,20 @@ export default function StaffDoctorSchedule() {
         <div className="schedule-modal-overlay success-modal-overlay">
           <div className="schedule-modal-content success-modal">
             <div className="success-icon">
-              <span>✅</span>
+              <span><FaCheck /></span>
             </div>
 
             <h2>Tạo lịch thành công!</h2>
             <p>{successMessage}</p>
 
             <div className="success-stats">
-              <div className="stats-title">📊 Thống kê:</div>
+              <div className="stats-title">Thống kê:</div>
               <div className="stats-content">
-                ✅ Đã tạo: <strong>{createdSchedulesCount}</strong> ca làm việc
+                <FaCheck/> Đã tạo: <strong>{createdSchedulesCount}</strong> ca làm việc
                 <br />
-                👨‍⚕️ Bác sĩ: <strong>{selectedDoctor?.name}</strong>
+                 Bác sĩ: <strong>{selectedDoctor?.name}</strong>
                 <br />
-                📅 Tháng: <strong>{formatMonth(selectedMonth)}</strong>
+                <FaCalendar/> Tháng: <strong>{formatMonth(selectedMonth)}</strong>
               </div>
             </div>
 
@@ -963,7 +966,7 @@ export default function StaffDoctorSchedule() {
               onClick={() => setShowSuccessModal(false)}
               className="success-button"
             >
-              🎉 Hoàn tất
+               Hoàn tất
             </button>
           </div>
         </div>
@@ -974,24 +977,24 @@ export default function StaffDoctorSchedule() {
         <div className="schedule-modal-overlay conflict-modal-overlay">
           <div className="schedule-modal-content conflict-modal">
             <div className="conflict-icon">
-              <span>⚠️</span>
+              <span><FaExclamationTriangle /></span>
             </div>
 
             <h2>Phát hiện xung đột lịch làm việc!</h2>
 
             <div className="conflict-section">
               <div className="conflict-title">
-                🚫 Các lịch bị xung đột ({conflictSchedules.length} ca):
+                <FaBan /> Các lịch bị xung đột ({conflictSchedules.length} ca):
               </div>
               <div className="conflict-list">
                 {conflictSchedules.map((schedule, index) => (
                   <div key={index} className="conflict-item">
-                    📅 {formatDate(schedule.date)} - {formatShift(schedule.startTime)}
+                    <FaCalendar/> {formatDate(schedule.date)} - {formatShift(schedule.startTime)}
                     <br />
-                    🏥 {schedule.room}
+                    <FaHospital /> {schedule.room}
                     <br />
                     <span className="conflict-reason">
-                      ⚠️ {schedule.conflictReason}
+                      <FaExclamationTriangle/> {schedule.conflictReason}
                     </span>
                   </div>
                 ))}
@@ -1001,12 +1004,12 @@ export default function StaffDoctorSchedule() {
             {nonConflictSchedules.length > 0 && (
               <div className="success-section">
                 <div className="success-title">
-                  ✅ Các lịch có thể tạo ({nonConflictSchedules.length} ca):
+                  <FaCheck/> Các lịch có thể tạo ({nonConflictSchedules.length} ca):
                 </div>
                 <div className="success-list">
                   {nonConflictSchedules.slice(0, 5).map((schedule, index) => (
                     <div key={index} className="success-item">
-                      📅 {formatDate(schedule.date)} - {formatShift(schedule.startTime)} - 🏥 {schedule.room}
+                      <FaCalendar/> {formatDate(schedule.date)} - {formatShift(schedule.startTime)} - 🏥 {schedule.room}
                     </div>
                   ))}
                   {nonConflictSchedules.length > 5 && (
@@ -1019,7 +1022,7 @@ export default function StaffDoctorSchedule() {
             )}
 
             <div className="help-section">
-              <h4>💡 Tùy chọn xử lý:</h4>
+              <h4><FaLightbulb/> Tùy chọn xử lý:</h4>
               <ul>
                 <li><strong>Tiếp tục:</strong> Tạo {nonConflictSchedules.length} lịch không bị xung đột</li>
                 <li><strong>Hủy bỏ:</strong> Quay lại chỉnh sửa mẫu tuần</li>
@@ -1030,12 +1033,12 @@ export default function StaffDoctorSchedule() {
 
             <div className="modal-actions">
               <button onClick={handleCancelScheduleCreation} className="cancel-button">
-                ⬅️ Quay lại chỉnh sửa
+                <FaArrowLeft /> Quay lại chỉnh sửa
               </button>
               
               {nonConflictSchedules.length > 0 && (
                 <button onClick={handleContinueWithNonConflicts} className="continue-button">
-                  ⚡ Tiếp tục tạo {nonConflictSchedules.length} lịch
+                   Tiếp tục tạo {nonConflictSchedules.length} lịch
                 </button>
               )}
             </div>
@@ -1048,13 +1051,13 @@ export default function StaffDoctorSchedule() {
         <div className="schedule-modal-overlay">
           <div className="schedule-modal-content main-modal">
             <div className="modal-header">
-              <h2>📅 Sắp Xếp Lịch Tuần - {selectedDoctor.name}</h2>
+              <h2> Sắp Xếp Lịch Tuần - {selectedDoctor.name}</h2>
               <button onClick={closeScheduleModal} className="close-button">×</button>
             </div>
 
             {/* Month selection */}
             <div className="month-selection">
-              <label>📅 Chọn tháng áp dụng:</label>
+              <label><FaCalendar/> Chọn tháng áp dụng:</label>
               <input
                 type="month"
                 value={selectedMonth}
@@ -1062,7 +1065,7 @@ export default function StaffDoctorSchedule() {
                 min={new Date().toISOString().slice(0, 7)}
               />
               <p>
-                📊 Sẽ tạo lịch cho {formatMonth(selectedMonth)} với khoảng{" "}
+                <FaChartBar /> Sẽ tạo lịch cho {formatMonth(selectedMonth)} với khoảng{" "}
                 {getSchedulesCount()} ca làm việc
               </p>
             </div>
@@ -1070,7 +1073,7 @@ export default function StaffDoctorSchedule() {
             {/* Weekly schedule grid */}
             <div className="weekly-schedule">
               <div className="schedule-header">
-                <h3>🗓️ Chọn lịch làm việc trong tuần</h3>
+                <h3><FaCalendar/> Chọn lịch làm việc trong tuần</h3>
                 <div className="selected-count">
                   Đã chọn: {getSelectedShiftsCount()} ca/tuần
                 </div>
@@ -1082,13 +1085,13 @@ export default function StaffDoctorSchedule() {
                   onClick={() => handleSelectAllShift("morning", true)}
                   className="quick-btn morning"
                 >
-                  ☀️ Chọn tất cả ca sáng
+                   Chọn tất cả ca sáng
                 </button>
                 <button
                   onClick={() => handleSelectAllShift("afternoon", true)}
                   className="quick-btn afternoon"
                 >
-                  🌅 Chọn tất cả ca chiều
+                   Chọn tất cả ca chiều
                 </button>
                 <button
                   onClick={() => {
@@ -1097,7 +1100,7 @@ export default function StaffDoctorSchedule() {
                   }}
                   className="quick-btn clear"
                 >
-                  🚫 Bỏ chọn tất cả
+                  Bỏ chọn tất cả
                 </button>
               </div>
 
@@ -1106,19 +1109,19 @@ export default function StaffDoctorSchedule() {
                 <table className="schedule-table">
                   <thead>
                     <tr>
-                      <th>📅 Thứ</th>
+                      <th><FaCalendar/> Thứ</th>
                       <th>
-                        ☀️ Ca Sáng
+                         Ca Sáng
                         <br />
                         <span className="time-label">8:00-12:00</span>
                       </th>
                       <th>
-                        🌅 Ca Chiều
+                         Ca Chiều
                         <br />
                         <span className="time-label">13:00-17:00</span>
                       </th>
-                      <th>🏥 Phòng</th>
-                      <th>⚡ Nhanh</th>
+                      <th> Phòng</th>
+                      <th> Nhanh</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1190,7 +1193,7 @@ export default function StaffDoctorSchedule() {
             {/* Schedule preview */}
             {getSelectedShiftsCount() > 0 && (
               <div className="schedule-preview">
-                <h4>📊 Xem trước lịch làm việc cho {formatMonth(selectedMonth)}</h4>
+                <h4><FaChartBar/> Xem trước lịch làm việc cho {formatMonth(selectedMonth)}</h4>
 
                 <div className="preview-grid">
                   {daysOfWeek.map((day) => {
@@ -1204,12 +1207,12 @@ export default function StaffDoctorSchedule() {
                         <div className="preview-day-title">{day.label}</div>
                         <div className="preview-shifts">
                           {daySchedule.morning && (
-                            <div>☀️ Ca sáng (8:00-12:00)</div>
+                            <div> Ca sáng (8:00-12:00)</div>
                           )}
                           {daySchedule.afternoon && (
-                            <div>🌅 Ca chiều (13:00-17:00)</div>
+                            <div> Ca chiều (13:00-17:00)</div>
                           )}
-                          <div className="preview-room">🏥 {daySchedule.room}</div>
+                          <div className="preview-room"> {daySchedule.room}</div>
                         </div>
                       </div>
                     );
@@ -1217,9 +1220,9 @@ export default function StaffDoctorSchedule() {
                 </div>
 
                 <div className="preview-stats">
-                  <div>📈 Tổng số ca/tuần: <strong>{getSelectedShiftsCount()}</strong></div>
-                  <div>📅 Tổng số ca trong tháng: <strong>{getSchedulesCount()}</strong></div>
-                  <div>👨‍⚕️ Bác sĩ: <strong>{selectedDoctor.name}</strong></div>
+                  <div> Tổng số ca/tuần: <strong>{getSelectedShiftsCount()}</strong></div>
+                  <div> Tổng số ca trong tháng: <strong>{getSchedulesCount()}</strong></div>
+                  <div> Bác sĩ: <strong>{selectedDoctor.name}</strong></div>
                 </div>
               </div>
             )}
@@ -1227,7 +1230,7 @@ export default function StaffDoctorSchedule() {
             {/* Action buttons */}
             <div className="modal-actions">
               <button onClick={closeScheduleModal} className="cancel-button">
-                ❌ Đóng
+                 Đóng
               </button>
               <button
                 onClick={saveSchedule}
@@ -1240,14 +1243,14 @@ export default function StaffDoctorSchedule() {
                     Đang kiểm tra xung đột...
                   </>
                 ) : (
-                  <>💾 Tạo Lịch Cho Tháng ({getSchedulesCount()} ca)</>
+                  <><FaRegSave /> Tạo Lịch Cho Tháng ({getSchedulesCount()} ca)</>
                 )}
               </button>
             </div>
 
             {/* Help text */}
             <div className="help-text">
-              <h5>💡 Hướng dẫn sử dụng:</h5>
+              <h5><FaLightbulb/> Hướng dẫn sử dụng:</h5>
               <ul>
                 <li>Chọn các thứ và ca làm việc mong muốn</li>
                 <li>Mẫu tuần sẽ được áp dụng cho tất cả các tuần trong tháng</li>

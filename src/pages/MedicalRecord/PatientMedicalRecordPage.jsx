@@ -239,7 +239,6 @@ const PatientMedicalRecordPage = () => {
             </div>
           </div>
         </div>
-
         <div className="card">
           {/* Search and Filter */}
           <div style={{ display: "flex", flexDirection: "row", gap: "1rem", marginBottom: "1.5rem" }}>

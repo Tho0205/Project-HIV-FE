@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { FaRegEdit, FaTrashAlt, FaClipboardList, FaPlus } from "react-icons/fa";
+import { FaRegEdit, FaTrashAlt, FaClipboardList, FaPlus, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import HIVExamService from "../../services/HIVExaminationService";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -73,7 +73,7 @@ const HIVExaminationManagement = () => {
   };
 
   const getTimeAgo = (examDate, index) => {
-    if (index === 0) return "🔥 Mới nhất";
+    if (index === 0) return " Mới nhất";
 
     const today = new Date();
     const exam = new Date(examDate + "T00:00:00");
@@ -243,13 +243,13 @@ const HIVExaminationManagement = () => {
           {loading ? (
             <tr>
               <td colSpan="8" className="text-center">
-                ⏳ Đang tải dữ liệu...
+                 Đang tải dữ liệu...
               </td>
             </tr>
           ) : pagedPatients.length === 0 ? (
             <tr>
               <td colSpan="8" className="text-center">
-                📝 Chưa có dữ liệu bệnh nhân
+                 Chưa có dữ liệu bệnh nhân
               </td>
             </tr>
           ) : (
@@ -275,7 +275,7 @@ const HIVExaminationManagement = () => {
                     disabled={loading}
                     title="Xem lịch sử xét nghiệm"
                   >
-                    <FaClipboardList />
+                    <FaEdit />
                   </button>
                 </td>
               </tr>
@@ -299,10 +299,10 @@ const HIVExaminationManagement = () => {
         <div className="history-modal-examination">
           <div className="modal-header">
             <div>
-              <h3>🩺 Lịch Sử Xét Nghiệm - {selectedPatient.fullName}</h3>
+              <h3> Lịch Sử Xét Nghiệm - {selectedPatient.fullName}</h3>
               <small>
-                📧 {selectedPatient.email} | 📞 {selectedPatient.phone || "N/A"}{" "}
-                | 🎂 {formatDate(selectedPatient.birthdate)}
+                 {selectedPatient.email} |  {selectedPatient.phone || "N/A"}{" "}
+                |  {formatDate(selectedPatient.birthdate)}
               </small>
             </div>
             <button className="close-btn" onClick={closeModals} title="Đóng">
@@ -321,12 +321,12 @@ const HIVExaminationManagement = () => {
               <table className="history-table">
                 <thead>
                   <tr>
-                    <th>📅 Ngày XN</th>
-                    <th>👨‍⚕️ Bác Sĩ</th>
-                    <th>🔬 CD4 Count</th>
-                    <th>🧬 HIV Load</th>
-                    <th>📊 Kết Quả</th>
-                    <th>⚙️ Hành Động</th>
+                    <th> Ngày XN</th>
+                    <th> Bác Sĩ</th>
+                    <th> CD4 Count</th>
+                    <th> HIV Load</th>
+                    <th> Kết Quả</th>
+                    <th> Hành Động</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -400,7 +400,7 @@ const HIVExaminationManagement = () => {
         <div className="form-modal">
           <div className="form-header">
             <h2>
-              {formData.examId ? "✏️ Cập Nhật Kết Quả" : "🧪 Thêm Kết Quả Mới"}
+              {formData.examId ? "Cập Nhật Kết Quả" : "Thêm Kết Quả Mới"}
             </h2>
             <button className="close-btn" onClick={closeModals}>
               ✕
@@ -408,7 +408,7 @@ const HIVExaminationManagement = () => {
           </div>
           <form onSubmit={handleSave} className="exam-form">
             <div className="form-section">
-              <h3>👤 Thông tin bệnh nhân</h3>
+              <h3> Thông tin bệnh nhân</h3>
               <div className="form-row">
                 <div className="form-group">
                   <label>Họ và tên</label>
@@ -448,7 +448,7 @@ const HIVExaminationManagement = () => {
             </div>
 
             <div className="form-section">
-              <h3>🏥 Thông tin xét nghiệm</h3>
+              <h3> Thông tin xét nghiệm</h3>
               <div className="form-row">
                 <div className="form-group">
                   <label>
@@ -542,10 +542,10 @@ const HIVExaminationManagement = () => {
             <div className="form-actions">
               <button type="submit" className="btn-submit" disabled={loading}>
                 {loading
-                  ? "⏳ Đang xử lý..."
+                  ? " Đang xử lý..."
                   : formData.examId
-                  ? "💾 Cập nhật"
-                  : "💾 Lưu kết quả"}
+                  ? " Cập nhật"
+                  : " Lưu kết quả"}
               </button>
             </div>
           </form>
@@ -558,11 +558,11 @@ const HIVExaminationManagement = () => {
       <div className="modal-overlay">
         <div className="confirm-modal">
           <div className="confirm-content">
-            <h3>⚠️ Xác nhận xóa</h3>
+            <h3> Xác nhận xóa</h3>
             <p>Bạn có chắc chắn muốn xóa kết quả xét nghiệm này?</p>
             <p>Hành động này không thể hoàn tác.</p>
             <div className="warning-text">
-              ⚠️ Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống
+               Dữ liệu sẽ bị xóa vĩnh viễn khỏi hệ thống
             </div>
             <div className="confirm-actions">
               <button
@@ -577,7 +577,7 @@ const HIVExaminationManagement = () => {
                 onClick={handleDelete}
                 disabled={loading}
               >
-                {loading ? "⏳ Đang xóa..." : "🗑️ Xóa"}
+                {loading ? " Đang xóa..." : " Xóa"}
               </button>
             </div>
           </div>
