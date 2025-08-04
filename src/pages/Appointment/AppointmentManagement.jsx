@@ -457,135 +457,149 @@ const AppointmentManagement = () => {
   }, [navigate]);
 
   async function fetchAppointments(page, sort, search, statusFilter) {
-    setLoading(true);
-    try {
-      const [appointmentsData, doctorsData] = await Promise.all([
-        appointmentService.getAppointments(),
-        appointmentService.getDoctors(),
-      ]);
+  setLoading(true);
+  try {
+    const [appointmentsData, doctorsData] = await Promise.all([
+      appointmentService.getAppointments(),
+      appointmentService.getDoctors(),
+    ]);
 
-      // Map appointments with doctor and patient information
-      let mappedAppointments = await Promise.all(
-        appointmentsData.map(async (appointment) => {
-          const doctorId = appointment.doctorId || appointment.DoctorId;
-          const patientId = appointment.patientId || appointment.PatientId;
-          const doctor = doctorsData.find((d) => d.userId === doctorId);
-          const dateInfo = appointmentService.formatDate(
-            appointment.appointmentDate || appointment.createdAt
-          );
-
-          // Get patient information - lấy cả tên và số điện thoại
-          let patientName = "Bệnh nhân không xác định";
-          let patientPhone = "Chưa có";
-          
-          if (!appointment.isAnonymous) {
-            try {
-              const patientInfo = await appointmentService.getPatientInfo(
-                patientId
-              );
-              patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
-              patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
-            } catch (error) {
-              patientName = `Bệnh nhân #${patientId}`;
-              patientPhone = "Chưa có";
-            }
-          } else {
-            patientName = "Bệnh nhân ẩn danh";
-            patientPhone = "***";
-          }
-
-          return {
-            ...appointment,
-            doctorName: doctor
-              ? doctor.fullName || doctor.name || "Bác sĩ không xác định"
-              : "Bác sĩ không xác định",
-            doctorSpecialty: doctor ? doctor.specialty || "" : "",
-            patientId: patientId,
-            patientName: patientName,
-            patientPhone: patientPhone,
-            formattedDate: dateInfo,
-            appointmentDateTime: new Date(
-              appointment.appointmentDate || appointment.createdAt
-            ),
-          };
-        })
-      );
-
-      // Filter to only show SCHEDULED and CONFIRMED appointments (manageable statuses)
-      mappedAppointments = mappedAppointments.filter(
-        (appointment) => appointment.status === "SCHEDULED" || appointment.status === "CONFIRMED"
-      );
-
-      // Apply status filter
-      if (statusFilter && statusFilter !== "all") {
-        mappedAppointments = mappedAppointments.filter(
-          (appointment) => appointment.status === statusFilter
+    // Map appointments with doctor and patient information
+    let mappedAppointments = await Promise.all(
+      appointmentsData.map(async (appointment) => {
+        const doctorId = appointment.doctorId || appointment.DoctorId;
+        const patientId = appointment.patientId || appointment.PatientId;
+        const doctor = doctorsData.find((d) => d.userId === doctorId);
+        const dateInfo = appointmentService.formatDate(
+          appointment.appointmentDate || appointment.createdAt
         );
-      }
 
-      // Apply search filter
-      if (search) {
-        mappedAppointments = mappedAppointments.filter((appointment) => {
-          const matchesDoctor = appointment.doctorName
-            .toLowerCase()
-            .includes(search.toLowerCase());
-          const matchesNote =
-            appointment.note &&
-            appointment.note.toLowerCase().includes(search.toLowerCase());
-          const matchesPhone = 
-            appointment.patientPhone &&
-            appointment.patientPhone.includes(search);
-
-          let matchesPatient = false;
-          if (!appointment.isAnonymous) {
-            matchesPatient =
-              appointment.patientName
-                .toLowerCase()
-                .includes(search.toLowerCase());
+        // Get patient information - lấy cả tên và số điện thoại
+        let patientName = "Bệnh nhân không xác định";
+        let patientPhone = "Chưa có";
+        
+        if (!appointment.isAnonymous) {
+          try {
+            const patientInfo = await appointmentService.getPatientInfo(
+              patientId
+            );
+            patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
+            patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
+          } catch (error) {
+            patientName = `Bệnh nhân #${patientId}`;
+            patientPhone = "Chưa có";
           }
-
-          return matchesDoctor || matchesNote || matchesPatient || matchesPhone;
-        });
-      }
-
-      // Apply sorting
-      mappedAppointments.sort((a, b) => {
-        switch (sort) {
-          case "date_asc":
-            return a.appointmentDateTime - b.appointmentDateTime;
-          case "date_desc":
-            return b.appointmentDateTime - a.appointmentDateTime;
-          case "doctor_asc":
-            return a.doctorName.localeCompare(b.doctorName);
-          case "doctor_desc":
-            return b.doctorName.localeCompare(a.doctorName);
-          default:
-            return b.appointmentDateTime - a.appointmentDateTime;
+        } else {
+          patientName = "Bệnh nhân ẩn danh";
+          patientPhone = "***";
         }
-      });
 
-      // Apply pagination
-      setTotal(mappedAppointments.length);
-      const startIndex = (page - 1) * PAGE_SIZE;
-      const endIndex = startIndex + PAGE_SIZE;
-      const paginatedAppointments = mappedAppointments.slice(
-        startIndex,
-        endIndex
-      );
+        return {
+          ...appointment,
+          doctorName: doctor
+            ? doctor.fullName || doctor.name || "Bác sĩ không xác định"
+            : "Bác sĩ không xác định",
+          doctorSpecialty: doctor ? doctor.specialty || "" : "",
+          patientId: patientId,
+          patientName: patientName,
+          patientPhone: patientPhone,
+          formattedDate: dateInfo,
+          appointmentDateTime: new Date(
+            appointment.appointmentDate || appointment.createdAt
+          ),
+        };
+      })
+    );
 
-      setAppointments(paginatedAppointments);
-    } catch (err) {
-      setAppointments([]);
-      setTotal(0);
-      showPopup(
-        "Lỗi tải dữ liệu",
-        err.message || "Có lỗi xảy ra khi tải dữ liệu",
-        "error"
+    // Filter to only show SCHEDULED and CONFIRMED appointments (manageable statuses)
+    mappedAppointments = mappedAppointments.filter(
+      (appointment) => appointment.status === "SCHEDULED" || appointment.status === "CONFIRMED"
+    );
+
+    // **NEW: Filter to only show current and future appointments**
+    const now = new Date();
+    // Set time to beginning of today to include all appointments for today
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    mappedAppointments = mappedAppointments.filter((appointment) => {
+      const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
+      // Set appointment time to beginning of day for comparison
+      const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate());
+      
+      // Only show appointments from today onwards
+      return appointmentDay >= today;
+    });
+
+    // Apply status filter
+    if (statusFilter && statusFilter !== "all") {
+      mappedAppointments = mappedAppointments.filter(
+        (appointment) => appointment.status === statusFilter
       );
-    } finally {
-      setLoading(false);
     }
+
+    // Apply search filter
+    if (search) {
+      mappedAppointments = mappedAppointments.filter((appointment) => {
+        const matchesDoctor = appointment.doctorName
+          .toLowerCase()
+          .includes(search.toLowerCase());
+        const matchesNote =
+          appointment.note &&
+          appointment.note.toLowerCase().includes(search.toLowerCase());
+        const matchesPhone = 
+          appointment.patientPhone &&
+          appointment.patientPhone.includes(search);
+
+        let matchesPatient = false;
+        if (!appointment.isAnonymous) {
+          matchesPatient =
+            appointment.patientName
+              .toLowerCase()
+              .includes(search.toLowerCase());
+        }
+
+        return matchesDoctor || matchesNote || matchesPatient || matchesPhone;
+      });
+    }
+
+    // Apply sorting
+    mappedAppointments.sort((a, b) => {
+      switch (sort) {
+        case "date_asc":
+          return a.appointmentDateTime - b.appointmentDateTime;
+        case "date_desc":
+          return b.appointmentDateTime - a.appointmentDateTime;
+        case "doctor_asc":
+          return a.doctorName.localeCompare(b.doctorName);
+        case "doctor_desc":
+          return b.doctorName.localeCompare(a.doctorName);
+        default:
+          return b.appointmentDateTime - a.appointmentDateTime;
+      }
+    });
+
+    // Apply pagination
+    setTotal(mappedAppointments.length);
+    const startIndex = (page - 1) * PAGE_SIZE;
+    const endIndex = startIndex + PAGE_SIZE;
+    const paginatedAppointments = mappedAppointments.slice(
+      startIndex,
+      endIndex
+    );
+
+    setAppointments(paginatedAppointments);
+  } catch (err) {
+    setAppointments([]);
+    setTotal(0);
+    showPopup(
+      "Lỗi tải dữ liệu",
+      err.message || "Có lỗi xảy ra khi tải dữ liệu",
+      "error"
+    );
+  } finally {
+    setLoading(false);
   }
+}
 
   // Handle sort change
   function handleSortChange(e) {

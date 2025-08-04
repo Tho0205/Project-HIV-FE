@@ -312,51 +312,90 @@ export default function DoctorPatientManagement() {
     }
   };
 
-  const openExamModal = (exam = null) => {
-    closeModal("history");
+const openExamModal = (exam = null) => {
+  closeModal("history");
 
-    setExamData({
-      examId: exam?.examId || null,
-      patientId: selectedPatient.userId,
-      doctorId: doctorId,
-      examDate: exam?.examDate || new Date().toISOString().split("T")[0],
-      result: exam?.result || "",
-      cd4Count: exam?.cd4Count || "",
-      hivLoad: exam?.hivLoad || "",
-    });
-    openModal("exam");
-  };
+  // Debug logs để kiểm tra dữ liệu exam
+  console.log("🔍 Debug openExamModal - exam parameter:", exam);
+  console.log("🔍 All exam properties:", exam ? Object.keys(exam) : "exam is null");
+  console.log("🔍 appointmentId from exam:", exam?.appointmentId);
+  console.log("🔍 examId from exam:", exam?.examId);
+  console.log("🔍 examDate from exam:", exam?.examDate);
 
-  const handleExamSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const payload = {
-        ...examData,
-        cd4Count: examData.cd4Count ? parseInt(examData.cd4Count) : null,
-        hivLoad: examData.hivLoad ? parseInt(examData.hivLoad) : null,
-      };
-      const result = await doctorPatientService.saveExamination(payload);
-      if (result.success) {
-        toast.success(
-          examData.examId ? "Cập nhật thành công" : "Thêm kết quả thành công"
-        );
-        closeModal("exam");
+  // Cũng debug patientHistory để xem có thông tin appointments không
+  console.log("🔍 patientHistory.appointments:", patientHistory?.appointments);
 
-        const historyResult = await doctorPatientService.getPatientHistory(
-          selectedPatient.userId,
-          doctorId
-        );
-        if (historyResult.success) {
-          setPatientHistory(historyResult.data);
-          openModal("history");
-        }
-        loadPatients();
+  setExamData({
+    examId: exam?.examId || null,
+    appointmentId: exam?.appointmentId || null,
+    patientId: selectedPatient.userId,
+    doctorId: doctorId,
+    examDate: exam?.examDate || new Date().toISOString().split("T")[0],
+    result: exam?.result || "",
+    cd4Count: exam?.cd4Count || "",
+    hivLoad: exam?.hivLoad || "",
+  });
+
+  // Debug examData sau khi set
+  console.log("🔍 examData will be set to:", {
+    examId: exam?.examId || null,
+    appointmentId: exam?.appointmentId || null,
+    patientId: selectedPatient.userId,
+    doctorId: doctorId,
+    examDate: exam?.examDate || new Date().toISOString().split("T")[0],
+    result: exam?.result || "",
+    cd4Count: exam?.cd4Count || "",
+    hivLoad: exam?.hivLoad || "",
+  });
+
+  openModal("exam");
+};
+
+const handleExamSubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const payload = {
+      ...examData,
+      cd4Count: examData.cd4Count ? parseInt(examData.cd4Count) : null,
+      hivLoad: examData.hivLoad ? parseInt(examData.hivLoad) : null,
+    };
+
+    // Debug logs để kiểm tra payload
+    console.log("🔍 Debug - examData before creating payload:", examData);
+    console.log("🚀 Debug - Final payload being sent:", payload);
+    console.log("📍 appointmentId in payload:", payload.appointmentId);
+    console.log("📝 examId in payload:", payload.examId);
+
+    const result = await doctorPatientService.saveExamination(payload);
+    
+    // Debug response
+    console.log("📨 API Response:", result);
+    
+    if (result.success) {
+      toast.success(
+        examData.examId ? "Cập nhật thành công" : "Thêm kết quả thành công"
+      );
+      closeModal("exam");
+
+      const historyResult = await doctorPatientService.getPatientHistory(
+        selectedPatient.userId,
+        doctorId
+      );
+      if (historyResult.success) {
+        setPatientHistory(historyResult.data);
+        openModal("history");
       }
-    } catch (error) {
-      toast.error("Có lỗi xảy ra");
+      loadPatients();
+    } else {
+      // Debug error response
+      console.error("❌ API Error:", result.message);
+      toast.error(result.message || "Có lỗi xảy ra");
     }
-  };
-
+  } catch (error) {
+    console.error("💥 Exception in handleExamSubmit:", error);
+    toast.error("Có lỗi xảy ra: " + error.message);
+  }
+};
   const handleDeleteExam = async (examId) => {
     if (
       !window.confirm(
