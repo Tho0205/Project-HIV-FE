@@ -5,7 +5,6 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import appointmentService from "../../services/Appointment";
-import { FaCheck, FaTimes, FaExclamationTriangle, FaQuestion, FaInfo, FaLock, FaCalendarCheck } from "react-icons/fa";
 
 const PAGE_SIZE = 8;
 
@@ -41,19 +40,19 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
-        return { icon: <FaCheck/>, color: "#10b981", bgColor: "#d1fae5" };
+        return { color: "#10b981", bgColor: "#d1fae5" };
       case "error":
-        return { icon: <FaTimes/>, color: "#ef4444", bgColor: "#fee2e2" };
+        return { color: "#ef4444", bgColor: "#fee2e2" };
       case "warning":
-        return { icon: <FaExclamationTriangle />, color: "#f59e0b", bgColor: "#fef3c7" };
+        return { color: "#f59e0b", bgColor: "#fef3c7" };
       case "confirm":
-        return { icon: <FaQuestion />, color: "#3b82f6", bgColor: "#dbeafe" };
+        return { color: "#3b82f6", bgColor: "#dbeafe" };
       default:
-        return { icon: <FaInfo />, color: "#6b7280", bgColor: "#f3f4f6" };
+        return { color: "#6b7280", bgColor: "#f3f4f6" };
     }
   };
 
-  const { icon, color, bgColor } = getIconAndColor();
+  const { color, bgColor } = getIconAndColor();
 
   return (
     <div style={getPopupStyle()}>
@@ -81,7 +80,6 @@ const CustomPopup = ({
             fontSize: "24px",
           }}
         >
-          {icon}
         </div>
 
         <h3
@@ -413,12 +411,12 @@ const StaffCheckinCheckout = () => {
     }
   }, [navigate]);
 
-  // Helper function to get patient display info
+  // Helper function to get patient display info - FIXED to show real phone numbers
   const getPatientDisplayInfo = (appointment) => {
     if (appointment.isAnonymous) {
       return {
         name: "Bệnh nhân ẩn danh",
-        phone: "***",
+        phone: appointment.patientPhone || "Chưa có", // Show real phone number
         style: anonymousPatientStyle,
       };
     }
@@ -477,22 +475,31 @@ const StaffCheckinCheckout = () => {
               appointment.appointmentDate || appointment.createdAt
             );
 
-            // Get patient information
+            // Get patient information - FIXED to always fetch phone
             let patientName = "Bệnh nhân không xác định";
             let patientPhone = "Chưa có";
             
-            if (!appointment.isAnonymous) {
-              try {
-                const patientInfo = await appointmentService.getPatientInfo(patientId);
+            // Always try to get patient info (even for anonymous appointments)
+            try {
+              const patientInfo = await appointmentService.getPatientInfo(patientId);
+              // Always get phone number
+              patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
+              
+              if (!appointment.isAnonymous) {
+                // If not anonymous, show real name
                 patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
-                patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
-              } catch (error) {
-                patientName = `Bệnh nhân #${patientId}`;
-                patientPhone = "Chưa có";
+              } else {
+                // If anonymous, only hide name but still show phone
+                patientName = "Bệnh nhân ẩn danh";
               }
-            } else {
-              patientName = "Bệnh nhân ẩn danh";
-              patientPhone = "***";
+            } catch (error) {
+              // If can't get patient info
+              if (!appointment.isAnonymous) {
+                patientName = `Bệnh nhân #${patientId}`;
+              } else {
+                patientName = "Bệnh nhân ẩn danh";
+              }
+              patientPhone = "Chưa có";
             }
 
             return {
@@ -867,7 +874,7 @@ const StaffCheckinCheckout = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            <FaLock /> Thông tin được bảo mật
+                            Thông tin được bảo mật
                           </div>
                         )}
                       </div>
@@ -900,7 +907,6 @@ const StaffCheckinCheckout = () => {
                             e.target.style.boxShadow = "none";
                           }}
                         >
-                          <span><FaCalendarCheck /></span>
                           <span>Check-in</span>
                         </button>
                       )}
@@ -919,7 +925,6 @@ const StaffCheckinCheckout = () => {
                             e.target.style.boxShadow = "none";
                           }}
                         >
-                          <span><FaCheck/></span>  
                           <span>Check-out</span>
                         </button>
                       )}
@@ -927,7 +932,6 @@ const StaffCheckinCheckout = () => {
                       {/* Hiển thị trạng thái hoàn thành */}
                       {appointment.status === "COMPLETED" && (
                         <div style={completedStatusStyle}>
-                          <span>✓</span>
                           <span>Đã hoàn thành</span>
                         </div>
                       )}
