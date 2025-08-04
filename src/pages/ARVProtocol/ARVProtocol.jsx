@@ -339,7 +339,11 @@ export default function ARVProtocol() {
                       <span
                         className={`status-badge-arv-protocol ${p.status.toLowerCase()}`}
                       >
-                        {p.status}
+                        {p.status === "ACTIVE"
+                          ? "Hoạt Động"
+                          : p.status === "INACTIVE"
+                          ? "Không Hoạt Động"
+                          : p.status}
                       </span>
                     </td>
                     <td className="actions-arv-protocol">

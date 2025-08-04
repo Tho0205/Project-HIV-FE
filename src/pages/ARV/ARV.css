@@ -298,7 +298,7 @@
 /* Status Badge */
 .arvpage-status-badge {
   display: inline-block;
-  padding: 4px 14px;
+  padding: 4px 5px;
   border-radius: 14px;
   font-weight: 700;
   color: #fff;

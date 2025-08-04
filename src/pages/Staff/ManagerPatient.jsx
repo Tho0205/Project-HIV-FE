@@ -256,7 +256,11 @@ export default function ManagerPatient() {
                   <td
                     className={`status-manager-patient ${p.status.toLowerCase()}`}
                   >
-                    {p.status}
+                    {p.status === "Active"
+                      ? "Hoạt Động"
+                      : p.status === "Inactive  "
+                      ? "Không Hoạt Động"
+                      : p.status}
                   </td>
                   <td className="actions">
                     <button

@@ -186,7 +186,13 @@ export default function ARV() {
                             : "arvpage-status-inactive"
                         }`}
                       >
-                        {arv.status}
+                        {arv.status === "ACTIVE"
+                          ? "Hoạt Động"
+                          : arv.status === "INACTIVE"
+                          ? "Không Hoạt Động"
+                          : arv.status === "DELETED"
+                          ? "Đã Xóa"
+                          : arv.status}
                       </span>
                     </td>
                     <td className="arvpage-actions">
