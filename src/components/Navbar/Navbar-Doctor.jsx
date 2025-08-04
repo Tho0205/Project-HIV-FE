@@ -8,7 +8,7 @@ export default function ManagerPatientNavbar({ activeTab, onTabChange }) {
     { key: "tests", label: "Kết quả xét nghiệm" },
     { key: "treatment", label: "Phác đồ điều trị" },
     { key: "re-treatment", label: "Đặt lịch tái khám" },
-    { key: "medicalhistorys", label: "Hồ Sơ Bệnh Án" },
+    // { key: "medicalhistorys", label: "Hồ Sơ Bệnh Án" },
   ];
 
   return (

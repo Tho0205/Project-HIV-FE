@@ -1832,7 +1832,13 @@ export default function DoctorPatientManagement() {
                                 <td>{formatDate(protocol.createdDate)}</td>
                                 <td>{protocol.name}</td>
                                 <td>{protocol.description}</td>
-                                <td>{protocol.status}</td>
+                                <td>
+                                  {protocol.status === "ACTIVE"
+                                    ? "Đang áp dụng"
+                                    : protocol.status === "COMPLETED"
+                                    ? "Không áp dụng"
+                                    : protocol.status}
+                                </td>
                                 <td>
                                   {protocol.status !== "ACTIVE" && (
                                     <button

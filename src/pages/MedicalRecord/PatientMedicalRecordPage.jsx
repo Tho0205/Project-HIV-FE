@@ -785,6 +785,8 @@ const PatientMedicalRecordPage = () => {
                           <span style={getStatusStyle(item.status)}>
                             {item.status === "ACTIVE"
                               ? "Đang áp dụng"
+                              : item.status === "COMPLETED"
+                              ? "Không áp dụng"
                               : item.status}
                           </span>
                         </div>
