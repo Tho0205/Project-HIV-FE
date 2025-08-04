@@ -964,16 +964,6 @@ const Appointment = () => {
                                 }}>
                                   Phòng {schedule.room || "N/A"}
                                 </div>
-                                
-                                {/* Availability indicator */}
-                                <div style={{
-                                  fontSize: "0.75rem",
-                                  marginTop: "0.25rem",
-                                  color: isSelected ? "rgba(255,255,255,0.9)" : "#059669",
-                                  fontWeight: "600"
-                                }}>
-                                  Còn {schedule.availableSlots || 0} chỗ
-                                </div>
                               </button>
                             );
                           })}
