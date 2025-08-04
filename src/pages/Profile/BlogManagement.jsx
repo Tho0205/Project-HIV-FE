@@ -157,162 +157,162 @@ const BlogManagement = () => {
 
   return (
     <div className="container blog-management-page">
-      <SidebarProfile />
+      <div className="container-profile">
+        <SidebarProfile />
+        <div className="blog-content">
+          <h2>Quản lý bài viết</h2>
 
-      <div className="blog-content">
-        <h2>Quản lý bài viết</h2>
+          <div className="blog-tabs">
+            <button
+              className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
+              onClick={() => setActiveTab("all")}
+            >
+              Tất cả
+            </button>
+            <button
+              className={`tab-btn ${activeTab === "approved" ? "active" : ""}`}
+              onClick={() => setActiveTab("approved")}
+            >
+              Đã xác nhận
+            </button>
+            <button
+              className={`tab-btn ${activeTab === "pending" ? "active" : ""}`}
+              onClick={() => setActiveTab("pending")}
+            >
+              Chờ duyệt
+            </button>
+          </div>
 
-        <div className="blog-tabs">
           <button
-            className={`tab-btn ${activeTab === "all" ? "active" : ""}`}
-            onClick={() => setActiveTab("all")}
+            className="btn blog-btn-green new-blog-btn"
+            onClick={() => setShowModal(true)}
           >
-            Tất cả
+            Thêm bài viết
           </button>
-          <button
-            className={`tab-btn ${activeTab === "approved" ? "active" : ""}`}
-            onClick={() => setActiveTab("approved")}
-          >
-            Đã xác nhận
-          </button>
-          <button
-            className={`tab-btn ${activeTab === "pending" ? "active" : ""}`}
-            onClick={() => setActiveTab("pending")}
-          >
-            Chờ duyệt
-          </button>
-        </div>
 
-        <button
-          className="btn blog-btn-green new-blog-btn"
-          onClick={() => setShowModal(true)}
-        >
-          Thêm bài viết
-        </button>
+          {error && <div className="error-message">{error}</div>}
 
-        {error && <div className="error-message">{error}</div>}
-
-        <div className="blog-list">
-          {loading ? (
-            <div className="loading">Đang tải...</div>
-          ) : filteredBlogs.length === 0 ? (
-            <div className="empty-message">Không có bài viết</div>
-          ) : (
-            filteredBlogs.map((blog) => (
-              <div key={blog.blogId} className="blog-card">
-                <div className="blog-main">
-                  <div className="blog-header">
-                    <h3 className="blog-title">Tiều đề: {blog.title}</h3>
-                    <div className="blog-actions">
-                      <button
-                        className="edit-btn"
-                        onClick={() => {
-                          setCurrentBlog(blog);
-                          setFormData({
-                            title: blog.title,
-                            content: blog.content,
-                            imageUrl: blog.imageUrl || "",
-                          });
-                          setImagePreview(blog.imageUrl || "");
-                          setSelectedImage(null);
-                          setShowModal(true);
-                        }}
-                      >
-                        Chỉnh sửa
-                      </button>
-                      <button
-                        className="delete-btn"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Bạn có chắc chắn muốn xóa bài viết này?"
-                            )
-                          ) {
-                            handleDelete(blog.blogId);
-                          }
-                        }}
-                      >
-                        Xóa
-                      </button>
+          <div className="blog-list">
+            {loading ? (
+              <div className="loading">Đang tải...</div>
+            ) : filteredBlogs.length === 0 ? (
+              <div className="empty-message">Không có bài viết</div>
+            ) : (
+              filteredBlogs.map((blog) => (
+                <div key={blog.blogId} className="blog-card">
+                  <div className="blog-main">
+                    <div className="blog-header">
+                      <h3 className="blog-title">Tiều đề: {blog.title}</h3>
+                      <div className="blog-actions">
+                        <button
+                          className="edit-btn"
+                          onClick={() => {
+                            setCurrentBlog(blog);
+                            setFormData({
+                              title: blog.title,
+                              content: blog.content,
+                              imageUrl: blog.imageUrl || "",
+                            });
+                            setImagePreview(blog.imageUrl || "");
+                            setSelectedImage(null);
+                            setShowModal(true);
+                          }}
+                        >
+                          Chỉnh sửa
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                "Bạn có chắc chắn muốn xóa bài viết này?"
+                              )
+                            ) {
+                              handleDelete(blog.blogId);
+                            }
+                          }}
+                        >
+                          Xóa
+                        </button>
+                      </div>
                     </div>
+                    <p className="blog-date">
+                      {new Date(blog.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  <p className="blog-date">
-                    {new Date(blog.createdAt).toLocaleDateString()}
-                  </p>
                 </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Modal */}
-      {showModal && (
-        <div className="modal-overlay1">
-          <div className="modal-content1">
-            <h3>{currentBlog ? "Edit Blog" : "New Blog"}</h3>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group1">
-                <label>Tiêu đề</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  required
-                />
-              </div>
-              <div className="form-group1">
-                <label>Nội dung</label>
-                <textarea
-                  name="content"
-                  value={formData.content}
-                  onChange={(e) =>
-                    setFormData({ ...formData, content: e.target.value })
-                  }
-                  required
-                  rows={8}
-                />
-              </div>
-              <div className="form-group1">
-                <label>Ảnh bài viết</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                />
-                {(imagePreview || formData.imageUrl) && (
-                  <div className="image-preview">
-                    <img
-                      src={
-                        imagePreview && imagePreview.startsWith("blob:")
-                          ? imagePreview
-                          : getImageUrl(formData.imageUrl)
-                      }
-                      alt="Preview"
-                      style={{ maxWidth: "100%", maxHeight: "200px" }}
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="form-actions1">
-                <button type="submit" className="btn btn-green">
-                  {currentBlog ? "Cập nhật" : "Đăng bài"}
-                </button>
-                <button
-                  type="button"
-                  className="btn cancel-btn1"
-                  onClick={() => setShowModal(false)}
-                >
-                  Hủy
-                </button>
-              </div>
-            </form>
+              ))
+            )}
           </div>
         </div>
-      )}
+        {/* Modal */}
+        {showModal && (
+          <div className="modal-overlay1">
+            <div className="modal-content1">
+              <h3>{currentBlog ? "Edit Blog" : "New Blog"}</h3>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group1">
+                  <label>Tiêu đề</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div className="form-group1">
+                  <label>Nội dung</label>
+                  <textarea
+                    name="content"
+                    value={formData.content}
+                    onChange={(e) =>
+                      setFormData({ ...formData, content: e.target.value })
+                    }
+                    required
+                    rows={8}
+                  />
+                </div>
+                <div className="form-group1">
+                  <label>Ảnh bài viết</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  {(imagePreview || formData.imageUrl) && (
+                    <div className="image-preview">
+                      <img
+                        src={
+                          imagePreview && imagePreview.startsWith("blob:")
+                            ? imagePreview
+                            : getImageUrl(formData.imageUrl)
+                        }
+                        alt="Preview"
+                        style={{ maxWidth: "100%", maxHeight: "200px" }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="form-actions1">
+                  <button type="submit" className="btn btn-green">
+                    {currentBlog ? "Cập nhật" : "Đăng bài"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn cancel-btn1"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

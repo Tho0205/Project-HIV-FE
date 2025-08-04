@@ -38,14 +38,14 @@ export default function SidebarAdmin({ active }) {
             </div>
             <div className="welcome">Chào Mừng Bác Sĩ</div>
             <ul className="nav">
+              <li className={active === "appointment" ? "active" : ""}>
+                <Link to="/Profile-Doctor">
+                  <span>Thông Tin Cá Nhân</span>
+                </Link>
+              </li>
               <li className={active === "static" ? "active" : ""}>
                 <Link to="/Doctor-Patient-Management">
                   <span>Quản Lý Bệnh Nhân</span>
-                </Link>
-              </li>
-              <li className={active === "blog" ? "active" : ""}>
-                <Link to="/Protocol-management">
-                  <span>Quản Lý Phác đồ</span>
                 </Link>
               </li>
               <li className={active === "appointment" ? "active" : ""}>

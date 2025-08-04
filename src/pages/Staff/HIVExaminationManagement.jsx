@@ -588,7 +588,7 @@ const HIVExaminationManagement = () => {
   return (
     <div className="wrapper">
       <Sidebar active="result" />
-      <main className="content">
+      <main className="content-doctor-info">
         <h1 className="title-HIV-Examination">Quản Lý Xét Nghiệm HIV</h1>
 
         {message.text && (

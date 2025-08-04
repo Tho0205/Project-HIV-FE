@@ -38,6 +38,7 @@ function App() {
     "/Protocol-management",
     "/Doctor-Appointment-History",
     "/Doctor-MedicalRecord",
+    "/Profile-Doctor",
   ].includes(location.pathname);
 
   return (

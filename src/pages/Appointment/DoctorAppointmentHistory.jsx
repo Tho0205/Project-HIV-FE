@@ -365,10 +365,13 @@ const DoctorAppointmentHistory = () => {
       <div className="sidebar-Profile">
         <SidebarAdmin active="Appointment-History" />
       </div>
-      <section className="profile" style={{ overflowX: "hidden" }}>
+      <section
+        className="profile"
+        style={{ overflowY: "hidden", maxHeight: "920px" }}
+      >
         <h2>Lịch Hẹn Của Bác Sĩ</h2>
         {doctorInfo && (
-          <div className="card profile-header">
+          <div className="card profile-header" style={{ maxHeight: "110px" }}>
             <div className="profile-photo">
               <img src="/assets/image/patient/patient.png" alt="Avatar" />
             </div>
@@ -475,8 +478,8 @@ const DoctorAppointmentHistory = () => {
                   key={appointment.appointmentId}
                   className="card"
                   style={{
-                    padding: "1rem",
-                    marginBottom: "1rem",
+                    padding: "0px",
+                    margin: "0px",
                     opacity:
                       appointment.displayStatus === "cancelled" ? 0.8 : 1,
                     border:
@@ -499,7 +502,6 @@ const DoctorAppointmentHistory = () => {
                           display: "flex",
                           alignItems: "center",
                           gap: "0.5rem",
-                          marginBottom: "0.5rem",
                         }}
                       >
                         <h3

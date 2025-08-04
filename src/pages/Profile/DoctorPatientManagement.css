@@ -4,6 +4,421 @@
   width: 100%;
   height: 100%;
   background: white;
+  overflow-y: none;
+}
+
+/* Protocol Modal Styles */
+.modal-overlay-ARVProtocol {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1001;
+}
+
+.modal-content-ARVProtocol {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header-ARVProtocol {
+  padding: 20px;
+  border-bottom: 1px solid #e5e5e5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+}
+
+.modal-header-ARVProtocol h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.close-btn-ARVProtocol {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn-ARVProtocol:hover {
+  color: #000;
+}
+
+.modal-body-ARVProtocol {
+  padding: 20px;
+}
+
+/* Protocol Details */
+.current-protocol-ARVProtocol {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.current-protocol-ARVProtocol h4 {
+  margin: 0 0 10px 0;
+  color: #007bff;
+}
+
+.current-protocol-ARVProtocol p {
+  margin: 5px 0;
+}
+
+.arv-list-ARVProtocol {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.arv-list-ARVProtocol li {
+  padding: 8px 12px;
+  background: #e9ecef;
+  margin: 5px 0;
+  border-radius: 4px;
+  border-left: 3px solid #007bff;
+}
+
+/* Action Buttons */
+.action-buttons-ARVProtocol {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.btn-history-ARVProtocol,
+.btn-switch-ARVProtocol,
+.btn-create-ARVProtocol,
+.btn-customize-ARVProtocol,
+.btn-apply-ARVProtocol,
+.btn-back-ARVProtocol,
+.btn-submit-ARVProtocol,
+.btn-cancel-ARVProtocol,
+.btn-activate-ARVProtocol {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-history-ARVProtocol {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-history-ARVProtocol:hover {
+  background-color: #5a6268;
+}
+
+.btn-switch-ARVProtocol,
+.btn-create-ARVProtocol,
+.btn-customize-ARVProtocol {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-switch-ARVProtocol:hover,
+.btn-create-ARVProtocol:hover,
+.btn-customize-ARVProtocol:hover {
+  background-color: #0056b3;
+}
+
+.btn-apply-ARVProtocol,
+.btn-submit-ARVProtocol {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-apply-ARVProtocol:hover,
+.btn-submit-ARVProtocol:hover {
+  background-color: #218838;
+}
+
+.btn-apply-ARVProtocol:disabled,
+.btn-submit-ARVProtocol:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-back-ARVProtocol,
+.btn-cancel-ARVProtocol {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-back-ARVProtocol:hover,
+.btn-cancel-ARVProtocol:hover {
+  background-color: #5a6268;
+}
+
+.btn-activate-ARVProtocol {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-activate-ARVProtocol:hover {
+  background-color: #e0a800;
+}
+
+/* Form Groups */
+.form-group-ARVProtocol {
+  margin-bottom: 15px;
+}
+
+.form-group-ARVProtocol label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.form-group-ARVProtocol input,
+.form-group-ARVProtocol select,
+.form-group-ARVProtocol textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-group-ARVProtocol textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Protocol Preview */
+.protocol-preview-ARVProtocol {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 6px;
+  margin-top: 15px;
+}
+
+.arv-info-ARVProtocol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arv-name-ARVProtocol {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.arv-dosage-ARVProtocol,
+.arv-instruction-ARVProtocol {
+  font-size: 13px;
+  color: #666;
+}
+
+/* ARV Selections */
+.arv-selections-ARVProtocol {
+  margin-top: 20px;
+}
+
+.btn-add-arv-ARVProtocol {
+  background-color: #17a2b8;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.btn-add-arv-ARVProtocol:hover {
+  background-color: #138496;
+}
+
+.arv-item-ARVProtocol {
+  background: #f8f9fa;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  position: relative;
+}
+
+.btn-remove-ARVProtocol {
+  background-color: #dc3545;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.btn-remove-ARVProtocol:hover {
+  background-color: #c82333;
+}
+
+/* Form Actions */
+.form-actions-ARVProtocol {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* History Table */
+.history-table-ARVProtocol {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+.history-table-ARVProtocol th,
+.history-table-ARVProtocol td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.history-table-ARVProtocol th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #333;
+}
+
+/* No Protocol Display */
+.no-protocol-ARVProtocol {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.no-protocol-ARVProtocol p {
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+/* Standard Protocol Info */
+.standard-protocol-info-ARVProtocol {
+  background: #e7f3ff;
+  padding: 10px 15px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border-left: 4px solid #007bff;
+}
+
+/* Treatment tab styles */
+.current-protocol-display {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.protocol-info h4 {
+  color: #007bff;
+  margin: 0 0 10px 0;
+}
+
+.protocol-description {
+  color: #666;
+  margin: 5px 0;
+}
+
+.protocol-status {
+  margin: 10px 0;
+}
+
+.status-active {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.arv-list-display {
+  margin-top: 20px;
+}
+
+.arv-list-display h5 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.arv-items {
+  list-style: none;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.arv-item {
+  background: white;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  border-left: 3px solid #007bff;
+}
+
+.arv-name {
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 4px;
+}
+
+.arv-dosage,
+.arv-instruction {
+  font-size: 14px;
+  color: #666;
+  margin: 2px 0;
+}
+
+.no-protocol-display {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.section-header-no-border {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.btn-add-small {
+  background-color: #007bff;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.2s;
+}
+
+.btn-add-small:hover {
+  background-color: #0056b3;
 }
 
 /* Override colors for Doctor theme */
@@ -25,7 +440,7 @@
 
 .stat-card {
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  padding: 24px;
+  padding: 10px;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   display: flex;
@@ -346,25 +761,25 @@
 
 .modal-container-doctor {
   background: white;
-  border-radius: 16px;
+  border-radius: 10px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
   max-height: 100vh;
-  overflow-y: auto;
+  overflow-y: none;
   position: relative;
   width: 100%;
-  height: 90%;
+  height: 92%;
   /* Default modal width */
 }
 
 .modal-container-doctor.modal-standard {
-  max-width: 1500px; /* Standardized modal width */
+  max-width: 1000px; /* Standardized modal width */
 }
 
 .modal-container-doctor.modal-large {
-  max-width: 1500px; /* Larger modal for complex content */
+  max-width: 1000px; /* Larger modal for complex content */
 }
 
-.modal-header-admin {
+.modal-header-doctor {
   padding: 24px;
   border-bottom: 1px solid #e9ecef;
   display: flex;
@@ -372,7 +787,7 @@
   align-items: center;
 }
 
-.modal-header-admin h2 {
+.modal-header-doctor h2 {
   margin: 0;
   font-size: 20px;
   color: #2c3e50;
@@ -403,19 +818,11 @@
 .modal-info-body-admin {
   padding: 24px;
   max-height: 60vh;
-  overflow-y: auto;
+  overflow-y: none;
 }
 
 .modal-form-admin {
   padding: 24px;
-}
-
-.modal-actions-admin {
-  padding: 20px 24px;
-  border-top: 1px solid #e9ecef;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
 }
 
 /* ===== Patient Info Section ===== */
@@ -443,7 +850,6 @@
 
 .info-item {
   display: flex;
-  align-items: center;
   padding: 10px 0;
   border-bottom: 1px solid #e9ecef;
 }
@@ -461,10 +867,9 @@
 }
 
 .info-value {
-  color: #2c3e50;
-  font-weight: 400;
+  color: black;
+  font-weight: bolder;
   font-size: 14px;
-  flex: 1;
 }
 
 /* ===== Limited Access Notice ===== */
@@ -550,7 +955,7 @@
 
 /* ===== Section Headers ===== */
 .info-section-admin {
-  margin-bottom: 24px;
+  margin-bottom: 100px;
 }
 
 .info-section-admin h3 {
@@ -596,16 +1001,26 @@
 }
 
 /* ===== History Items ===== */
-.appointment-list,
-.exam-list {
-  max-height: 350px;
+.appointment-list {
+  max-height: 600px;
   overflow-y: auto;
   padding-right: 8px;
+}
+.exam-list {
+  max-height: 590px;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+.info-section-doctor h3 {
+  font-weight: bolder;
+  color: black;
+  font-size: 20px;
+  padding-bottom: 10px;
 }
 
 .history-item {
   background: #f8f9fa;
-  padding: 16px;
+  padding: 15px;
   border-radius: 10px;
   margin-bottom: 12px;
   border: 1px solid #e9ecef;
@@ -622,6 +1037,26 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
+}
+
+.history-item-1 {
+  background: #f8f9fa;
+  padding: 8px;
+  border-radius: 5px;
+  margin-bottom: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.history-item-1:hover {
+  border-color: #4439c7;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.history-item-header-1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .date {
@@ -735,8 +1170,8 @@
   gap: 4px;
 }
 
-.btn-save-admin,
-.btn-cancel-admin {
+.btn-save-doctor,
+.btn-cancel-doctor {
   padding: 10px 24px;
   border-radius: 8px;
   font-size: 14px;
@@ -794,8 +1229,8 @@
 /* ===== Main Content Adjustments ===== */
 .main-content-doctor {
   width: 100%;
-  max-width: 1400px;
-  padding: 30px;
+  max-width: 1500px;
+  padding: 18px;
   margin: 0 auto;
 }
 
@@ -838,7 +1273,7 @@
 
   .stat-card {
     padding: 20px;
-    min-height: 80px;
+    min-height: 70px;
   }
 
   .stat-icon {

@@ -5,8 +5,24 @@ import {
   getMedicalRecordDetail,
 } from "../../services/medicalRecordService";
 import { tokenManager } from "../../services/account";
-import "./MedicalRecordPage.css";
+import "./MedicalRecordDoctor.css";
 import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
+import { toast } from "react-toastify";
+
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <div>Đã xảy ra lỗi khi tải trang hồ sơ bệnh án.</div>;
+    }
+    return this.props.children;
+  }
+}
 
 const DoctorMedicalRecordPage = () => {
   const [patients, setPatients] = useState([]);
@@ -17,10 +33,15 @@ const DoctorMedicalRecordPage = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("examination");
-  const [view, setView] = useState("patients"); // "patients" | "records"
+  const [view, setView] = useState("patients");
   const doctorId = tokenManager.getCurrentUserId();
 
   useEffect(() => {
+    if (!doctorId) {
+      toast.error("Vui lòng đăng nhập");
+      window.location.href = "/login";
+      return;
+    }
     loadDoctorPatients();
   }, [doctorId]);
 
@@ -28,9 +49,10 @@ const DoctorMedicalRecordPage = () => {
     setLoading(true);
     try {
       const patientsData = await getDoctorPatients(doctorId);
-      setPatients(patientsData);
+      setPatients(patientsData || []);
     } catch (err) {
       console.error("Failed to fetch doctor patients", err);
+      toast.error("Không thể tải danh sách bệnh nhân.");
     } finally {
       setLoading(false);
     }
@@ -40,15 +62,15 @@ const DoctorMedicalRecordPage = () => {
     setSelectedPatient(patient);
     setRecordsLoading(true);
     setView("records");
-
     try {
       const records = await getPatientRecordsForDoctor(
         doctorId,
         patient.patientId
       );
-      setSelectedPatientRecords(records);
+      setSelectedPatientRecords(records || []);
     } catch (err) {
       console.error("Failed to fetch patient records", err);
+      toast.error("Không thể tải hồ sơ bệnh án.");
       setSelectedPatientRecords([]);
     } finally {
       setRecordsLoading(false);
@@ -65,9 +87,10 @@ const DoctorMedicalRecordPage = () => {
     setDetailLoading(true);
     try {
       const detail = await getMedicalRecordDetail(recordId);
-      setSelectedRecord(detail);
+      setSelectedRecord(detail || {});
     } catch (err) {
       console.error("Failed to fetch detail", err);
+      toast.error("Không thể tải chi tiết hồ sơ.");
     } finally {
       setDetailLoading(false);
     }
@@ -105,307 +128,363 @@ const DoctorMedicalRecordPage = () => {
     return age;
   };
 
-  if (loading) return <div className="medi-loading">Đang tải dữ liệu...</div>;
+  if (loading)
+    return (
+      <div className="medi-loading-medical-record">Đang tải dữ liệu...</div>
+    );
 
   return (
-    <div className="container-m">
-      <SidebarDoctor active="Doctor-MedicalRecord" />
-      <div className="medi-content">
-        <div className="medi-header">
-          {view === "patients" ? (
-            <h2 className="medi-title">Danh sách bệnh nhân bạn phụ trách</h2>
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-              <button
-                onClick={handleBackToPatients}
-                className="medi-back-button"
-              >
-                ← Quay lại
-              </button>
-              <h2 className="medi-title">
-                Hồ sơ bệnh án - {selectedPatient?.patientName}
+    <ErrorBoundary>
+      <div className="medi-management-page-medical-record">
+        <SidebarDoctor active="Doctor-MedicalRecord" />
+        <div className="medi-content-medical-record">
+          <div className="medi-header-medical-record">
+            {view === "patients" ? (
+              <h2 className="medi-title-medical-record">
+                Danh sách bệnh nhân bạn phụ trách
               </h2>
+            ) : (
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "1rem" }}
+              >
+                <button
+                  onClick={handleBackToPatients}
+                  className="medi-back-button-medical-record"
+                >
+                  ← Quay lại
+                </button>
+                <h2 className="medi-title-medical-record">
+                  Hồ sơ bệnh án -{" "}
+                  {selectedPatient?.patientName || "Không có tên"}
+                </h2>
+              </div>
+            )}
+          </div>
+
+          {view === "patients" ? (
+            <div className="medi-list-medical-record">
+              {patients.length === 0 ? (
+                <div className="medi-empty-message-medical-record">
+                  Không có bệnh nhân nào với appointment đã check-in.
+                </div>
+              ) : (
+                patients.map((patient) => (
+                  <div
+                    key={patient.patientId}
+                    className="medi-patient-card-medical-record"
+                    onClick={() => handlePatientClick(patient)}
+                  >
+                    <div className="patient-main-info-medical-record">
+                      <div className="patient-basic-medical-record">
+                        <h3 className="patient-name-medical-record">
+                          {patient.patientName || "Không có tên"}
+                        </h3>
+                        <div className="patient-details-medical-record">
+                          <span className="patient-age-medical-record">
+                            {calculateAge(patient.birthdate)} tuổi
+                          </span>
+                          <span className="patient-gender-medical-record">
+                            {patient.gender || "N/A"}
+                          </span>
+                          {patient.phone && (
+                            <span className="patient-phone-medical-record">
+                              {patient.phone}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="patient-stats-medical-record">
+                        <div className="stat-item-medical-record">
+                          <span className="stat-label-medical-record">
+                            Tổng hồ sơ:
+                          </span>
+                          <span className="stat-value-medical-record">
+                            {patient.totalMedicalRecords || 0}
+                          </span>
+                        </div>
+                        <div className="stat-item-medical-record">
+                          <span className="stat-label-medical-record">
+                            Lần khám gần nhất:
+                          </span>
+                          <span className="stat-value-medical-record">
+                            {formatDate(patient.lastAppointmentDate) ||
+                              "Không có"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="patient-action-medical-record">
+                      <span className="view-records-hint-medical-record">
+                        Xem hồ sơ →
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          ) : (
+            <div className="medi-list-medical-record">
+              {recordsLoading ? (
+                <div className="medi-loading-medical-record">
+                  Đang tải hồ sơ bệnh án...
+                </div>
+              ) : selectedPatientRecords.length === 0 ? (
+                <div className="medi-empty-message-medical-record">
+                  Bệnh nhân này chưa có hồ sơ bệnh án nào.
+                </div>
+              ) : (
+                selectedPatientRecords.map((record) => (
+                  <div
+                    key={record.recordId}
+                    className="medi-card-medical-record"
+                  >
+                    <div className="medi-main-medical-record">
+                      <div>
+                        <h3 className="medi-record-title-medical-record">
+                          Hồ sơ #{record.recordId}
+                        </h3>
+                        <div className="medi-datetime-medical-record">
+                          <span className="medi-exam-date-medical-record">
+                            {formatDate(record.examDate)}
+                          </span>
+                          <span className="medi-exam-time-medical-record">
+                            {formatTime(record.examTime)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="medi-actions-medical-record">
+                        <span
+                          className={`medi-status-medical-record ${record.status?.toLowerCase()}`}
+                        >
+                          {record.status || "N/A"}
+                        </span>
+                        <button
+                          className="medi-detail-button-medical-record"
+                          onClick={() => handleViewDetail(record.recordId)}
+                        >
+                          Xem chi tiết
+                        </button>
+                      </div>
+                    </div>
+                    <div className="medi-summary-medical-record">
+                      {record.summary || (
+                        <span className="medi-no-summary-medical-record">
+                          Không có ghi chú
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
 
-        {view === "patients" ? (
-          // View danh sách bệnh nhân
-          <div className="medi-list">
-            {patients.length === 0 ? (
-              <div className="medi-empty-message">
-                Không có bệnh nhân nào với appointment đã check-in.
-              </div>
-            ) : (
-              patients.map((patient) => (
-                <div
-                  key={patient.patientId}
-                  className="medi-patient-card"
-                  onClick={() => handlePatientClick(patient)}
+        {selectedRecord && (
+          <div
+            className="record-detail-modal-medical-record"
+            onClick={closeModal}
+          >
+            <div
+              className="record-detail-content-medical-record"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="detail-header-medical-record">
+                <h2>Chi tiết hồ sơ bệnh án</h2>
+                <button
+                  className="close-button-medical-record"
+                  onClick={closeModal}
                 >
-                  <div className="patient-main-info">
-                    <div className="patient-basic">
-                      <h3 className="patient-name">{patient.patientName}</h3>
-                      <div className="patient-details">
-                        <span className="patient-age">
-                          {calculateAge(patient.birthdate)} tuổi
-                        </span>
-                        <span className="patient-gender">{patient.gender}</span>
-                        {patient.phone && (
-                          <span className="patient-phone">{patient.phone}</span>
+                  ×
+                </button>
+              </div>
+
+              <div className="detail-tabs-medical-record">
+                <button
+                  className={`tab-button-medical-record ${
+                    activeTab === "examination" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("examination")}
+                >
+                  Thông tin khám bệnh
+                </button>
+                <button
+                  className={`tab-button-medical-record ${
+                    activeTab === "arv" ? "active" : ""
+                  }`}
+                  onClick={() => setActiveTab("arv")}
+                >
+                  Phác đồ ARV
+                </button>
+              </div>
+
+              <div className="detail-body-medical-record">
+                {detailLoading ? (
+                  <div className="detail-loading-medical-record">
+                    Đang tải thông tin...
+                  </div>
+                ) : (
+                  <>
+                    {activeTab === "examination" && (
+                      <div className="examination-detail-medical-record">
+                        <h3>Thông tin khám bệnh</h3>
+                        {selectedRecord.examination ? (
+                          <div className="detail-info-medical-record">
+                            <div className="info-row-medical-record">
+                              <span className="info-label-medical-record">
+                                Mã khám:
+                              </span>
+                              <span className="info-value-medical-record">
+                                {selectedRecord.examination.examId || "N/A"}
+                              </span>
+                            </div>
+                            <div className="info-row-medical-record">
+                              <span className="info-label-medical-record">
+                                Ngày khám:
+                              </span>
+                              <span className="info-value-medical-record">
+                                {formatDate(
+                                  selectedRecord.examination.examDate
+                                )}
+                              </span>
+                            </div>
+                            <div className="info-row-medical-record">
+                              <span className="info-label-medical-record">
+                                Kết quả:
+                              </span>
+                              <span className="info-value-medical-record">
+                                {selectedRecord.examination.result ||
+                                  "Chưa có kết quả"}
+                              </span>
+                            </div>
+                            <div className="info-row-medical-record">
+                              <span className="info-label-medical-record">
+                                Chỉ số CD4:
+                              </span>
+                              <span className="info-value-medical-record">
+                                {selectedRecord.examination.cd4Count !== null
+                                  ? `${selectedRecord.examination.cd4Count} tế bào/mm³`
+                                  : "Chưa có"}
+                              </span>
+                            </div>
+                            <div className="info-row-medical-record">
+                              <span className="info-label-medical-record">
+                                Tải lượng HIV:
+                              </span>
+                              <span className="info-value-medical-record">
+                                {selectedRecord.examination.hivLoad !== null
+                                  ? `${selectedRecord.examination.hivLoad} copies/ml`
+                                  : "Chưa có"}
+                              </span>
+                            </div>
+                            <div className="info-row-medical-record">
+                              <span className="info-label-medical-record">
+                                Trạng thái:
+                              </span>
+                              <span
+                                className={`status-badge-medical-record ${selectedRecord.examination.status?.toLowerCase()}`}
+                              >
+                                {selectedRecord.examination.status || "N/A"}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="no-data-medical-record">
+                            Không có thông tin khám bệnh
+                          </p>
                         )}
                       </div>
-                    </div>
-                    <div className="patient-stats">
-                      <div className="stat-item">
-                        <span className="stat-label">Tổng hồ sơ:</span>
-                        <span className="stat-value">
-                          {patient.totalMedicalRecords}
-                        </span>
-                      </div>
-                      <div className="stat-item">
-                        <span className="stat-label">Lần khám gần nhất:</span>
-                        <span className="stat-value">
-                          {formatDate(patient.lastAppointmentDate)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="patient-action">
-                    <span className="view-records-hint">Xem hồ sơ →</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        ) : (
-          // View medical records của bệnh nhân
-          <div className="medi-list">
-            {recordsLoading ? (
-              <div className="medi-loading">Đang tải hồ sơ bệnh án...</div>
-            ) : selectedPatientRecords.length === 0 ? (
-              <div className="medi-empty-message">
-                Bệnh nhân này chưa có hồ sơ bệnh án nào.
-              </div>
-            ) : (
-              selectedPatientRecords.map((record) => (
-                <div key={record.recordId} className="medi-card">
-                  <div className="medi-main">
-                    <div>
-                      <h3 className="medi-record-title">
-                        Hồ sơ #{record.recordId}
-                      </h3>
-                      <div className="medi-datetime">
-                        <span className="medi-exam-date">
-                          {formatDate(record.examDate)}
-                        </span>
-                        <span className="medi-exam-time">
-                          {formatTime(record.examTime)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="medi-actions">
-                      <span
-                        className={`medi-status ${record.status?.toLowerCase()}`}
-                      >
-                        {record.status}
-                      </span>
-                      <button
-                        className="medi-detail-button"
-                        onClick={() => handleViewDetail(record.recordId)}
-                      >
-                        Xem chi tiết
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="medi-summary">
-                    {record.summary || (
-                      <span className="medi-no-summary">Không có ghi chú</span>
                     )}
-                  </div>
-                </div>
-              ))
-            )}
+
+                    {activeTab === "arv" && (
+                      <div className="arv-detail-medical-record">
+                        <h3>Thông tin phác đồ ARV</h3>
+                        {selectedRecord.customizedProtocol ? (
+                          <div className="protocol-info-medical-record">
+                            <div className="protocol-header-medical-record">
+                              <h4>
+                                {selectedRecord.customizedProtocol.name ||
+                                  "Phác đồ tùy chỉnh"}
+                              </h4>
+                              <p className="protocol-desc-medical-record">
+                                {selectedRecord.customizedProtocol
+                                  .description || "Không có mô tả"}
+                              </p>
+                              {selectedRecord.customizedProtocol
+                                .baseProtocolName && (
+                                <p className="base-protocol-medical-record">
+                                  Dựa trên:{" "}
+                                  <strong>
+                                    {
+                                      selectedRecord.customizedProtocol
+                                        .baseProtocolName
+                                    }
+                                  </strong>
+                                </p>
+                              )}
+                            </div>
+                            <div className="arv-list-medical-record">
+                              <h5>Danh sách thuốc ARV:</h5>
+                              {selectedRecord.customizedProtocol.arvDetails
+                                ?.length > 0 ? (
+                                <div className="arv-cards-medical-record">
+                                  {selectedRecord.customizedProtocol.arvDetails.map(
+                                    (arv) => (
+                                      <div
+                                        key={arv.arvId}
+                                        className="arv-card-medical-record"
+                                      >
+                                        <div className="arv-name-medical-record">
+                                          {arv.arvName || "Không tên"}
+                                        </div>
+                                        <div className="arv-info-medical-record">
+                                          <div className="arv-desc-medical-record">
+                                            {arv.arvDescription ||
+                                              "Không có mô tả"}
+                                          </div>
+                                          <div className="arv-dosage-medical-record">
+                                            <strong>Liều dùng:</strong>{" "}
+                                            {arv.dosage || "Chưa xác định"}
+                                          </div>
+                                          <div className="arv-instruction-medical-record">
+                                            <strong>Hướng dẫn:</strong>{" "}
+                                            {arv.usageInstruction ||
+                                              "Theo chỉ định của bác sĩ"}
+                                          </div>
+                                          <div className="arv-status-medical-record">
+                                            <span
+                                              className={`status-badge-medical-record ${arv.status?.toLowerCase()}`}
+                                            >
+                                              {arv.status || "N/A"}
+                                            </span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="no-data-medical-record">
+                                  Chưa có thuốc ARV nào được chỉ định
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="no-data-medical-record">
+                            Không có phác đồ ARV
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Modal chi tiết (giữ nguyên như cũ) */}
-      {selectedRecord && (
-        <div className="record-detail-modal" onClick={closeModal}>
-          <div
-            className="record-detail-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="detail-header">
-              <h2>Chi tiết hồ sơ bệnh án</h2>
-              <button className="close-button" onClick={closeModal}>
-                ×
-              </button>
-            </div>
-
-            <div className="detail-tabs">
-              <button
-                className={`tab-button ${
-                  activeTab === "examination" ? "active" : ""
-                }`}
-                onClick={() => setActiveTab("examination")}
-              >
-                Thông tin khám bệnh
-              </button>
-              <button
-                className={`tab-button ${activeTab === "arv" ? "active" : ""}`}
-                onClick={() => setActiveTab("arv")}
-              >
-                Phác đồ ARV
-              </button>
-            </div>
-
-            <div className="detail-body">
-              {detailLoading ? (
-                <div className="detail-loading">Đang tải thông tin...</div>
-              ) : (
-                <>
-                  {activeTab === "examination" && (
-                    <div className="examination-detail">
-                      <h3>Thông tin khám bệnh</h3>
-                      {selectedRecord.examination ? (
-                        <div className="detail-info">
-                          <div className="info-row">
-                            <span className="info-label">Mã khám:</span>
-                            <span className="info-value">
-                              {selectedRecord.examination.examId}
-                            </span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Ngày khám:</span>
-                            <span className="info-value">
-                              {formatDate(selectedRecord.examination.examDate)}
-                            </span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Kết quả:</span>
-                            <span className="info-value">
-                              {selectedRecord.examination.result ||
-                                "Chưa có kết quả"}
-                            </span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Chỉ số CD4:</span>
-                            <span className="info-value">
-                              {selectedRecord.examination.cd4Count !== null
-                                ? `${selectedRecord.examination.cd4Count} tế bào/mm³`
-                                : "Chưa có"}
-                            </span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Tải lượng HIV:</span>
-                            <span className="info-value">
-                              {selectedRecord.examination.hivLoad !== null
-                                ? `${selectedRecord.examination.hivLoad} copies/ml`
-                                : "Chưa có"}
-                            </span>
-                          </div>
-                          <div className="info-row">
-                            <span className="info-label">Trạng thái:</span>
-                            <span
-                              className={`status-badge ${selectedRecord.examination.status?.toLowerCase()}`}
-                            >
-                              {selectedRecord.examination.status}
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="no-data">Không có thông tin khám bệnh</p>
-                      )}
-                    </div>
-                  )}
-
-                  {activeTab === "arv" && (
-                    <div className="arv-detail">
-                      <h3>Thông tin phác đồ ARV</h3>
-                      {selectedRecord.customizedProtocol ? (
-                        <div className="protocol-info">
-                          <div className="protocol-header">
-                            <h4>
-                              {selectedRecord.customizedProtocol.name ||
-                                "Phác đồ tùy chỉnh"}
-                            </h4>
-                            <p className="protocol-desc">
-                              {selectedRecord.customizedProtocol.description ||
-                                "Không có mô tả"}
-                            </p>
-                            {selectedRecord.customizedProtocol
-                              .baseProtocolName && (
-                              <p className="base-protocol">
-                                Dựa trên:{" "}
-                                <strong>
-                                  {
-                                    selectedRecord.customizedProtocol
-                                      .baseProtocolName
-                                  }
-                                </strong>
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="arv-list">
-                            <h5>Danh sách thuốc ARV:</h5>
-                            {selectedRecord.customizedProtocol.arvDetails
-                              ?.length > 0 ? (
-                              <div className="arv-cards">
-                                {selectedRecord.customizedProtocol.arvDetails.map(
-                                  (arv) => (
-                                    <div key={arv.arvId} className="arv-card">
-                                      <div className="arv-name">
-                                        {arv.arvName || "Không tên"}
-                                      </div>
-                                      <div className="arv-info">
-                                        <div className="arv-desc">
-                                          {arv.arvDescription ||
-                                            "Không có mô tả"}
-                                        </div>
-                                        <div className="arv-dosage">
-                                          <strong>Liều dùng:</strong>{" "}
-                                          {arv.dosage || "Chưa xác định"}
-                                        </div>
-                                        <div className="arv-instruction">
-                                          <strong>Hướng dẫn:</strong>{" "}
-                                          {arv.usageInstruction ||
-                                            "Theo chỉ định của bác sĩ"}
-                                        </div>
-                                        <div className="arv-status">
-                                          <span
-                                            className={`status-badge ${arv.status?.toLowerCase()}`}
-                                          >
-                                            {arv.status}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            ) : (
-                              <p className="no-data">
-                                Chưa có thuốc ARV nào được chỉ định
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="no-data">Không có phác đồ ARV</p>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </ErrorBoundary>
   );
 };
 

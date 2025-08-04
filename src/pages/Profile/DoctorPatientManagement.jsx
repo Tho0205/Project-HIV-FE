@@ -4,10 +4,14 @@ import { toast } from "react-toastify";
 import SidebarDoctor from "../../components/Sidebar/Sidebar-Doctor";
 import Pagination from "../../components/Pagination/Pagination";
 import doctorPatientService from "../../services/DoctorPatientService";
+import ARVProtocolService from "../../services/ARVProtocolService";
+import ARVService from "../../services/ARVService";
+import CustomArvProtocolsService from "../../services/CustomArvProtocolsService";
 import { tokenManager } from "../../services/account";
 import "./DoctorPatientManagement.css";
-import ManagerPatientNavbar from "../../components/Navbar/Navbar-Doctor-Manager-Patient";
-const PAGE_SIZE = 10;
+import ManagerPatientNavbar from "../../components/Navbar/Navbar-Doctor";
+
+const PAGE_SIZE = 5; // Changed from 10 to 5 for max 5 patients per page
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
 
 // Utility functions
@@ -69,7 +73,7 @@ const Modal = ({ show, onClose, title, children, className = "" }) => {
         className={`modal-container-doctor ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="modal-header-admin">
+        <div className="modal-header-doctor">
           <h2>{title}</h2>
           <button className="close-btn-admin" onClick={onClose}>
             ✕
@@ -82,6 +86,22 @@ const Modal = ({ show, onClose, title, children, className = "" }) => {
 };
 
 export default function DoctorPatientManagement() {
+  const [standardProtocols, setStandardProtocols] = useState([]);
+  const [availableARVs, setAvailableARVs] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState(null);
+  const [currentProtocol, setCurrentProtocol] = useState(null);
+  const [protocolHistory, setProtocolHistory] = useState([]);
+  const [newProtocolData, setNewProtocolData] = useState({
+    baseProtocolId: null,
+    name: "",
+    description: "",
+    details: [],
+  });
+  const [selectedStandardProtocol, setSelectedStandardProtocol] =
+    useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [patientsPerPage] = useState(5); // Updated to match PAGE_SIZE
   // States
   const [patients, setPatients] = useState([]);
   const [total, setTotal] = useState(0);
@@ -95,7 +115,7 @@ export default function DoctorPatientManagement() {
     controlledPatients: 0,
     unstablePatients: 0,
   });
-  const [viewMode, setViewMode] = useState("myPatients"); // "myPatients" hoặc "allPatients"
+  const [viewMode, setViewMode] = useState("myPatients");
   const [scheduleDate, setScheduleDate] = useState(null);
 
   // Modal states
@@ -107,6 +127,10 @@ export default function DoctorPatientManagement() {
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+  // Active tab state
+  const [activeTab, setActiveTab] = useState("info");
+
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
 
@@ -118,7 +142,25 @@ export default function DoctorPatientManagement() {
     }
   }, [navigate]);
 
-  // Load patients với chế độ xem
+  useEffect(() => {
+    const loadProtocolsAndARVs = async () => {
+      try {
+        const [protocolsResult, arvsResult] = await Promise.all([
+          ARVProtocolService.getAllProtocols(),
+          ARVService.getAllARVs(),
+        ]);
+
+        setStandardProtocols(protocolsResult || []);
+        setAvailableARVs(arvsResult || []);
+      } catch (error) {
+        console.error("Error loading protocols and ARVs:", error);
+      }
+    };
+
+    loadProtocolsAndARVs();
+  }, []);
+
+  // Load patients with view mode
   const loadPatients = useCallback(async () => {
     if (!doctorId && viewMode === "myPatients") return;
 
@@ -128,24 +170,22 @@ export default function DoctorPatientManagement() {
       let result;
 
       if (viewMode === "allPatients") {
-        // Lấy toàn bộ bệnh nhân
         result = await doctorPatientService.getAllPatients(
           searchTerm,
           page,
-          PAGE_SIZE,
+          PAGE_SIZE, // Use updated PAGE_SIZE (5)
           sortBy,
           order
         );
       } else {
-        // Lấy bệnh nhân của bác sĩ với filter ngày nếu có
         result = await doctorPatientService.getDoctorPatients(
           doctorId,
           page,
-          PAGE_SIZE,
+          PAGE_SIZE, // Use updated PAGE_SIZE (5)
           sortBy,
           order,
           scheduleDate,
-          false // Bỏ hasScheduleOnly
+          false
         );
       }
 
@@ -163,14 +203,12 @@ export default function DoctorPatientManagement() {
     }
   }, [doctorId, page, sort, searchTerm, viewMode, scheduleDate]);
 
-  // Trong useEffect hiện tại, thêm interval reload với thời gian ngắn hơn
   useEffect(() => {
     loadPatients();
     if (!isFirstLoad && viewMode === "myPatients") {
-      // Giảm thời gian reload từ 30 giây xuống 10 giây để cập nhật nhanh hơn
       const interval = setInterval(() => {
         loadPatients();
-      }, 10000); // 10 giây
+      }, 10000);
 
       return () => clearInterval(interval);
     }
@@ -201,13 +239,37 @@ export default function DoctorPatientManagement() {
     openModal("history");
   };
 
+  const handleViewProtocol = async (patient) => {
+    try {
+      setSelectedPatient(patient);
+
+      const patientId = patient.userId || patient.patientId;
+      await loadPatientProtocol(patientId);
+
+      setModalType("view");
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error loading protocol:", error);
+      toast.error("Không thể tải thông tin phác đồ");
+    }
+  };
+  const loadPatientProtocolForHistory = async (patientId) => {
+    try {
+      const current = await CustomArvProtocolsService.getPatientCurrentProtocol(
+        patientId
+      );
+      setCurrentProtocol(current);
+    } catch (error) {
+      console.error("Error loading patient protocol:", error);
+      setCurrentProtocol(null);
+    }
+  };
   const handleViewHistory = async (patient) => {
     setSelectedPatient(patient);
     try {
       let result;
 
       if (viewMode === "allPatients") {
-        // Gọi API view-only cho tab "Tất cả bệnh nhân"
         result = await doctorPatientService.getPatientHistoryViewOnly(
           patient.userId
         );
@@ -215,14 +277,17 @@ export default function DoctorPatientManagement() {
         if (result.success && result.data) {
           setPatientHistory({
             ...result.data,
-            viewOnly: true, // Đánh dấu là chế độ xem only
+            viewOnly: true,
           });
+
+          // Load protocol for display
+          await loadPatientProtocolForHistory(patient.userId);
+
           openModal("history");
         } else {
           toast.error("Không thể tải thông tin bệnh nhân");
         }
       } else {
-        // Tab "Bệnh nhân của tôi" - quyền truy cập đầy đủ
         result = await doctorPatientService.getPatientHistory(
           patient.userId,
           doctorId
@@ -231,8 +296,12 @@ export default function DoctorPatientManagement() {
         if (result.success && result.data) {
           setPatientHistory({
             ...result.data,
-            viewOnly: false, // Có quyền chỉnh sửa
+            viewOnly: false,
           });
+
+          // Load protocol for display
+          await loadPatientProtocolForHistory(patient.userId);
+
           openModal("history");
         } else {
           toast.error(result.message || "Không thể tải lịch sử bệnh nhân");
@@ -273,7 +342,6 @@ export default function DoctorPatientManagement() {
         );
         closeModal("exam");
 
-        // Reload history
         const historyResult = await doctorPatientService.getPatientHistory(
           selectedPatient.userId,
           doctorId
@@ -282,7 +350,6 @@ export default function DoctorPatientManagement() {
           setPatientHistory(historyResult.data);
           openModal("history");
         }
-        // Reload patients to update stats
         loadPatients();
       }
     } catch (error) {
@@ -307,8 +374,6 @@ export default function DoctorPatientManagement() {
           doctorId
         );
         if (historyResult.success) setPatientHistory(historyResult.data);
-
-        // Reload patients to update stats
         loadPatients();
       } else {
         toast.error(result.message || "Có lỗi xảy ra khi xóa");
@@ -316,6 +381,123 @@ export default function DoctorPatientManagement() {
     } catch (error) {
       toast.error("Có lỗi xảy ra khi xóa");
     }
+  };
+
+  const loadPatientProtocol = async (patientId) => {
+    try {
+      setLoading(true);
+      const [current, history] = await Promise.all([
+        CustomArvProtocolsService.getPatientCurrentProtocol(patientId),
+        CustomArvProtocolsService.getPatientProtocolHistory(patientId),
+      ]);
+
+      setCurrentProtocol(current);
+      setProtocolHistory(history);
+    } catch (err) {
+      toast.error("Lỗi khi tải thông tin phác đồ: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleCreateProtocol = async () => {
+    try {
+      setLoading(true);
+
+      // Sử dụng selectedPatient.userId thay vì selectedPatient.patientId
+      const patientId = selectedPatient.userId || selectedPatient.patientId;
+
+      const createdProtocol =
+        await CustomArvProtocolsService.createCustomProtocol(
+          doctorId,
+          patientId,
+          newProtocolData
+        );
+
+      toast.success("Tạo phác đồ thành công!");
+
+      // Reload protocol data
+      await loadPatientProtocol(patientId);
+      setModalType("view");
+
+      // Reset form data
+      setNewProtocolData({
+        baseProtocolId: null,
+        name: "",
+        description: "",
+        details: [],
+      });
+
+      // Reload patients list
+      loadPatients();
+    } catch (err) {
+      console.error("Error creating protocol:", err);
+      toast.error("Lỗi khi tạo phác đồ: " + (err.message || "Unknown error"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProtocol = async (protocolId, isCustom) => {
+    try {
+      setLoading(true);
+
+      const patientId = selectedPatient.userId || selectedPatient.patientId;
+
+      await CustomArvProtocolsService.updatePatientProtocol(patientId, {
+        protocolId,
+        isCustom,
+      });
+
+      // Reload protocol data
+      await loadPatientProtocol(patientId);
+
+      // Update current protocol in history view
+      await loadPatientProtocolForHistory(patientId);
+
+      toast.success("Cập nhật phác đồ thành công!");
+      setModalType("view");
+
+      // Reload patients list
+      loadPatients();
+    } catch (err) {
+      console.error("Error updating protocol:", err);
+      toast.error(err.message || "Lỗi khi cập nhật phác đồ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProtocolDetails = async (protocolId) => {
+    try {
+      const details = await ARVProtocolService.getProtocolDetails(protocolId);
+      return details;
+    } catch (err) {
+      toast.error("Không thể lấy chi tiết phác đồ: " + err.message);
+      return [];
+    }
+  };
+  const handleStandardProtocolSelect = async (protocolId) => {
+    const protocol = standardProtocols.find((p) => p.protocolId === protocolId);
+    if (!protocol) return;
+
+    const details = await loadProtocolDetails(protocolId);
+
+    setSelectedStandardProtocol({
+      ...protocol,
+      details: details,
+    });
+
+    setNewProtocolData({
+      baseProtocolId: protocolId,
+      name: protocol.name,
+      description: protocol.description,
+      details: details.map((d) => ({
+        arvId: d.arvId,
+        dosage: d.dosage || "1 viên",
+        usageInstruction: d.usageInstruction || "Uống hàng ngày",
+        status: "ACTIVE",
+      })),
+    });
   };
 
   const getStatusBadge = (status) => {
@@ -332,6 +514,251 @@ export default function DoctorPatientManagement() {
     );
   };
 
+  // Render modal content
+  const renderModalContent = () => {
+    if (!patientHistory) {
+      return <div className="loading-admin">Đang tải dữ liệu...</div>;
+    }
+
+    switch (activeTab) {
+      case "info":
+        return (
+          <div className="patient-info-section">
+            <h3>Thông Tin Bệnh Nhân</h3>
+            <div className="patient-detail-grid">
+              <div className="info-item">
+                <span className="info-label">Họ tên:</span>
+                <span className="info-value">
+                  {selectedPatient?.fullName || "Chưa có"}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Email:</span>
+                <span className="info-value">{selectedPatient?.email}</span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Số điện thoại:</span>
+                <span className="info-value">
+                  {selectedPatient?.phone || "Chưa có"}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Ngày sinh:</span>
+                <span className="info-value">
+                  {formatDate(selectedPatient?.birthdate)}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Giới tính:</span>
+                <span className="info-value">
+                  {selectedPatient?.gender || "Other"}
+                </span>
+              </div>
+              <div className="info-item">
+                <span className="info-label">Tổng số lần hẹn:</span>
+                <span className="info-value">
+                  {selectedPatient?.appointmentCount || 0}
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "appointments":
+        return (
+          <div className="info-section-doctor">
+            <h3>Lịch Hẹn Khám</h3>
+            {patientHistory?.appointments?.length > 0 ? (
+              <div className="appointment-list">
+                {patientHistory.appointments.map((appointment) => (
+                  <div key={appointment.appointmentId} className="history-item">
+                    <div className="history-item-header">
+                      <span className="date">
+                        {formatDate(appointment.appointmentDate)}
+                      </span>
+                      {getStatusBadge(appointment.status)}
+                    </div>
+                    {appointment.room && (
+                      <p className="history-detail">
+                        Phòng: {appointment.room}
+                      </p>
+                    )}
+                    {appointment.note && (
+                      <p
+                        className={`history-detail note ${
+                          appointment.status === "CANCELLED"
+                            ? "cancelled-note"
+                            : ""
+                        }`}
+                      >
+                        {appointment.note}
+                      </p>
+                    )}
+                    {appointment.status === "CANCELLED" &&
+                      appointment.note?.includes("bác sĩ mới") && (
+                        <div className="transfer-warning">
+                          Lịch hẹn này đã bị hủy tự động do bệnh nhân chuyển
+                          sang bác sĩ khác
+                        </div>
+                      )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="no-data-admin">Chưa có lịch hẹn nào</p>
+            )}
+          </div>
+        );
+
+      case "tests":
+        return (
+          <div className="info-section-doctor">
+            <div className="section-header-no-border">
+              <h3>Kết Quả Xét Nghiệm</h3>
+              {!patientHistory?.viewOnly && (
+                <button
+                  className="btn-add-small"
+                  onClick={() => openExamModal()}
+                >
+                  + Thêm mới
+                </button>
+              )}
+            </div>
+            {patientHistory?.examinations?.length > 0 ? (
+              <div className="exam-list">
+                {patientHistory.examinations.map((exam) => (
+                  <div key={exam.examId} className="history-item-1">
+                    <div className="history-item-header-1">
+                      <span className="date">
+                        Ngày: {formatDate(exam.examDate)}
+                      </span>
+                      {!patientHistory?.viewOnly && (
+                        <div className="exam-actions">
+                          <button
+                            onClick={() => openExamModal(exam)}
+                            className="btn-icon-small"
+                            title="Chỉnh sửa"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDeleteExam(exam.examId)}
+                            className="btn-icon-small"
+                            title="Xóa"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="result">{exam.result}</p>
+                    <div className="metrics">
+                      {exam.cd4Count && (
+                        <span className="metric">
+                          CD4: {exam.cd4Count} cells/μL
+                        </span>
+                      )}
+                      {exam.hivLoad && (
+                        <span className="metric">
+                          HIV Load: {exam.hivLoad} copies/ml
+                        </span>
+                      )}
+                    </div>
+                    <small className="timestamp">
+                      Tạo lúc: {formatDateTime(exam.createdAt)}
+                    </small>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="no-data-section">
+                <p className="no-data-admin">Chưa có kết quả xét nghiệm nào</p>
+                {!patientHistory?.viewOnly && (
+                  <button
+                    className="btn-add-small"
+                    onClick={() => openExamModal()}
+                  >
+                    + Thêm kết quả đầu tiên
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+      case "treatment":
+        return (
+          <div className="info-section-doctor">
+            <div className="section-header-no-border">
+              <h3>Phác Đồ Điều Trị</h3>
+              {!patientHistory?.viewOnly && (
+                <button
+                  className="btn-add-small"
+                  onClick={() => handleViewProtocol(selectedPatient)}
+                >
+                  📋 Quản lý phác đồ
+                </button>
+              )}
+            </div>
+
+            {/* Current Protocol Display */}
+            {currentProtocol ? (
+              <div className="current-protocol-display">
+                <div className="protocol-info">
+                  <h4>Phác đồ hiện tại: {currentProtocol.name}</h4>
+                  <p className="protocol-description">
+                    {currentProtocol.description}
+                  </p>
+                  <p className="protocol-status">
+                    Trạng thái:{" "}
+                    <span className="status-active">
+                      {currentProtocol.status}
+                    </span>
+                  </p>
+                </div>
+
+                {currentProtocol.details &&
+                  currentProtocol.details.length > 0 && (
+                    <div className="arv-list-display">
+                      <h5>Danh sách thuốc ARV:</h5>
+                      <ul className="arv-items">
+                        {currentProtocol.details.map((detail, index) => (
+                          <li key={index} className="arv-item">
+                            <div className="arv-name">{detail.arvName}</div>
+                            <div className="arv-dosage">
+                              Liều: {detail.dosage}
+                            </div>
+                            <div className="arv-instruction">
+                              Hướng dẫn: {detail.usageInstruction}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+              </div>
+            ) : (
+              <div className="no-protocol-display">
+                <p className="no-data-admin">
+                  Bệnh nhân chưa có phác đồ điều trị
+                </p>
+                {!patientHistory?.viewOnly && (
+                  <button
+                    className="btn-add-small"
+                    onClick={() => handleViewProtocol(selectedPatient)}
+                  >
+                    + Tạo phác đồ đầu tiên
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return <div>Tab không tồn tại</div>;
+    }
+  };
+
   return (
     <div className="container-m">
       <SidebarDoctor active={"Doctor-Patient-Manager"} />
@@ -340,6 +767,7 @@ export default function DoctorPatientManagement() {
         <div className="content-header-admin">
           <h1>Quản Lý Bệnh Nhân</h1>
         </div>
+
         {/* View Mode Tabs */}
         <div className="view-mode-tabs">
           <button
@@ -362,7 +790,8 @@ export default function DoctorPatientManagement() {
             Tất cả bệnh nhân
           </button>
         </div>
-        {/* Statistics - Chỉ hiển thị khi ở tab "Bệnh nhân của tôi" */}
+
+        {/* Statistics */}
         {viewMode === "myPatients" && (
           <div className="stats-grid">
             <StatCard
@@ -383,6 +812,7 @@ export default function DoctorPatientManagement() {
             <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
           </div>
         )}
+
         {/* Filters */}
         <div className="filters-admin">
           <div className="search-box-admin">
@@ -395,7 +825,6 @@ export default function DoctorPatientManagement() {
             />
           </div>
 
-          {/* Schedule date filter - chỉ hiện khi xem "Bệnh nhân của tôi" */}
           {viewMode === "myPatients" && (
             <input
               type="date"
@@ -423,6 +852,7 @@ export default function DoctorPatientManagement() {
             <option value="created_at_desc">Mới nhất</option>
           </select>
         </div>
+
         {/* Table */}
         <div className="accounts-table-container-admin">
           <table className="accounts-table-admin">
@@ -467,198 +897,31 @@ export default function DoctorPatientManagement() {
             </tbody>
           </table>
         </div>
+
         <Pagination
           page={page}
           total={total}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
         />
-        {/* History Modal */}
 
+        {/* History Modal */}
         <Modal
           show={modals.history}
-          onClose={() => closeModal("history")}
-          title={`Lịch Sử Khám Bệnh - ${selectedPatient?.fullName}`}
+          onClose={() => {
+            closeModal("history");
+            setActiveTab("info");
+          }}
+          title={`Hồ Sơ Bệnh Nhân - ${selectedPatient?.fullName}`}
           className="modal-standard"
         >
-          <ManagerPatientNavbar />
-          <div className="modal-info-body-admin">
-            {patientHistory ? (
-              <>
-                {/* Patient Info */}
-                <div className="patient-info-section">
-                  <h3>Thông Tin Bệnh Nhân</h3>
-                  <div className="patient-detail-grid">
-                    <div className="info-item">
-                      <span className="info-label">Họ tên:</span>
-                      <span className="info-value">
-                        {selectedPatient?.fullName || "Chưa có"}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Email:</span>
-                      <span className="info-value">
-                        {selectedPatient?.email}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Số điện thoại:</span>
-                      <span className="info-value">
-                        {selectedPatient?.phone || "Chưa có"}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Ngày sinh:</span>
-                      <span className="info-value">
-                        {formatDate(selectedPatient?.birthdate)}
-                      </span>
-                    </div>
-                    <div className="info-item">
-                      <span className="info-label">Giới tính:</span>
-                      <span className="info-value">
-                        {selectedPatient?.gender || "Other"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Appointments */}
-                <div className="info-section-admin">
-                  <h3>Lịch Hẹn Khám</h3>
-                  {patientHistory?.appointments?.length > 0 ? (
-                    <div className="appointment-list">
-                      {patientHistory.appointments.map((appointment) => (
-                        <div
-                          key={appointment.appointmentId}
-                          className="history-item"
-                        >
-                          <div className="history-item-header">
-                            <span className="date">
-                              {formatDate(appointment.appointmentDate)}
-                            </span>
-                            {getStatusBadge(appointment.status)}
-                          </div>
-                          {appointment.room && (
-                            <p className="history-detail">
-                              Phòng: {appointment.room}
-                            </p>
-                          )}
-                          {appointment.note && (
-                            <p
-                              className={`history-detail note ${
-                                appointment.status === "CANCELLED"
-                                  ? "cancelled-note"
-                                  : ""
-                              }`}
-                            >
-                              {appointment.note}
-                            </p>
-                          )}
-                          {/* Thêm cảnh báo nếu bị hủy do chuyển bác sĩ */}
-                          {appointment.status === "CANCELLED" &&
-                            appointment.note?.includes("bác sĩ mới") && (
-                              <div className="transfer-warning">
-                                Lịch hẹn này đã bị hủy tự động do bệnh nhân
-                                chuyển sang bác sĩ khác
-                              </div>
-                            )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="no-data-admin">Chưa có lịch hẹn nào</p>
-                  )}
-                </div>
-
-                {/* Examinations - Hiển thị cho cả hai tab */}
-                <div className="info-section-admin">
-                  <div className="section-header-no-border">
-                    <h3>Kết Quả Xét Nghiệm</h3>
-                    {!patientHistory?.viewOnly && ( // Chỉ hiện nút khi không phải viewOnly
-                      <button
-                        className="btn-add-small"
-                        onClick={() => openExamModal()}
-                      >
-                        + Thêm mới
-                      </button>
-                    )}
-                  </div>
-                  {patientHistory?.examinations?.length > 0 ? (
-                    <div className="exam-list">
-                      {patientHistory.examinations.map((exam) => (
-                        <div key={exam.examId} className="history-item">
-                          <div className="history-item-header">
-                            <span className="date">
-                              Ngày: {formatDate(exam.examDate)}
-                            </span>
-                            {!patientHistory?.viewOnly && ( // Chỉ hiện khi không phải viewOnly
-                              <div className="exam-actions">
-                                <button
-                                  onClick={() => openExamModal(exam)}
-                                  className="btn-icon-small"
-                                  title="Chỉnh sửa"
-                                >
-                                  ✏️
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteExam(exam.examId)}
-                                  className="btn-icon-small"
-                                  title="Xóa"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          <p className="result">{exam.result}</p>
-                          <div className="metrics">
-                            {exam.cd4Count && (
-                              <span className="metric">
-                                CD4: {exam.cd4Count} cells/μL
-                              </span>
-                            )}
-                            {exam.hivLoad && (
-                              <span className="metric">
-                                HIV Load: {exam.hivLoad} copies/ml
-                              </span>
-                            )}
-                          </div>
-                          <small className="timestamp">
-                            Tạo lúc: {formatDateTime(exam.createdAt)}
-                          </small>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-data-section">
-                      <p className="no-data-admin">
-                        Chưa có kết quả xét nghiệm nào
-                      </p>
-                      {!patientHistory?.viewOnly && ( // Chỉ hiện nút khi không phải viewOnly
-                        <button
-                          className="btn-add-small"
-                          onClick={() => openExamModal()}
-                        >
-                          + Thêm kết quả đầu tiên
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div className="loading-admin">Đang tải dữ liệu...</div>
-            )}
-          </div>
-          <div className="modal-actions-admin">
-            <button
-              className="btn-cancel-admin"
-              onClick={() => closeModal("history")}
-            >
-              Đóng
-            </button>
-          </div>
+          <ManagerPatientNavbar
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+          />
+          <div className="modal-info-body-admin">{renderModalContent()}</div>
         </Modal>
+
         {/* Exam Modal */}
         <Modal
           show={modals.exam}
@@ -697,6 +960,7 @@ export default function DoctorPatientManagement() {
                 />
               )}
             </div>
+
             <div className="form-group-admin">
               <label>CD4 Count (cells/μL)</label>
               <input
@@ -740,20 +1004,460 @@ export default function DoctorPatientManagement() {
               />
             </div>
 
-            <div className="modal-actions-admin">
+            <div className="modal-actions-doctor">
               <button
                 type="button"
-                className="btn-cancel-admin"
+                className="btn-cancel-doctor"
                 onClick={handleExamClose}
               >
                 Hủy
               </button>
-              <button type="submit" className="btn-save-admin">
+              <button type="submit" className="btn-save-doctor">
                 {examData?.examId ? "Cập nhật" : "Thêm mới"}
               </button>
             </div>
           </form>
         </Modal>
+        {isModalOpen && (
+          <div className="modal-overlay-ARVProtocol">
+            <div className="modal-content-ARVProtocol">
+              <div className="modal-header-ARVProtocol">
+                <h3>
+                  {modalType === "view" &&
+                    `Phác đồ của ${selectedPatient?.fullName}`}
+                  {modalType === "create" && `Tạo phác đồ mới`}
+                  {modalType === "history" && `Lịch sử phác đồ`}
+                  {modalType === "select-standard" && `Chọn phác đồ chuẩn`}
+                </h3>
+                <button
+                  className="close-btn-ARVProtocol"
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setModalType(null);
+                    setSelectedStandardProtocol(null);
+                    setNewProtocolData({
+                      baseProtocolId: null,
+                      name: "",
+                      description: "",
+                      details: [],
+                    });
+                  }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              <div className="modal-body-ARVProtocol">
+                {modalType === "view" && (
+                  <div className="protocol-details-ARVProtocol">
+                    {currentProtocol ? (
+                      <>
+                        <div className="current-protocol-ARVProtocol">
+                          <h4>Phác đồ hiện tại</h4>
+                          <p>
+                            <strong>Tên:</strong> {currentProtocol.name}
+                          </p>
+                          <p>
+                            <strong>Mô tả:</strong>{" "}
+                            {currentProtocol.description}
+                          </p>
+                          <p>
+                            <strong>Trạng thái:</strong>{" "}
+                            {currentProtocol.status}
+                          </p>
+
+                          {currentProtocol.details &&
+                            currentProtocol.details.length > 0 && (
+                              <>
+                                <h5>Danh sách ARV</h5>
+                                <ul className="arv-list-ARVProtocol">
+                                  {currentProtocol.details.map(
+                                    (detail, index) => (
+                                      <li key={index}>
+                                        {detail.arvName} - {detail.dosage} (
+                                        {detail.usageInstruction})
+                                      </li>
+                                    )
+                                  )}
+                                </ul>
+                              </>
+                            )}
+                        </div>
+
+                        <div className="action-buttons-ARVProtocol">
+                          <button
+                            className="btn-history-ARVProtocol"
+                            onClick={() => setModalType("history")}
+                          >
+                            Xem lịch sử
+                          </button>
+                          <button
+                            className="btn-switch-ARVProtocol"
+                            onClick={() => setModalType("select-standard")}
+                          >
+                            Chuyển phác đồ
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="no-protocol-ARVProtocol">
+                        <p>Bệnh nhân chưa có phác đồ điều trị</p>
+                        <button
+                          className="btn-create-ARVProtocol"
+                          onClick={() => setModalType("select-standard")}
+                        >
+                          Tạo phác đồ mới
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {modalType === "select-standard" && (
+                  <div className="select-standard-protocol-ARVProtocol">
+                    <h4>Chọn phác đồ chuẩn</h4>
+                    <div className="form-group-ARVProtocol">
+                      <label>Phác đồ chuẩn:</label>
+                      <select
+                        onChange={(e) =>
+                          handleStandardProtocolSelect(parseInt(e.target.value))
+                        }
+                        value={selectedStandardProtocol?.protocolId || ""}
+                      >
+                        <option value="">-- Chọn phác đồ --</option>
+                        {standardProtocols.map((protocol) => (
+                          <option
+                            key={protocol.protocolId}
+                            value={protocol.protocolId}
+                          >
+                            {protocol.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {selectedStandardProtocol && (
+                      <div className="protocol-preview-ARVProtocol">
+                        <h5>Thông tin phác đồ:</h5>
+                        <p>
+                          <strong>Tên:</strong> {selectedStandardProtocol.name}
+                        </p>
+                        <p>
+                          <strong>Mô tả:</strong>{" "}
+                          {selectedStandardProtocol.description}
+                        </p>
+
+                        <h5>Danh sách ARV:</h5>
+                        {selectedStandardProtocol.details &&
+                        selectedStandardProtocol.details.length > 0 ? (
+                          <ul className="arv-list-ARVProtocol">
+                            {selectedStandardProtocol.details.map(
+                              (detail, index) => {
+                                const arv = availableARVs.find(
+                                  (a) => a.arvId === detail.arvId
+                                );
+                                return (
+                                  <li key={index}>
+                                    <div className="arv-info-ARVProtocol">
+                                      <span className="arv-name-ARVProtocol">
+                                        {arv?.name || `ARV ID: ${detail.arvId}`}
+                                      </span>
+                                      <span className="arv-dosage-ARVProtocol">
+                                        Liều lượng: {detail.dosage}
+                                      </span>
+                                      <span className="arv-instruction-ARVProtocol">
+                                        Hướng dẫn: {detail.usageInstruction}
+                                      </span>
+                                    </div>
+                                  </li>
+                                );
+                              }
+                            )}
+                          </ul>
+                        ) : (
+                          <p>Đang tải danh sách ARV...</p>
+                        )}
+
+                        <div className="action-buttons-ARVProtocol">
+                          <button
+                            className="btn-customize-ARVProtocol"
+                            onClick={() => setModalType("create")}
+                          >
+                            Tùy chỉnh phác đồ
+                          </button>
+                          <button
+                            className="btn-apply-ARVProtocol"
+                            onClick={() =>
+                              handleUpdateProtocol(
+                                selectedStandardProtocol.protocolId,
+                                false
+                              )
+                            }
+                            disabled={
+                              !selectedStandardProtocol.details ||
+                              selectedStandardProtocol.details.length === 0
+                            }
+                          >
+                            Áp dụng nguyên mẫu
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      className="btn-back-ARVProtocol"
+                      onClick={() => setModalType("view")}
+                    >
+                      Quay lại
+                    </button>
+                  </div>
+                )}
+
+                {modalType === "create" && (
+                  <div className="create-protocol-ARVProtocol">
+                    <h4>Tạo phác đồ mới</h4>
+
+                    {selectedStandardProtocol && (
+                      <div className="standard-protocol-info-ARVProtocol">
+                        <p>
+                          Đang tạo từ phác đồ:{" "}
+                          <strong>{selectedStandardProtocol.name}</strong>
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="form-group-ARVProtocol">
+                      <label>Tên phác đồ:</label>
+                      <input
+                        type="text"
+                        value={newProtocolData.name}
+                        onChange={(e) =>
+                          setNewProtocolData({
+                            ...newProtocolData,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="Nhập tên phác đồ"
+                      />
+                    </div>
+
+                    <div className="form-group-ARVProtocol">
+                      <label>Mô tả:</label>
+                      <textarea
+                        value={newProtocolData.description}
+                        onChange={(e) =>
+                          setNewProtocolData({
+                            ...newProtocolData,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="Nhập mô tả phác đồ"
+                      />
+                    </div>
+
+                    <div className="arv-selections-ARVProtocol">
+                      <h5>Danh sách thuốc ARV:</h5>
+                      <button
+                        className="btn-add-arv-ARVProtocol"
+                        onClick={() =>
+                          setNewProtocolData((prev) => ({
+                            ...prev,
+                            details: [
+                              ...prev.details,
+                              {
+                                arvId: "",
+                                dosage: "",
+                                usageInstruction: "",
+                                status: "ACTIVE",
+                              },
+                            ],
+                          }))
+                        }
+                      >
+                        + Thêm thuốc
+                      </button>
+
+                      {newProtocolData.details.length === 0 ? (
+                        <p>Chưa có thuốc ARV nào trong phác đồ</p>
+                      ) : (
+                        <ul>
+                          {newProtocolData.details.map((detail, index) => (
+                            <li key={index} className="arv-item-ARVProtocol">
+                              <div className="form-group-ARVProtocol">
+                                <label>Thuốc ARV:</label>
+                                <select
+                                  value={detail.arvId || ""}
+                                  onChange={(e) => {
+                                    const updatedDetails = [
+                                      ...newProtocolData.details,
+                                    ];
+                                    updatedDetails[index].arvId = parseInt(
+                                      e.target.value
+                                    );
+                                    setNewProtocolData({
+                                      ...newProtocolData,
+                                      details: updatedDetails,
+                                    });
+                                  }}
+                                >
+                                  <option value="">-- Chọn thuốc --</option>
+                                  {availableARVs.map((arv) => (
+                                    <option key={arv.arvId} value={arv.arvId}>
+                                      {arv.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div className="form-group-ARVProtocol">
+                                <label>Liều dùng:</label>
+                                <input
+                                  type="text"
+                                  placeholder="VD: 1 viên/ngày"
+                                  value={detail.dosage}
+                                  onChange={(e) => {
+                                    const updatedDetails = [
+                                      ...newProtocolData.details,
+                                    ];
+                                    updatedDetails[index].dosage =
+                                      e.target.value;
+                                    setNewProtocolData({
+                                      ...newProtocolData,
+                                      details: updatedDetails,
+                                    });
+                                  }}
+                                />
+                              </div>
+
+                              <div className="form-group-ARVProtocol">
+                                <label>Hướng dẫn:</label>
+                                <input
+                                  type="text"
+                                  placeholder="VD: Uống buổi sáng"
+                                  value={detail.usageInstruction}
+                                  onChange={(e) => {
+                                    const updatedDetails = [
+                                      ...newProtocolData.details,
+                                    ];
+                                    updatedDetails[index].usageInstruction =
+                                      e.target.value;
+                                    setNewProtocolData({
+                                      ...newProtocolData,
+                                      details: updatedDetails,
+                                    });
+                                  }}
+                                />
+                              </div>
+
+                              <button
+                                className="btn-remove-ARVProtocol"
+                                onClick={() => {
+                                  const updatedDetails =
+                                    newProtocolData.details.filter(
+                                      (_, i) => i !== index
+                                    );
+                                  setNewProtocolData({
+                                    ...newProtocolData,
+                                    details: updatedDetails,
+                                  });
+                                }}
+                              >
+                                Xóa
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    <div className="form-actions-ARVProtocol">
+                      <button
+                        className="btn-cancel-ARVProtocol"
+                        onClick={() => {
+                          if (selectedStandardProtocol) {
+                            setModalType("select-standard");
+                          } else {
+                            setModalType("view");
+                          }
+                        }}
+                      >
+                        Quay lại
+                      </button>
+                      <button
+                        className="btn-submit-ARVProtocol"
+                        onClick={handleCreateProtocol}
+                        disabled={
+                          loading ||
+                          !newProtocolData.name ||
+                          newProtocolData.details.length === 0
+                        }
+                      >
+                        {loading ? "Đang xử lý..." : "Lưu phác đồ"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {modalType === "history" && (
+                  <div className="protocol-history-ARVProtocol">
+                    <h4>Lịch sử phác đồ</h4>
+                    {protocolHistory && protocolHistory.length > 0 ? (
+                      <table className="history-table-ARVProtocol">
+                        <thead>
+                          <tr>
+                            <th>Ngày tạo</th>
+                            <th>Tên phác đồ</th>
+                            <th>Mô tả</th>
+                            <th>Trạng thái</th>
+                            <th>Hành động</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {protocolHistory
+                            .filter(
+                              (protocol) => protocol.baseProtocolId !== null
+                            )
+                            .map((protocol) => (
+                              <tr key={protocol.customProtocolId}>
+                                <td>{formatDate(protocol.createdDate)}</td>
+                                <td>{protocol.name}</td>
+                                <td>{protocol.description}</td>
+                                <td>{protocol.status}</td>
+                                <td>
+                                  {protocol.status !== "ACTIVE" && (
+                                    <button
+                                      className="btn-activate-ARVProtocol"
+                                      onClick={() =>
+                                        handleUpdateProtocol(
+                                          protocol.customProtocolId,
+                                          true
+                                        )
+                                      }
+                                    >
+                                      Kích hoạt
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    ) : (
+                      <p>Chưa có lịch sử phác đồ</p>
+                    )}
+
+                    <button
+                      className="btn-back-ARVProtocol"
+                      onClick={() => setModalType("view")}
+                    >
+                      Quay lại
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

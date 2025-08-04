@@ -1,20 +1,18 @@
 .login-container {
   display: flex;
-  height: 100vh;
+  height: 100vh !important;
 }
 
 .login-left-section {
-  width: 50%;
+  width: 60%;
   position: relative;
   overflow: hidden;
-  background-color: white;
 }
 
 .login-overlay-1 {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
   height: 100%;
   z-index: 2;
   display: flex;
@@ -22,8 +20,8 @@
   align-items: center;
 }
 .login-background-img {
-  width: 90%;
-  height: 100%;
+  width: 100%;
+  height: auto;
   max-height: 1000px;
 }
 .login-doctors-img {
@@ -31,7 +29,6 @@
   top: 150px;
   max-width: 100%;
   height: auto;
-  right: 48px;
 }
 
 .login-badge {
@@ -219,5 +216,50 @@
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+/* Responsive cho login giống register */
+@media (max-width: 3000px) {
+  .login-left-section,
+  .login-right-section {
+    width: 100%;
+    min-width: 0;
+    height: 100vh;
+  }
+  .login-background-img {
+    height: auto;
+    object-fit: cover;
+  }
+  .login-overlay-1 {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
+  .login-doctors-img {
+    top: 185px;
+  }
+}
+@media (max-width: 800px) {
+  .login-container {
+    flex-direction: column;
+    height: auto;
+  }
+  .login-left-section {
+    width: 100%;
+    height: 120px;
+    min-height: 80px;
+  }
+  .login-background-img {
+    height: 100%;
+    max-height: 120px;
+    object-fit: cover;
+  }
+  .login-overlay-1 {
+    min-height: 80px;
+  }
+  .login-doctors-img {
+    top: 20px;
+    max-width: 60%;
   }
 }

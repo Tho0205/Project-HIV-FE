@@ -221,7 +221,7 @@
 }
 
 .tab-button.active::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -1px;
   left: 0;
@@ -271,12 +271,6 @@
   font-weight: 600;
   color: #666;
   min-width: 150px;
-}
-
-.info-value {
-  color: #333;
-  text-align: right;
-  flex: 1;
 }
 
 /* Status badge */
@@ -506,7 +500,7 @@
   }
 
   .info-value {
-    text-align: left;
+    text-align: start;
     margin-top: 5px;
   }
 
@@ -514,167 +508,167 @@
     padding: 12px;
   }
 
-/* Patient Cards */
-.medi-patient-card {
-  padding: 20px;
-  background: white;
-  margin-bottom: 15px;
-  border-radius: 12px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  cursor: pointer;
-  border: 2px solid transparent;
-}
-
-.medi-patient-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-  border-color: #1976d2;
-}
-
-.patient-main-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 15px;
-}
-
-.patient-basic {
-  flex: 1;
-}
-
-.patient-name {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  color: #333;
-  font-weight: 600;
-}
-
-.patient-details {
-  display: flex;
-  gap: 15px;
-  flex-wrap: wrap;
-  font-size: 14px;
-  color: #666;
-}
-
-.patient-age,
-.patient-gender,
-.patient-phone {
-  background: #f8f9fa;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-}
-
-.patient-age {
-  background: #e3f2fd;
-  color: #1976d2;
-}
-
-.patient-gender {
-  background: #f3e5f5;
-  color: #7b1fa2;
-}
-
-.patient-phone {
-  background: #e8f5e8;
-  color: #2e7d32;
-}
-
-.patient-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 200px;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.stat-label {
-  color: #666;
-  font-weight: 500;
-}
-
-.stat-value {
-  color: #333;
-  font-weight: 600;
-}
-
-.patient-action {
-  text-align: center;
-  margin-top: 10px;
-}
-
-.view-records-hint {
-  display: inline-block;
-  padding: 8px 16px;
-  background: #1976d2;
-  color: white;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.medi-patient-card:hover .view-records-hint {
-  background: #1565c0;
-  transform: translateX(4px);
-}
-
-/* Back button */
-.medi-back-button {
-  background: #666;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-weight: 500;
-}
-
-.medi-back-button:hover {
-  background: #555;
-  transform: translateY(-1px);
-}
-
-/* Record title for individual records */
-.medi-record-title {
-  margin: 0;
-  font-size: 16px;
-  color: #333;
-  font-weight: 600;
-}
-
-/* Responsive for patient cards */
-@media (max-width: 768px) {
-  .patient-main-info {
-    flex-direction: column;
-    gap: 15px;
+  /* Patient Cards */
+  .medi-patient-card {
+    padding: 20px;
+    background: white;
+    margin-bottom: 15px;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
   }
 
-  .patient-stats {
-    min-width: auto;
-    width: 100%;
+  .medi-patient-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: #1976d2;
+  }
+
+  .patient-main-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+  }
+
+  .patient-basic {
+    flex: 1;
+  }
+
+  .patient-name {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #333;
+    font-weight: 600;
   }
 
   .patient-details {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 14px;
+    color: #666;
+  }
+
+  .patient-age,
+  .patient-gender,
+  .patient-phone {
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
+  .patient-age {
+    background: #e3f2fd;
+    color: #1976d2;
+  }
+
+  .patient-gender {
+    background: #f3e5f5;
+    color: #7b1fa2;
+  }
+
+  .patient-phone {
+    background: #e8f5e8;
+    color: #2e7d32;
+  }
+
+  .patient-stats {
+    display: flex;
     flex-direction: column;
     gap: 8px;
+    min-width: 200px;
   }
 
   .stat-item {
+    display: flex;
     justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 14px;
   }
-}
+
+  .stat-label {
+    color: #666;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    color: #333;
+    font-weight: 600;
+  }
+
+  .patient-action {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .view-records-hint {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #1976d2;
+    color: white;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .medi-patient-card:hover .view-records-hint {
+    background: #1565c0;
+    transform: translateX(4px);
+  }
+
+  /* Back button */
+  .medi-back-button {
+    background: #666;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+
+  .medi-back-button:hover {
+    background: #555;
+    transform: translateY(-1px);
+  }
+
+  /* Record title for individual records */
+  .medi-record-title {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+  }
+
+  /* Responsive for patient cards */
+  @media (max-width: 768px) {
+    .patient-main-info {
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .patient-stats {
+      min-width: auto;
+      width: 100%;
+    }
+
+    .patient-details {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-item {
+      justify-content: space-between;
+    }
+  }
 }

@@ -91,7 +91,14 @@ const RegisterForm = () => {
       {/* Right Section */}
       <div className="register-right-section">
         <form className="register-form" onSubmit={handleSubmit}>
-          <h1 style={{ textAlign: "center", fontSize: "38px" }}>Đăng ký</h1>
+          <h1
+            style={{
+              textAlign: "center",
+              fontSize: "30px",
+            }}
+          >
+            Đăng ký
+          </h1>
           <p className="register-subtext">
             Bạn đã có tài khoản ?{" "}
             <a href="/login" onClick={handleGoToLogin}>
