@@ -5,6 +5,7 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import appointmentService from "../../services/Appointment";
+import { FaCheck, FaTimes , FaExclamationTriangle , FaQuestion, FaInfo, FaLock, FaCalendarCheck , FaHourglass} from "react-icons/fa";
 
 const PAGE_SIZE = 8;
 
@@ -40,15 +41,15 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
-        return { icon: "✅", color: "#10b981", bgColor: "#d1fae5" };
+        return { icon: <FaCheck/>, color: "#10b981", bgColor: "#d1fae5" };
       case "error":
-        return { icon: "❌", color: "#ef4444", bgColor: "#fee2e2" };
+        return { icon: <FaTimes/>, color: "#ef4444", bgColor: "#fee2e2" };
       case "warning":
-        return { icon: "⚠️", color: "#f59e0b", bgColor: "#fef3c7" };
+        return { icon: <FaExclamationTriangle />, color: "#f59e0b", bgColor: "#fef3c7" };
       case "confirm":
-        return { icon: "❓", color: "#3b82f6", bgColor: "#dbeafe" };
+        return { icon: <FaQuestion />, color: "#3b82f6", bgColor: "#dbeafe" };
       default:
-        return { icon: "ℹ️", color: "#6b7280", bgColor: "#f3f4f6" };
+        return { icon: <FaInfo />, color: "#6b7280", bgColor: "#f3f4f6" };
     }
   };
 
@@ -429,7 +430,7 @@ const StaffCheckinCheckout = () => {
   const getPatientDisplayInfo = (appointment) => {
     if (appointment.isAnonymous) {
       return {
-        name: "🔒 Bệnh nhân ẩn danh",
+        name: " Bệnh nhân ẩn danh",
         phone: "***",
         style: anonymousPatientStyle,
       };
@@ -470,7 +471,7 @@ const StaffCheckinCheckout = () => {
             // Show CONFIRMED, CHECKED_IN, CHECKED_OUT, and COMPLETED appointments
             const isValidStatus = ['CONFIRMED', 'CHECKED_IN', 'CHECKED_OUT', 'COMPLETED'].includes(appointment.status);
             
-            console.log("🧪 Appointment filter:", {
+            console.log(" Appointment filter:", {
               id: appointment.appointmentId,
               status: appointment.status,
               appointmentDate: appointment.appointmentDate,
@@ -525,7 +526,7 @@ const StaffCheckinCheckout = () => {
           })
       );
 
-      console.log("✅ Filtered appointments:", mappedAppointments);
+      console.log(" Filtered appointments:", mappedAppointments);
 
       // Apply status filter
       if (statusFilter && statusFilter !== "all") {
@@ -886,7 +887,7 @@ function formatTime(dateStr) {
                               fontWeight: "bold",
                             }}
                           >
-                            🔒 Thông tin được bảo mật
+                            <FaLock /> Thông tin được bảo mật
                           </div>
                         )}
                       </div>
@@ -919,7 +920,7 @@ function formatTime(dateStr) {
                             e.target.style.boxShadow = "none";
                           }}
                         >
-                          <span>📋</span>
+                          <span><FaCalendarCheck /></span>
                           <span>Check-in</span>
                         </button>
                       )}
@@ -938,7 +939,7 @@ function formatTime(dateStr) {
                             e.target.style.boxShadow = "none";
                           }}
                         >
-                          <span>✅</span>  
+                          <span><FaCheck/></span>  
                           <span>Check-out</span>
                         </button>
                       )}
@@ -946,7 +947,7 @@ function formatTime(dateStr) {
                       {/* Trạng thái chờ xác nhận từ bệnh nhân */}
                       {appointment.status === "CHECKED_OUT" && (
                         <div style={waitingConfirmStyle}>
-                          <span>⏳</span>
+                          <span><FaHourglass /></span>
                           <span>Chờ BN xác nhận</span>
                         </div>
                       )}

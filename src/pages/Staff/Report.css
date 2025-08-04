@@ -1,0 +1,103 @@
+.dashReport-container {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 20mm 25mm;
+  margin: 30px auto;
+  background: white;
+  color: black;
+  font-family: "Times New Roman", serif;
+  font-size: 14px;
+  line-height: 1.75;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  page-break-after: always;
+}
+
+/* Header: Quốc hiệu + Tiêu đề */
+.dashReport-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.dashReport-logo {
+  height: 80px;
+  margin-bottom: 8px;
+}
+
+.dashReport-header h2 {
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin: 5px 0;
+}
+
+.dashReport-header p {
+  font-style: italic;
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Section Titles */
+.dashReport-container h3 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 28px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+/* List */
+.dashReport-container ul {
+  padding-left: 20px;
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.dashReport-container li {
+  margin-bottom: 4px;
+}
+
+/* Table */
+.dashReport-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+.dashReport-table th,
+.dashReport-table td {
+  padding: 6px 10px;
+  text-align: center;
+  font-size: 14px;
+}
+
+.dashReport-table th {
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+/* Chữ ký */
+.dashReport-signature {
+  text-align: right;
+  margin-top: 60px;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Quốc hiệu (nếu bạn thêm) */
+.dashReport-quochoi {
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.dashReport-quochoi .nation {
+  text-transform: uppercase;
+  font-size: 14px;
+}
+
+.dashReport-quochoi .motto {
+  font-style: italic;
+}

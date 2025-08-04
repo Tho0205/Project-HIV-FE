@@ -18,17 +18,19 @@ import {
 } from "recharts";
 import { Users, FileText, Activity, Pill, TrendingUp } from "lucide-react";
 import {
-  getAllPatient,
-  getAllExam,
-  getAllMedicalRecord,
-  getAllArvProtocol,
-  getPatietnByGender,
-  getProtocolStat,
-  getNewUsermonthly,
+getAllArvProtocol, getAllExam, getAllMedicalRecord, getAllPatient, 
+getAppointmentByDoctor, getAppointmentPerMonth, getNewUserMonthly, 
+getPatientByAgeGroup, getPatietnByGender, getProtocolStat,
 } from "../../services/DashBoard";
 import "./DashBoard.css";
 import { toast } from "react-toastify";
 import Sidebar from "../../components/Sidebar/Sidebar";
+import html2pdf from "html2pdf.js";
+import { useRef } from "react";
+import ReportPDF from "./ReportPDF.jsx";
+
+
+
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -38,6 +40,10 @@ export default function Dashboard() {
     totalArvProtocols: 0,
   });
 
+  const pdfRef = useRef();
+  const [appointmentsByMonth, setAppointmentsByMonth] = useState([]);
+  const [appointmentsByDoctor, setAppointmentsByDoctor] = useState([]);
+  const [ageGroupData, setAgeGroupData] = useState([]);
   const [genderData, setGenderData] = useState([]);
   const [protocolData, setProtocolData] = useState([]);
   const [monthlyData, setMonthlyData] = useState([]);
@@ -59,6 +65,9 @@ export default function Dashboard() {
             gender,
             protocolStats,
             monthly,
+            ageGroups,
+            appsByMonth,
+            appsByDoctor,
           ] = await Promise.all([
             getAllPatient(),
             getAllExam(),
@@ -66,8 +75,12 @@ export default function Dashboard() {
             getAllArvProtocol(),
             getPatietnByGender(),
             getProtocolStat(),
-            getNewUsermonthly(),
+            getNewUserMonthly(),
+            getPatientByAgeGroup(),
+            getAppointmentPerMonth(),
+            getAppointmentByDoctor(),
           ]);
+
 
           setStats({
             totalPatients: patients || 0,
@@ -79,6 +92,9 @@ export default function Dashboard() {
           setGenderData(gender || []);
           setProtocolData(protocolStats || []);
           setMonthlyData(monthly || []);
+          setAgeGroupData(ageGroups || []);
+          setAppointmentsByMonth(appsByMonth || []);
+          setAppointmentsByDoctor(appsByDoctor || []);
         } catch (error) {
           console.error("Error fetching dashboard data:", error);
         } finally {
@@ -94,6 +110,10 @@ export default function Dashboard() {
 
   if (loading) {
     return (
+
+
+
+
       <div className="dash-container">
         <div className="dash-max-width">
           <div className="dash-header">
@@ -114,7 +134,11 @@ export default function Dashboard() {
   }
 
   return (
+
+
+    
     <div className="dash-container">
+
       <Sidebar active="static" />
       <div className="dash-max-width">
         {/* Header */}
@@ -190,6 +214,13 @@ export default function Dashboard() {
           </div>
         </div>
 
+
+
+
+
+
+
+        <div className="dash-section-header">Phân Tích Dịch Tễ</div>
         {/* Charts */}
         <div className="dash-charts-grid">
           {/* Gender Distribution */}
@@ -259,6 +290,47 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Age Group Distribution */}
+        <div className="dash-chart-card">
+          <div className="dash-chart-header">
+            <h2 className="dash-chart-title">Phân Bố Bệnh Nhân Theo Nhóm Tuổi</h2>
+            <p className="dash-chart-description">Tỷ lệ độ tuổi của bệnh nhân</p>
+          </div>
+          <div className="dash-chart-content">
+            <div className="dash-chart-container">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={ageGroupData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ ageGroup, count, percent }) =>
+                      `${ageGroup}: ${count} (${(percent * 100).toFixed(1)}%)`
+                    }
+                    outerRadius={80}
+                    fill="#82ca9d"
+                    dataKey="count"
+                    nameKey="ageGroup"
+                  >
+                    {ageGroupData.map((entry, index) => (
+                      <Cell
+                        key={`cell-age-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+        <div className="dash-section-header">Xu Hướng Theo Tháng</div>
         {/* Monthly New Users */}
         <div className="dash-chart-card dash-full-width">
           <div className="dash-chart-header">
@@ -288,7 +360,98 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Lịch Hẹn Theo Tháng */}
+        <div className="dash-chart-card dash-full-width">
+          <div className="dash-chart-header">
+            <h2 className="dash-chart-title">Số Lịch Hẹn Theo Tháng</h2>
+            <p className="dash-chart-description">
+              Số lượng lịch hẹn được đặt theo từng tháng
+            </p>
+          </div>
+          <div className="dash-chart-content">
+            <div className="dash-chart-container-large">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={appointmentsByMonth}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Bar dataKey="count" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+
+        {/* Lịch Hẹn Theo Bác Sĩ */}
+        <div className="dash-chart-card dash-full-width">
+          <div className="dash-chart-header">
+            <h2 className="dash-chart-title">Lịch Hẹn Theo Bác Sĩ</h2>
+            <p className="dash-chart-description">
+              Phân bố lịch hẹn theo từng bác sĩ
+            </p>
+          </div>
+          <div className="dash-chart-content">
+            <div className="dash-chart-container">
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={appointmentsByDoctor}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    labelLine={false}
+                    label={({ doctor, count, percent }) =>
+                      `${doctor}: ${count} (${(percent * 100).toFixed(1)}%)`
+                    }
+                    dataKey="count"
+                    nameKey="doctor"
+                  >
+                    {appointmentsByDoctor.map((entry, index) => (
+                      <Cell
+                        key={`cell-doc-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+      {/* PDF Report Button */}
+      <div style={{ display: "none" }}>
+        <ReportPDF
+          ref={pdfRef}
+          stats={stats}
+          genderData={genderData}
+          ageGroupData={ageGroupData}
+          protocolData={protocolData}
+          appointmentsByMonth={appointmentsByMonth}
+          appointmentsByDoctor={appointmentsByDoctor}
+        />
+      </div>
+
+
+
+      <button
+        className="dashReport-exportBtn"
+        onClick={() => {
+          const element = pdfRef.current;
+          html2pdf().from(element).save("BaoCaoHIV.pdf");
+        }}
+      >
+        Xuất báo cáo PDF
+      </button>
+
+
       </div>
     </div>
+
+
+
+
   );
 }

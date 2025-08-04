@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Sidebar.css";
 import { toast } from "react-toastify";
-import { FaChartBar,FaNewspaper, FaCalendar , FaHospital , FaHospitalUser , FaPills , FaVial , FaFileAlt, FaUserMd, FaQuestion, FaSignOutAlt     } from "react-icons/fa";
+import { FaChartBar,FaNewspaper, FaCalendar , 
+  FaHospital , FaHospitalUser , FaPills , FaVial , FaFileAlt, FaUserMd, FaQuestion, FaSignOutAlt,FaCalendarCheck      } from "react-icons/fa";
 
 
 export default function Sidebar({ active }) {
@@ -62,7 +63,7 @@ export default function Sidebar({ active }) {
               {/* NEW: Check-in/Check-out Menu Item */}
               <li className={active === "checkin-checkout" ? "active" : ""}>
                 <Link to="/Staff-CheckinCheckout">
-                  <span className="icon">✅</span>
+                  <span className="icon"><FaCalendarCheck/></span>
                   <span>Check-in/Check-out</span>
 
                 </Link>
