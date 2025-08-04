@@ -293,7 +293,9 @@ export default function DoctorPatientManagement() {
       const current = await CustomArvProtocolsService.getPatientCurrentProtocol(
         patientId
       );
-      setCurrentProtocol(current);
+      if (current && current.baseProtocolId) {
+        setCurrentProtocol(current);
+      }
     } catch (error) {
       console.error("Error loading patient protocol:", error);
       setCurrentProtocol(null);
