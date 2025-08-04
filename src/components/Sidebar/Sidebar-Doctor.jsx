@@ -53,11 +53,11 @@ export default function SidebarAdmin({ active }) {
                   <span>Lịch tư vấn</span>
                 </Link>
               </li>
-              <li className={active === "appointment" ? "active" : ""}>
+              {/* <li className={active === "appointment" ? "active" : ""}>
                 <Link to="/Doctor-MedicalRecord">
                   <span>Hồ Sơ Bệnh Án</span>
                 </Link>
-              </li>
+              </li> */}
             </ul>
           </div>
           <div className="sidebar-bottom">
