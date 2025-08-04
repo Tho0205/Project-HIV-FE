@@ -287,7 +287,7 @@ export default function ARVProtocol() {
   return (
     <div className="wrapper">
       <Sidebar active="arv-protocol" />
-      <main className="content">
+      <main className="content-doctor-info">
         <div className="header">
           <input
             type="text"

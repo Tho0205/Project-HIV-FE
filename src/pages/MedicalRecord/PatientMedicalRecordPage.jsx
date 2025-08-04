@@ -265,8 +265,6 @@ const PatientMedicalRecordPage = () => {
                 <option value="completed">Hoàn thành ({medicalRecords.filter(r => r.status === "COMPLETED").length})</option>
               </select>
             </div>
-          </div>
-
           {/* Medical Records List */}
           <div style={{ marginTop: "1rem" }}>
             {currentItems.length === 0 ? (
@@ -338,6 +336,7 @@ const PatientMedicalRecordPage = () => {
                           <p style={{ fontSize: "0.875rem", color: "#4b5563", margin: 0, lineHeight: "1.5" }}>
                             {record.summary}
                           </p>
+
                         </div>
                       )}
 
@@ -389,12 +388,11 @@ const PatientMedicalRecordPage = () => {
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 style={{
-                  padding: "0.5rem",
-                  borderRadius: "0.375rem",
-                  opacity: currentPage === 1 ? "0.5" : "1",
-                  cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                  border: "1px solid #d1d5db",
-                  backgroundColor: "#ffffff",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  marginTop: "1.5rem",
                 }}
               >
                 <ChevronLeft style={{ width: "1.25rem", height: "1.25rem" }} />
@@ -425,8 +423,82 @@ const PatientMedicalRecordPage = () => {
                   } else if (index + 1 === currentPage - 2 || index + 1 === currentPage + 2) {
                     return <span key={index} style={{ padding: "0 0.25rem" }}>...</span>;
                   }
-                  return null;
-                })}
+                  disabled={currentPage === 1}
+                  style={{
+                    padding: "0.5rem",
+                    borderRadius: "0.375rem",
+                    opacity: currentPage === 1 ? "0.5" : "1",
+                    cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    border: "1px solid #d1d5db",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <ChevronLeft
+                    style={{ width: "1.25rem", height: "1.25rem" }}
+                  />
+                </button>
+                <div style={{ display: "flex", gap: "0.25rem" }}>
+                  {[...Array(totalPages)].map((_, index) => {
+                    if (
+                      index + 1 === 1 ||
+                      index + 1 === totalPages ||
+                      (index + 1 >= currentPage - 1 &&
+                        index + 1 <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentPage(index + 1)}
+                          style={{
+                            padding: "0.25rem 0.75rem",
+                            borderRadius: "0.375rem",
+                            backgroundColor:
+                              currentPage === index + 1 ? "#00c497" : "#ffffff",
+                            color:
+                              currentPage === index + 1 ? "#ffffff" : "#000000",
+                            border:
+                              "1px solid " +
+                              (currentPage === index + 1
+                                ? "#00c497"
+                                : "#d1d5db"),
+                            cursor: "pointer",
+                          }}
+                        >
+                          {index + 1}
+                        </button>
+                      );
+                    } else if (
+                      index + 1 === currentPage - 2 ||
+                      index + 1 === currentPage + 2
+                    ) {
+                      return (
+                        <span key={index} style={{ padding: "0 0.25rem" }}>
+                          ...
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  style={{
+                    padding: "0.5rem",
+                    borderRadius: "0.375rem",
+                    opacity: currentPage === totalPages ? "0.5" : "1",
+                    cursor:
+                      currentPage === totalPages ? "not-allowed" : "pointer",
+                    border: "1px solid #d1d5db",
+                    backgroundColor: "#ffffff",
+                  }}
+                >
+                  <ChevronRight
+                    style={{ width: "1.25rem", height: "1.25rem" }}
+                  />
+                </button>
               </div>
               <button
                 onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
@@ -810,6 +882,7 @@ const PatientMedicalRecordPage = () => {
           </div>
         )}
       </section>
+
     </div>
   );
 };

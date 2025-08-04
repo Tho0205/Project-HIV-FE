@@ -5,6 +5,7 @@
 
 .blog-content {
   flex: 1;
+  margin-left: 20px;
 }
 
 /* Header */

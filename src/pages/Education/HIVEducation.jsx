@@ -55,7 +55,7 @@ const HIVEducation = () => {
           <section id="basics" className="section">
             <h2>Kiến Thức Cơ Bản Về HIV</h2>
 
-            <div className="card">
+            <div className="card-1">
               <div className="card-header">HIV là gì?</div>
               <div className="card-body">
                 <p>

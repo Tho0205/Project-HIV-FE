@@ -210,7 +210,7 @@ export default function Profile() {
   if (!profile) return <div>Loading...</div>;
 
   return (
-    <div className="container">
+    <div className="container-profile">
       {/* Sidebar */}
       <div className="sidebar-Profile">
         <SidebarProfile activeItem="general" />

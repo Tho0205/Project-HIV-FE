@@ -1,0 +1,717 @@
+/* ===================================
+   LAYOUT
+=================================== */
+.medi-management-page-medical-record {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  height: auto;
+  background: white;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+}
+
+.medi-content-medical-record {
+  flex: 1;
+  padding-left: 20px;
+  margin-top: 20px;
+  margin-right: 30px;
+}
+
+/* ===================================
+   HEADER
+=================================== */
+.medi-header-medical-record {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.medi-title-medical-record {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+  font-weight: 600;
+}
+
+/* ===================================
+   LIST
+=================================== */
+.medi-list-medical-record {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* ===================================
+   PATIENT CARD
+=================================== */
+.medi-patient-card-medical-record {
+  padding: 20px;
+  background: white;
+  margin-bottom: 15px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.medi-patient-card-medical-record:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  border-color: rgb(37, 99, 235);
+}
+
+.patient-main-info-medical-record {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.patient-basic-medical-record {
+  flex: 1;
+}
+
+.patient-name-medical-record {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #333;
+  font-weight: 600;
+}
+
+.patient-details-medical-record {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  color: #666;
+}
+
+.patient-age-medical-record,
+.patient-gender-medical-record,
+.patient-phone-medical-record {
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.patient-age-medical-record {
+  background: #e2f0f1;
+  color: #007b7f;
+}
+
+.patient-gender-medical-record {
+  background: #ede9f4;
+  color: #2b1cd2;
+}
+
+.patient-phone-medical-record {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.patient-stats-medical-record {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.stat-item-medical-record {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.stat-label-medical-record {
+  color: #666;
+  font-weight: 500;
+}
+
+.stat-value-medical-record {
+  color: #333;
+  font-weight: 600;
+}
+
+.patient-action-medical-record {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.view-records-hint-medical-record {
+  display: inline-block;
+  padding: 8px 16px;
+  background: rgb(37, 99, 235);
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s;
+}
+
+.medi-patient-card-medical-record:hover .view-records-hint-medical-record {
+  background: rgb(37, 99, 235);
+  transform: translateX(4px);
+}
+
+/* ===================================
+   MEDICAL RECORD CARD
+=================================== */
+.medi-card-medical-record {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  background: white;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.medi-card-medical-record:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.medi-card-medical-record:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.medi-main-medical-record {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.medi-record-title-medical-record {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+}
+
+.medi-datetime-medical-record {
+  font-size: 14px;
+  color: #666;
+  margin: 5px 0;
+}
+
+.medi-exam-date-medical-record {
+  font-weight: 500;
+  color: #333;
+}
+
+.medi-exam-time-medical-record {
+  color: #888;
+  margin-left: 10px;
+}
+
+.medi-summary-medical-record {
+  font-size: 14px;
+  color: #555;
+  margin: 8px 0;
+  line-height: 1.4;
+}
+
+.medi-no-summary-medical-record {
+  font-style: italic;
+  color: #999;
+}
+
+.medi-actions-medical-record {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.medi-status-medical-record {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.medi-status-medical-record.completed {
+  background: #e2f0f1;
+  color: #007b7f;
+}
+
+.medi-status-medical-record.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.medi-status-medical-record.pending {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.medi-status-medical-record.cancelled,
+.medi-status-medical-record.deleted {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.medi-status-medical-record.inactive {
+  background: #f5f5f5;
+  color: #757575;
+}
+
+/* ===================================
+   BUTTONS
+=================================== */
+.medi-detail-button-medical-record {
+  background: #2b1cd2;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.medi-detail-button-medical-record:hover {
+  background: #1a0c9b;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.medi-detail-button-medical-record:active {
+  transform: translateY(0);
+}
+
+.medi-back-button-medical-record {
+  background: #b5b5b5;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: 500;
+}
+
+.medi-back-button-medical-record:hover {
+  background: #999;
+  transform: translateY(-1px);
+}
+
+/* ===================================
+   MODAL
+=================================== */
+.record-detail-modal-medical-record {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.record-detail-content-medical-record {
+  background: white;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Modal Header */
+.detail-header-medical-record {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-header-medical-record h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.close-button-medical-record {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.close-button-medical-record:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+/* Tabs */
+.detail-tabs-medical-record {
+  display: flex;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f9f9f9;
+}
+
+.tab-button-medical-record {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: #666;
+}
+
+.tab-button-medical-record:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.tab-button-medical-record.active {
+  color: #00c497;
+  font-weight: 600;
+}
+
+.tab-button-medical-record.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #00c497;
+}
+
+/* Detail Body */
+.detail-body-medical-record {
+  padding: 20px;
+}
+
+.detail-loading-medical-record {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+/* Examination and ARV Detail */
+.examination-detail-medical-record h3,
+.arv-detail-medical-record h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 20px;
+}
+
+.detail-info-medical-record {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.info-row-medical-record {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.info-row-medical-record:last-child {
+  border-bottom: none;
+}
+
+.info-label-medical-record {
+  font-weight: 600;
+  color: #666;
+  min-width: 150px;
+}
+
+.info-value-medical-record {
+  color: #333;
+}
+
+/* Status Badge */
+.status-badge-medical-record {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.status-badge-medical-record.active {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.status-badge-medical-record.inactive {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-badge-medical-record.completed {
+  background: #e2f0f1;
+  color: #007b7f;
+}
+
+/* ARV Protocol Info */
+.protocol-info-medical-record {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.protocol-header-medical-record h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.protocol-desc-medical-record {
+  color: #666;
+  margin: 5px 0;
+}
+
+.base-protocol-medical-record {
+  color: #888;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* ARV List */
+.arv-list-medical-record {
+  margin-top: 20px;
+}
+
+.arv-list-medical-record h5 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 16px;
+}
+
+.arv-cards-medical-record {
+  display: grid;
+  gap: 15px;
+}
+
+.arv-card-medical-record {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 15px;
+  transition: all 0.2s;
+}
+
+.arv-card-medical-record:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.arv-name-medical-record {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.arv-info-medical-record {
+  font-size: 14px;
+}
+
+.arv-desc-medical-record {
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.arv-dosage-medical-record,
+.arv-instruction-medical-record {
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.arv-dosage-medical-record strong,
+.arv-instruction-medical-record strong {
+  color: #333;
+  font-weight: 600;
+}
+
+.arv-status-medical-record {
+  margin-top: 10px;
+}
+
+/* Loading and Empty States */
+.medi-loading-medical-record,
+.medi-empty-message-medical-record {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+  border-radius: 8px;
+}
+
+.medi-loading-medical-record {
+  background: #f9f9f9;
+}
+
+.medi-empty-message-medical-record {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+/* ===================================
+   RESPONSIVE
+=================================== */
+@media (max-width: 768px) {
+  .medi-management-page-medical-record {
+    flex-direction: column;
+  }
+
+  .medi-content-medical-record {
+    padding-left: 0;
+  }
+
+  .medi-main-medical-record {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .medi-datetime-medical-record {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .medi-exam-time-medical-record {
+    margin-left: 0;
+    margin-top: 2px;
+  }
+
+  .medi-actions-medical-record {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .medi-detail-button-medical-record {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .patient-main-info-medical-record {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .patient-stats-medical-record {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .patient-details-medical-record {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stat-item-medical-record {
+    justify-content: space-between;
+  }
+
+  .record-detail-content-medical-record {
+    max-height: 100vh;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .detail-header-medical-record {
+    padding: 15px;
+  }
+
+  .detail-header-medical-record h2 {
+    font-size: 20px;
+  }
+
+  .tab-button-medical-record {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .detail-body-medical-record {
+    padding: 15px;
+  }
+
+  .info-row-medical-record {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-value-medical-record {
+    text-align: start;
+    margin-top: 5px;
+  }
+
+  .arv-card-medical-record {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .medi-patient-card-medical-record {
+    padding: 15px;
+  }
+
+  .patient-name-medical-record {
+    font-size: 16px;
+  }
+
+  .patient-details-medical-record {
+    font-size: 13px;
+  }
+
+  .view-records-hint-medical-record {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+
+  .medi-back-button-medical-record {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
