@@ -336,7 +336,6 @@
   background: #f8f9fa;
   padding: 20px;
   border-radius: 8px;
-  margin-top: 15px;
 }
 
 .protocol-info h4 {
@@ -369,7 +368,7 @@
 
 .arv-items {
   list-style: none;
-  max-height: 340px;
+  max-height: 300px;
   overflow-y: auto;
 }
 
