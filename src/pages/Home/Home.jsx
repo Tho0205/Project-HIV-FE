@@ -183,8 +183,11 @@ const Home = () => {
                     <h3 className="hiv-doctor-name">
                       {doctor.degree} {doctor.doctorName}
                     </h3>
+                    <p className="hiv-doctor-degree">
+                      Bằng Cấp: {getVietnameseSpecialization(doctor.degree)}
+                    </p>
                     <p className="hiv-doctor-specialty">
-                      {getVietnameseSpecialization(doctor.specialization)}
+                      Chuyên môn: {getVietnameseSpecialization(doctor.specialization)}
                     </p>
                     <p className="hiv-doctor-experience">
                       {doctor.experienceYears} năm kinh nghiệm

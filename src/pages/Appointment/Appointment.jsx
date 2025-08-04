@@ -17,6 +17,7 @@ import {
   getDoctorSchedulesApi,
   createAppointmentApi,
 } from "../../services/Appointment";
+import { getAppointmentsApi } from "../../services/Appointment";
 import { tokenManager } from "../../services/account";
 
 const Appointment = () => {
@@ -52,7 +53,7 @@ const Appointment = () => {
   // Load current user's patient information from localStorage
   const loadCurrentUserInfo = async () => {
     const userId = tokenManager.getCurrentUserId();
-    console.log("User ID from localStorage:", userId); // Debug log
+    console.log("User ID from localStorage:", userId);
 
     if (!userId) {
       showError("Vui lòng đăng nhập để đặt lịch khám");
@@ -61,20 +62,16 @@ const Appointment = () => {
 
     try {
       setLoading(true);
-      // Đảm bảo userId là số hợp lệ
       const numericUserId = parseInt(userId);
       if (isNaN(numericUserId)) {
         throw new Error("ID người dùng không hợp lệ");
       }
 
-      // console.log("Calling API with userId:", numericUserId); // Debug log
       const patientData = await getPatientInfoApi(numericUserId);
-      // console.log("Patient data received:", patientData); // Debug log
       setCurrentPatientInfo(patientData);
     } catch (error) {
       console.error("Error loading patient info:", error);
 
-      // Nếu không load được, set thông tin tạm để test
       if (error.message.includes("404")) {
         console.warn("User not found, using temporary data for testing");
         setCurrentPatientInfo({
@@ -115,14 +112,15 @@ const Appointment = () => {
     }
   };
 
-  // Fixed Load schedules for selected doctor - Only show future schedules
+  // Load schedules with 5-person booking limit
   const loadSchedules = async (doctorId) => {
     try {
       setLoading(true);
-      console.log("Loading schedules for doctor:", doctorId); // Debug log
+      console.log("Loading schedules for doctor:", doctorId);
       
+      // 1. Get doctor schedules
       const schedulesData = await getDoctorSchedulesApi(doctorId);
-      console.log("Raw schedules data:", schedulesData); // Debug log
+      console.log("Raw schedules data:", schedulesData);
       
       // Ensure schedulesData is an array
       const schedulesArray = Array.isArray(schedulesData) ? schedulesData : [];
@@ -134,21 +132,24 @@ const Appointment = () => {
         return;
       }
 
-      // Map and normalize the data - handle both possible field names
+      // 2. Get all appointments to count bookings per schedule
+      const allAppointments = await getAppointmentsApi();
+      console.log("All appointments:", allAppointments);
+
+      // Map and normalize the schedules data
       const normalizedSchedules = schedulesArray.map(schedule => ({
-        // Handle different possible field names from API
         scheduleId: schedule.scheduleId || schedule.ScheduleId || schedule.id,
         scheduledTime: schedule.scheduledTime || schedule.ScheduledTime,
         room: schedule.room || schedule.Room,
         status: schedule.status || schedule.Status || "ACTIVE",
-        // Add any other fields that might be needed
         doctorId: schedule.doctorId || schedule.DoctorId || doctorId
       }));
 
-      console.log("Normalized schedules:", normalizedSchedules); // Debug log
+      console.log("Normalized schedules:", normalizedSchedules);
 
-      // Filter schedules: only show FUTURE schedules
+      // 3. Filter schedules: only show FUTURE schedules that haven't reached booking limit
       const now = new Date();
+      const MAX_BOOKINGS_PER_SCHEDULE = 5; // Maximum 5 people can book the same schedule
       
       const filteredSchedules = normalizedSchedules.filter(schedule => {
         // Check if schedule has required fields
@@ -165,9 +166,26 @@ const Appointment = () => {
           return false;
         }
 
-        // Only show FUTURE schedules and check if status is ACTIVE
+        // Check if schedule is in the future
         const isFuture = scheduleDate > now;
+        
+        // Check if schedule is active
         const isActive = !schedule.status || schedule.status === "ACTIVE" || schedule.status === "Active";
+        
+        // Count how many appointments are already booked for this schedule
+        const bookingCount = allAppointments.filter(appointment => {
+          const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
+          const appointmentStatus = appointment.status || appointment.Status;
+          
+          // Count only non-cancelled appointments
+          return appointmentScheduleId === schedule.scheduleId && 
+                 appointmentStatus !== "CANCELLED" && 
+                 appointmentStatus !== "REJECTED" &&
+                 appointmentStatus !== "CANCELED"; // Handle different spelling variations
+        }).length;
+        
+        // Check if schedule hasn't reached booking limit
+        const hasAvailableSlots = bookingCount < MAX_BOOKINGS_PER_SCHEDULE;
         
         console.log("Schedule filter check:", {
           scheduleId: schedule.scheduleId,
@@ -175,15 +193,37 @@ const Appointment = () => {
           status: schedule.status,
           isFuture,
           isActive,
-          willShow: isFuture && isActive
+          bookingCount,
+          hasAvailableSlots,
+          maxBookings: MAX_BOOKINGS_PER_SCHEDULE,
+          willShow: isFuture && isActive && hasAvailableSlots
         });
 
-        return isFuture && isActive;
+        return isFuture && isActive && hasAvailableSlots;
       });
 
-      console.log("Filtered schedules:", filteredSchedules); // Debug log
+      // 4. Add booking count info to each schedule for display
+      const schedulesWithBookingInfo = filteredSchedules.map(schedule => {
+        const bookingCount = allAppointments.filter(appointment => {
+          const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
+          const appointmentStatus = appointment.status || appointment.Status;
+          
+          return appointmentScheduleId === schedule.scheduleId && 
+                 appointmentStatus !== "CANCELLED" && 
+                 appointmentStatus !== "REJECTED" &&
+                 appointmentStatus !== "CANCELED";
+        }).length;
+
+        return {
+          ...schedule,
+          bookingCount,
+          availableSlots: MAX_BOOKINGS_PER_SCHEDULE - bookingCount
+        };
+      });
+
+      console.log("Filtered schedules with booking info:", schedulesWithBookingInfo);
       
-      setSchedules(filteredSchedules);
+      setSchedules(schedulesWithBookingInfo);
       setSelectedScheduleId(null);
 
     } catch (error) {
@@ -208,101 +248,103 @@ const Appointment = () => {
     }
   };
 
- // Handle form submission - HOÀN TOÀN SỬA LẠI
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const userId = tokenManager.getCurrentUserId();
+    const userId = tokenManager.getCurrentUserId();
 
-  if (!userId || !currentPatientInfo) {
-    showError("Vui lòng đăng nhập để đặt lịch khám");
-    return;
-  }
+    if (!userId || !currentPatientInfo) {
+      showError("Vui lòng đăng nhập để đặt lịch khám");
+      return;
+    }
 
-  if (!selectedScheduleId) {
-    showError("Vui lòng chọn thời gian khám");
-    return;
-  }
+    if (!selectedScheduleId) {
+      showError("Vui lòng chọn thời gian khám");
+      return;
+    }
 
-  if (!termsAccepted) {
-    showError("Vui lòng đồng ý với điều khoản sử dụng");
-    return;
-  }
+    if (!termsAccepted) {
+      showError("Vui lòng đồng ý với điều khoản sử dụng");
+      return;
+    }
 
-  const selectedSchedule = schedules.find(
-    (s) => s.scheduleId === selectedScheduleId
-  );
-  
-  if (!selectedSchedule) {
-    showError("Lịch khám đã chọn không hợp lệ");
-    return;
-  }
+    const selectedSchedule = schedules.find(
+      (s) => s.scheduleId === selectedScheduleId
+    );
+    
+    if (!selectedSchedule) {
+      showError("Lịch khám đã chọn không hợp lệ");
+      return;
+    }
 
-  // ================== QUAN TRỌNG: XỬ LÝ THỜI GIAN ==================
-  console.log("\n🔍 === TIMEZONE DEBUGGING ===");
-  console.log("Selected schedule object:", selectedSchedule);
-  console.log("Original scheduledTime:", selectedSchedule.scheduledTime);
-  console.log("Type of scheduledTime:", typeof selectedSchedule.scheduledTime);
-  
-  // Tạo Date object để kiểm tra
-  const testDate = new Date(selectedSchedule.scheduledTime);
-  console.log("Date object:", testDate);
-  console.log("getHours():", testDate.getHours());
-  console.log("getMinutes():", testDate.getMinutes());
-  console.log("toLocaleString():", testDate.toLocaleString());
-  console.log("toISOString():", testDate.toISOString());
-  console.log("getTimezoneOffset():", testDate.getTimezoneOffset());
+    // Check availability one more time before booking
+    if (selectedSchedule.availableSlots <= 0) {
+      showError("Lịch khám này đã đầy. Vui lòng chọn lịch khác!");
+      return;
+    }
 
-  // Additional check: prevent booking past appointments
-  if (isSchedulePast(selectedSchedule.scheduledTime)) {
-    showError("Không thể đặt lịch cho thời gian đã qua");
-    return;
-  }
+    console.log("\n🔍 === TIMEZONE DEBUGGING ===");
+    console.log("Selected schedule object:", selectedSchedule);
+    console.log("Original scheduledTime:", selectedSchedule.scheduledTime);
+    console.log("Type of scheduledTime:", typeof selectedSchedule.scheduledTime);
+    
+    const testDate = new Date(selectedSchedule.scheduledTime);
+    console.log("Date object:", testDate);
+    console.log("getHours():", testDate.getHours());
+    console.log("getMinutes():", testDate.getMinutes());
+    console.log("toLocaleString():", testDate.toLocaleString());
+    console.log("toISOString():", testDate.toISOString());
+    console.log("getTimezoneOffset():", testDate.getTimezoneOffset());
 
-  // ================== GỬI ĐÚNG THỜI GIAN GỐC ==================
-  // KHÔNG tạo Date object mới, sử dụng trực tiếp giá trị từ schedule
-  let appointmentDateValue = selectedSchedule.scheduledTime;
-  
-  // Nếu backend mong đợi string format cụ thể, kiểm tra và convert
-  if (typeof appointmentDateValue !== 'string') {
-    appointmentDateValue = appointmentDateValue.toString();
-  }
+    // Additional check: prevent booking past appointments
+    if (isSchedulePast(selectedSchedule.scheduledTime)) {
+      showError("Không thể đặt lịch cho thời gian đã qua");
+      return;
+    }
 
-  console.log("Final appointmentDate to send:", appointmentDateValue);
+    let appointmentDateValue = selectedSchedule.scheduledTime;
+    
+    if (typeof appointmentDateValue !== 'string') {
+      appointmentDateValue = appointmentDateValue.toString();
+    }
 
-  const formData = {
-    patientId: parseInt(userId),
-    scheduleId: parseInt(selectedScheduleId),
-    doctorId: parseInt(selectedDoctorId),
-    note: note || null,
-    isAnonymous: isAnonymous,
-    appointmentDate: appointmentDateValue, // SỬ DỤNG GIÁ TRỊ GỐC KHÔNG CONVERT
+    console.log("Final appointmentDate to send:", appointmentDateValue);
+
+    const formData = {
+      patientId: parseInt(userId),
+      scheduleId: parseInt(selectedScheduleId),
+      doctorId: parseInt(selectedDoctorId),
+      note: note || null,
+      isAnonymous: isAnonymous,
+      appointmentDate: appointmentDateValue,
+    };
+
+    console.log("\n📤 Final form data being sent:");
+    console.log(JSON.stringify(formData, null, 2));
+
+    try {
+      setLoading(true);
+      
+      console.log("🚀 Calling createAppointmentApi...");
+      const result = await createAppointmentApi(formData);
+      console.log("✅ API Response:", result);
+      
+      setShowSuccessModal(true);
+
+      // Reset form and reload schedules to update availability
+      resetForm();
+      if (selectedDoctorId) {
+        loadSchedules(selectedDoctorId);
+      }
+      
+    } catch (error) {
+      console.error("❌ Error creating appointment:", error);
+      showError(error.message || "Không thể đặt lịch hẹn. Vui lòng thử lại!");
+    } finally {
+      setLoading(false);
+    }
   };
-
-  console.log("\n📤 Final form data being sent:");
-  console.log(JSON.stringify(formData, null, 2));
-
-  try {
-    setLoading(true);
-    
-    console.log("🚀 Calling createAppointmentApi...");
-    const result = await createAppointmentApi(formData);
-    console.log("✅ API Response:", result);
-    
-    setShowSuccessModal(true);
-
-    // Reset form
-    resetForm();
-    
-    // Thay vì reload, chỉ reset state để debug
-    // window.location.reload(); 
-  } catch (error) {
-    console.error("❌ Error creating appointment:", error);
-    showError(error.message || "Không thể đặt lịch hẹn. Vui lòng thử lại!");
-  } finally {
-    setLoading(false);
-  }
-};
 
   // Reset form
   const resetForm = () => {
@@ -312,7 +354,6 @@ const handleSubmit = async (e) => {
     setNote("");
     setIsAnonymous(false);
     setTermsAccepted(false);
-    // Reload patient info to refresh the form
     loadCurrentUserInfo();
   };
 
@@ -328,7 +369,6 @@ const handleSubmit = async (e) => {
   };
 
   const formatGender = (gender) => {
-    // Backend trả về "Male"/"Female" thay vì "M"/"F"
     return gender === "Male"
       ? "Nam"
       : gender === "Female"
@@ -337,27 +377,24 @@ const handleSubmit = async (e) => {
   };
 
   const formatScheduleTime = (dateString) => {
-  // Tạo Date object và đảm bảo hiển thị theo local timezone
-  const date = new Date(dateString);
-  
-  // Debug log để check giá trị
-  console.log("Original dateString:", dateString);
-  console.log("Parsed date:", date);
-  console.log("Local time:", date.toLocaleString());
-  
-  const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-  const dayName = dayNames[date.getDay()];
-  
-  // Sử dụng local time thay vì UTC
-  const time = `${date.getHours().toString().padStart(2, "0")}:${date
-    .getMinutes()
-    .toString()
-    .padStart(2, "0")}`;
+    const date = new Date(dateString);
     
-  console.log("Formatted time:", time);
-  
-  return { date, dayName, time };
-};
+    console.log("Original dateString:", dateString);
+    console.log("Parsed date:", date);
+    console.log("Local time:", date.toLocaleString());
+    
+    const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const dayName = dayNames[date.getDay()];
+    
+    const time = `${date.getHours().toString().padStart(2, "0")}:${date
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}`;
+      
+    console.log("Formatted time:", time);
+    
+    return { date, dayName, time };
+  };
 
   const isSchedulePast = (dateString) => {
     return new Date(dateString) < new Date();
@@ -639,7 +676,7 @@ const handleSubmit = async (e) => {
                   )}
                 </div>
 
-                {/* Time Selection - Only Future Schedules */}
+                {/* Time Selection */}
                 <div style={{ marginBottom: "2rem" }}>
                   <label
                     style={{
@@ -721,57 +758,26 @@ const handleSubmit = async (e) => {
                         </div>
                       ) : (
                         <>
-                          {/* Section header for available schedules */}
-                          <div style={{
-                            gridColumn: "1 / -1",
-                            padding: "0.5rem 0",
-                            borderBottom: "2px solid #e5e7eb",
-                            marginBottom: "0.75rem"
-                          }}>
-                            <h4 style={{
-                              fontSize: "0.875rem",
-                              fontWeight: "600",
-                              color: "#059669",
-                              margin: 0,
-                              display: "flex",
-                              alignItems: "center"
-                            }}>
-                              <CheckCircle style={{ 
-                                width: "1rem", 
-                                height: "1rem", 
-                                marginRight: "0.5rem" 
-                              }} />
-                              Lịch khám khả dụng ({schedules.length})
-                            </h4>
-                          </div>
-
-                          {/* Render only future schedules */}
+                          {/* Render schedule buttons - simplified version */}
                           {schedules.map((schedule) => {
-                            const { date, dayName, time } = formatScheduleTime(
-                              schedule.scheduledTime
-                            );
-                            const isSelected =
-                              selectedScheduleId === schedule.scheduleId;
+                            const { date, dayName, time } = formatScheduleTime(schedule.scheduledTime);
+                            const isSelected = selectedScheduleId === schedule.scheduleId;
 
                             return (
                               <button
                                 key={schedule.scheduleId}
                                 type="button"
-                                onClick={() =>
-                                  setSelectedScheduleId(schedule.scheduleId)
-                                }
+                                onClick={() => setSelectedScheduleId(schedule.scheduleId)}
                                 style={{
                                   padding: "0.75rem 1rem",
                                   borderRadius: "0.5rem",
                                   fontWeight: "500",
                                   textAlign: "center",
-                                  border: isSelected
-                                    ? "2px solid #14b8a6"
+                                  border: isSelected 
+                                    ? "2px solid #14b8a6" 
                                     : "2px solid transparent",
                                   cursor: "pointer",
-                                  backgroundColor: isSelected
-                                    ? "#14b8a6"
-                                    : "#ffffff",
+                                  backgroundColor: isSelected ? "#14b8a6" : "#ffffff",
                                   color: isSelected ? "white" : "#374151",
                                   fontSize: "0.875rem",
                                   transition: "all 0.2s",
@@ -780,43 +786,34 @@ const handleSubmit = async (e) => {
                                     : "0 1px 3px rgba(0, 0, 0, 0.1)",
                                 }}
                               >
-                                <div
-                                  style={{
-                                    fontSize: "1.125rem",
-                                    fontWeight: "bold",
-                                  }}
-                                >
+                                {/* Date */}
+                                <div style={{ fontSize: "1.125rem", fontWeight: "bold" }}>
                                   {date.getDate()}/{date.getMonth() + 1}
                                 </div>
-                                <div style={{ fontSize: "0.875rem" }}>
-                                  {dayName}
-                                </div>
-                                <div
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    marginTop: "0.25rem",
-                                  }}
-                                >
+                                
+                                {/* Day name */}
+                                <div style={{ fontSize: "0.875rem" }}>{dayName}</div>
+                                
+                                {/* Time */}
+                                <div style={{ fontSize: "0.75rem", marginTop: "0.25rem" }}>
                                   {time}
                                 </div>
-                                <div
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    color: isSelected
-                                      ? "rgba(255,255,255,0.8)"
-                                      : "#6b7280",
-                                  }}
-                                >
+                                
+                                {/* Room */}
+                                <div style={{
+                                  fontSize: "0.75rem",
+                                  color: isSelected ? "rgba(255,255,255,0.8)" : "#6b7280",
+                                }}>
                                   Phòng {schedule.room || "N/A"}
                                 </div>
-                                <div
-                                  style={{
-                                    fontSize: "0.75rem",
-                                    marginTop: "0.25rem",
-                                    color: isSelected ? "rgba(255,255,255,0.9)" : "#059669",
-                                    fontWeight: "600"
-                                  }}
-                                >
+                                
+                                {/* Simple availability indicator */}
+                                <div style={{
+                                  fontSize: "0.75rem",
+                                  marginTop: "0.25rem",
+                                  color: isSelected ? "rgba(255,255,255,0.9)" : "#059669",
+                                  fontWeight: "600"
+                                }}>
                                   Còn trống
                                 </div>
                               </button>
@@ -1227,7 +1224,13 @@ const handleSubmit = async (e) => {
               khách hàng sẽ liên hệ xác nhận trong thời gian sớm nhất.
             </p>
             <button
-              onClick={() => setShowSuccessModal(false)}
+              onClick={() => {
+                setShowSuccessModal(false);
+                // Reload schedules to update availability after successful booking
+                if (selectedDoctorId) {
+                  loadSchedules(selectedDoctorId);
+                }
+              }}
               style={{
                 padding: "0.75rem 1.5rem",
                 borderRadius: "9999px",

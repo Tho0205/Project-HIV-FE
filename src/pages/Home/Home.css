@@ -348,6 +348,13 @@
   color: #2d3748;
 }
 
+.hiv-doctor-degree {
+  color: #ea6666;
+  font-weight: 500;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
 .hiv-doctor-specialty {
   color: #667eea;
   font-weight: 500;
