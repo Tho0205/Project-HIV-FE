@@ -5,7 +5,6 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import Pagination from "../../components/Pagination/Pagination";
 import { tokenManager } from "../../services/account";
 import appointmentService from "../../services/Appointment";
-import { FaCheck, FaTimes , FaQuestion, FaInfo, FaExclamationTriangle, FaLock} from "react-icons/fa";
 
 const PAGE_SIZE = 8;
 
@@ -41,7 +40,6 @@ const CustomPopup = ({
   const getIconAndColor = () => {
     switch (type) {
       case "success":
-
         return { color: "#10b981", bgColor: "#d1fae5" };
       case "error":
         return { color: "#ef4444", bgColor: "#fee2e2" };
@@ -424,7 +422,7 @@ const AppointmentManagement = () => {
     if (appointment.isAnonymous) {
       return {
         name: "Bệnh nhân ẩn danh",
-        phone: "***",
+        phone: appointment.patientPhone || "Chưa có",
         style: anonymousPatientStyle,
       };
     }
@@ -457,149 +455,156 @@ const AppointmentManagement = () => {
   }, [navigate]);
 
   async function fetchAppointments(page, sort, search, statusFilter) {
-  setLoading(true);
-  try {
-    const [appointmentsData, doctorsData] = await Promise.all([
-      appointmentService.getAppointments(),
-      appointmentService.getDoctors(),
-    ]);
+    setLoading(true);
+    try {
+      const [appointmentsData, doctorsData] = await Promise.all([
+        appointmentService.getAppointments(),
+        appointmentService.getDoctors(),
+      ]);
 
-    // Map appointments with doctor and patient information
-    let mappedAppointments = await Promise.all(
-      appointmentsData.map(async (appointment) => {
-        const doctorId = appointment.doctorId || appointment.DoctorId;
-        const patientId = appointment.patientId || appointment.PatientId;
-        const doctor = doctorsData.find((d) => d.userId === doctorId);
-        const dateInfo = appointmentService.formatDate(
-          appointment.appointmentDate || appointment.createdAt
-        );
+      // Map appointments with doctor and patient information
+      let mappedAppointments = await Promise.all(
+        appointmentsData.map(async (appointment) => {
+          const doctorId = appointment.doctorId || appointment.DoctorId;
+          const patientId = appointment.patientId || appointment.PatientId;
+          const doctor = doctorsData.find((d) => d.userId === doctorId);
+          const dateInfo = appointmentService.formatDate(
+            appointment.appointmentDate || appointment.createdAt
+          );
 
-        // Get patient information - lấy cả tên và số điện thoại
-        let patientName = "Bệnh nhân không xác định";
-        let patientPhone = "Chưa có";
-        
-        if (!appointment.isAnonymous) {
+          // Get patient information - lấy cả tên và số điện thoại
+          let patientName = "Bệnh nhân không xác định";
+          let patientPhone = "Chưa có";
+          
+          // Luôn cố gắng lấy thông tin bệnh nhân (kể cả khi ẩn danh)
           try {
-            const patientInfo = await appointmentService.getPatientInfo(
-              patientId
-            );
-            patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
+            const patientInfo = await appointmentService.getPatientInfo(patientId);
+            // Luôn lấy số điện thoại
             patientPhone = patientInfo.phone || patientInfo.Phone || "Chưa có";
+            
+            if (!appointment.isAnonymous) {
+              // Nếu không ẩn danh thì hiển thị tên thật
+              patientName = patientInfo.fullName || `Bệnh nhân #${patientId}`;
+            } else {
+              // Nếu ẩn danh thì chỉ ẩn tên, vẫn hiển thị số điện thoại
+              patientName = "Bệnh nhân ẩn danh";
+            }
           } catch (error) {
-            patientName = `Bệnh nhân #${patientId}`;
+            // Nếu không lấy được thông tin bệnh nhân
+            if (!appointment.isAnonymous) {
+              patientName = `Bệnh nhân #${patientId}`;
+            } else {
+              patientName = "Bệnh nhân ẩn danh";
+            }
             patientPhone = "Chưa có";
           }
-        } else {
-          patientName = "Bệnh nhân ẩn danh";
-          patientPhone = "***";
-        }
 
-        return {
-          ...appointment,
-          doctorName: doctor
-            ? doctor.fullName || doctor.name || "Bác sĩ không xác định"
-            : "Bác sĩ không xác định",
-          doctorSpecialty: doctor ? doctor.specialty || "" : "",
-          patientId: patientId,
-          patientName: patientName,
-          patientPhone: patientPhone,
-          formattedDate: dateInfo,
-          appointmentDateTime: new Date(
-            appointment.appointmentDate || appointment.createdAt
-          ),
-        };
-      })
-    );
-
-    // Filter to only show SCHEDULED and CONFIRMED appointments (manageable statuses)
-    mappedAppointments = mappedAppointments.filter(
-      (appointment) => appointment.status === "SCHEDULED" || appointment.status === "CONFIRMED"
-    );
-
-    // **NEW: Filter to only show current and future appointments**
-    const now = new Date();
-    // Set time to beginning of today to include all appointments for today
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    
-    mappedAppointments = mappedAppointments.filter((appointment) => {
-      const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
-      // Set appointment time to beginning of day for comparison
-      const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate());
-      
-      // Only show appointments from today onwards
-      return appointmentDay >= today;
-    });
-
-    // Apply status filter
-    if (statusFilter && statusFilter !== "all") {
-      mappedAppointments = mappedAppointments.filter(
-        (appointment) => appointment.status === statusFilter
+          return {
+            ...appointment,
+            doctorName: doctor
+              ? doctor.fullName || doctor.name || "Bác sĩ không xác định"
+              : "Bác sĩ không xác định",
+            doctorSpecialty: doctor ? doctor.specialty || "" : "",
+            patientId: patientId,
+            patientName: patientName,
+            patientPhone: patientPhone,
+            formattedDate: dateInfo,
+            appointmentDateTime: new Date(
+              appointment.appointmentDate || appointment.createdAt
+            ),
+          };
+        })
       );
-    }
 
-    // Apply search filter
-    if (search) {
+      // Filter to only show SCHEDULED and CONFIRMED appointments (manageable statuses)
+      mappedAppointments = mappedAppointments.filter(
+        (appointment) => appointment.status === "SCHEDULED" || appointment.status === "CONFIRMED"
+      );
+
+      // **NEW: Filter to only show current and future appointments**
+      const now = new Date();
+      // Set time to beginning of today to include all appointments for today
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
       mappedAppointments = mappedAppointments.filter((appointment) => {
-        const matchesDoctor = appointment.doctorName
-          .toLowerCase()
-          .includes(search.toLowerCase());
-        const matchesNote =
-          appointment.note &&
-          appointment.note.toLowerCase().includes(search.toLowerCase());
-        const matchesPhone = 
-          appointment.patientPhone &&
-          appointment.patientPhone.includes(search);
-
-        let matchesPatient = false;
-        if (!appointment.isAnonymous) {
-          matchesPatient =
-            appointment.patientName
-              .toLowerCase()
-              .includes(search.toLowerCase());
-        }
-
-        return matchesDoctor || matchesNote || matchesPatient || matchesPhone;
+        const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
+        // Set appointment time to beginning of day for comparison
+        const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate());
+        
+        // Only show appointments from today onwards
+        return appointmentDay >= today;
       });
-    }
 
-    // Apply sorting
-    mappedAppointments.sort((a, b) => {
-      switch (sort) {
-        case "date_asc":
-          return a.appointmentDateTime - b.appointmentDateTime;
-        case "date_desc":
-          return b.appointmentDateTime - a.appointmentDateTime;
-        case "doctor_asc":
-          return a.doctorName.localeCompare(b.doctorName);
-        case "doctor_desc":
-          return b.doctorName.localeCompare(a.doctorName);
-        default:
-          return b.appointmentDateTime - a.appointmentDateTime;
+      // Apply status filter
+      if (statusFilter && statusFilter !== "all") {
+        mappedAppointments = mappedAppointments.filter(
+          (appointment) => appointment.status === statusFilter
+        );
       }
-    });
 
-    // Apply pagination
-    setTotal(mappedAppointments.length);
-    const startIndex = (page - 1) * PAGE_SIZE;
-    const endIndex = startIndex + PAGE_SIZE;
-    const paginatedAppointments = mappedAppointments.slice(
-      startIndex,
-      endIndex
-    );
+      // Apply search filter
+      if (search) {
+        mappedAppointments = mappedAppointments.filter((appointment) => {
+          const matchesDoctor = appointment.doctorName
+            .toLowerCase()
+            .includes(search.toLowerCase());
+          const matchesNote =
+            appointment.note &&
+            appointment.note.toLowerCase().includes(search.toLowerCase());
+          const matchesPhone = 
+            appointment.patientPhone &&
+            appointment.patientPhone.includes(search);
 
-    setAppointments(paginatedAppointments);
-  } catch (err) {
-    setAppointments([]);
-    setTotal(0);
-    showPopup(
-      "Lỗi tải dữ liệu",
-      err.message || "Có lỗi xảy ra khi tải dữ liệu",
-      "error"
-    );
-  } finally {
-    setLoading(false);
+          let matchesPatient = false;
+          if (!appointment.isAnonymous) {
+            matchesPatient =
+              appointment.patientName
+                .toLowerCase()
+                .includes(search.toLowerCase());
+          }
+
+          return matchesDoctor || matchesNote || matchesPatient || matchesPhone;
+        });
+      }
+
+      // Apply sorting
+      mappedAppointments.sort((a, b) => {
+        switch (sort) {
+          case "date_asc":
+            return a.appointmentDateTime - b.appointmentDateTime;
+          case "date_desc":
+            return b.appointmentDateTime - a.appointmentDateTime;
+          case "doctor_asc":
+            return a.doctorName.localeCompare(b.doctorName);
+          case "doctor_desc":
+            return b.doctorName.localeCompare(a.doctorName);
+          default:
+            return b.appointmentDateTime - a.appointmentDateTime;
+        }
+      });
+
+      // Apply pagination
+      setTotal(mappedAppointments.length);
+      const startIndex = (page - 1) * PAGE_SIZE;
+      const endIndex = startIndex + PAGE_SIZE;
+      const paginatedAppointments = mappedAppointments.slice(
+        startIndex,
+        endIndex
+      );
+
+      setAppointments(paginatedAppointments);
+    } catch (err) {
+      setAppointments([]);
+      setTotal(0);
+      showPopup(
+        "Lỗi tải dữ liệu",
+        err.message || "Có lỗi xảy ra khi tải dữ liệu",
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
   }
-}
 
   // Handle sort change
   function handleSortChange(e) {
@@ -850,9 +855,7 @@ const AppointmentManagement = () => {
                               fontWeight: "bold",
                             }}
                           >
-                            
-                            <FaLock /> Thông tin được bảo mật
-
+                            Thông tin được bảo mật
                           </div>
                         )}
                       </div>
@@ -872,9 +875,7 @@ const AppointmentManagement = () => {
                     <td style={typeStyle}>
                       {appointment.isAnonymous ? (
                         <span style={{ color: "#ef4444", fontWeight: "bold" }}>
-
-                          <FaLock /> Ẩn danh
-
+                          Ẩn danh
                         </span>
                       ) : (
                         "Thường"
