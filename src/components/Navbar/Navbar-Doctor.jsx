@@ -4,9 +4,10 @@ import "./Navbar-Doctor-Manager-Patient.css";
 export default function ManagerPatientNavbar({ activeTab, onTabChange }) {
   const navItems = [
     { key: "info", label: "Thông tin bệnh nhân" },
-    { key: "appointments", label: "Lịch hẹn khám" },
+    // { key: "appointments", label: "Lịch hẹn khám" },
     { key: "tests", label: "Kết quả xét nghiệm" },
     { key: "treatment", label: "Phác đồ điều trị" },
+    { key: "medicalhistorys", label: "Hồ Sơ Bệnh Án" },
   ];
 
   return (
