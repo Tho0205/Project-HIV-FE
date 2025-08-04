@@ -249,7 +249,7 @@ export default function Profile() {
                 {profile.full_name || "Chưa có tên"}
               </strong>
               <p style={{ fontSize: "16px" }}>
-                {profile.role || "Chưa có vai trò"}
+                {profile.role === "Doctor" ? "Bác sĩ" : profile.role || "Chưa có vai trò"}
               </p>
               <p style={{ fontSize: "16px" }}>
                 {profile.address || "Chưa có địa chỉ"}
@@ -286,7 +286,13 @@ export default function Profile() {
               </div>
               <div>
                 <span>Giới tính</span>
-                <p>{profile.gender || "Chưa có"}</p>
+                <p>
+                  {profile.gender === "Male"
+                    ? "Nam"
+                    : profile.gender === "Female"
+                    ? "Nữ"
+                    : profile.gender || "Chưa có"}
+                </p>
               </div>
               <div>
                 <span>Ngày tạo</span>
@@ -298,7 +304,7 @@ export default function Profile() {
               </div>
               <div>
                 <span>Vai Trò</span>
-                <p>{profile.role || "Chưa có"}</p>
+                <p>{profile.role === "Doctor" ? "Bác sĩ" : profile.role || "Chưa có"}</p>
               </div>
               <div>
                 <span>Địa chỉ</span>
@@ -384,7 +390,7 @@ export default function Profile() {
                     required
                   />
                   <label>Vai trò</label>
-                  <input type="text" value={editForm.role} readOnly />
+                  <input type="text" value={editForm.role === "Doctor" ? "Bác sĩ" : editForm.role} readOnly />
                   <div className="modal-actions-profile-doctor">
                     <button type="submit" className="btn-green-profile-doctor">
                       Lưu

@@ -239,7 +239,9 @@ export default function Profile() {
           </div>
           <div className="profile-info">
             <strong>{profile.full_name}</strong>
-            <p>{profile.role}</p>
+            <p>
+              {profile.role === "Patient" ? "Bệnh nhân" : profile.role}
+            </p>
             <p>{profile.address}</p>
           </div>
         </div>
@@ -275,7 +277,13 @@ export default function Profile() {
             </div>
             <div>
               <span>Giới tính</span>
-              <p>{profile.gender}</p>
+              <p>
+                {profile.gender === "Male"
+                  ? "Nam"
+                  : profile.gender === "Female"
+                  ? "Nữ"
+                  : profile.gender || "Chưa có"}
+              </p>
             </div>
             <div>
               <span>Ngày tạo</span>
@@ -287,7 +295,9 @@ export default function Profile() {
             </div>
             <div>
               <span>Vai Trò</span>
-              <p>{profile.role}</p>
+              <p>
+                {profile.role === "Patient" ? "Bệnh nhân" : profile.role}
+              </p>
             </div>
             <div>
               <span>Địa chỉ</span>
@@ -375,7 +385,7 @@ export default function Profile() {
                   required
                 />
                 <label>Vai trò</label>
-                <input type="text" value={editForm.role} readOnly />
+                <input type="text" value={editForm.role == "Patient" ? "Bệnh nhân" : editForm.role} readOnly />
                 <div className="modal-actions">
                   <button type="submit" className="btn-green">
                     Lưu
