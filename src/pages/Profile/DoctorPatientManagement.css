@@ -2576,5 +2576,19 @@
   .schedule-time {
     font-size: 16px;
   }
-}
 
+  .status-checked_in {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .status-checked_out {
+    background-color: #cce5ff;
+    color: #004085;
+  }
+
+  .status-confirmed {
+    background-color: #e2e3ff;
+    color: #383d41;
+  }
+}

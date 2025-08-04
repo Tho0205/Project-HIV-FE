@@ -633,15 +633,21 @@ const handleExamSubmit = async (e) => {
   };
 
   const getStatusBadge = (status) => {
+    const normalizedStatus = status?.toUpperCase(); // Chuyển về chữ hoa
     const statusMap = {
       SCHEDULED: "Đã lên lịch",
       PENDING: "Chờ khám",
+      CONFIRMED: "Đã xác nhận",
+      CHECKED_IN: "Đã check-in",
+      CHECKED_OUT: "Đã check-out",
       COMPLETED: "Hoàn thành",
       CANCELLED: "Đã hủy",
     };
     return (
-      <span className={`status-badge-admin status-${status.toLowerCase()}`}>
-        {statusMap[status] || status}
+      <span
+        className={`status-badge-admin status-${normalizedStatus?.toLowerCase()}`}
+      >
+        {statusMap[normalizedStatus] || normalizedStatus}
       </span>
     );
   };
@@ -1149,20 +1155,30 @@ const handleExamSubmit = async (e) => {
             </div>
 
             {/* Hiển thị lịch hẹn sắp tới */}
-            {patientHistory?.appointments?.filter(
-              (apt) =>
+            {patientHistory?.appointments?.filter((apt) => {
+              const normalizedStatus = apt.status?.toUpperCase();
+              return (
                 new Date(apt.appointmentDate) > new Date() &&
-                apt.status !== "CANCELLED"
-            ).length > 0 ? (
+                normalizedStatus !== "CANCELLED" &&
+                normalizedStatus !== "CHECKED_IN" &&
+                normalizedStatus !== "CHECKED_OUT" &&
+                normalizedStatus !== "COMPLETED"
+              );
+            }).length > 0 ? (
               <div className="upcoming-appointments">
                 <h5>Lịch hẹn sắp tới:</h5>
                 <div className="appointment-list">
                   {patientHistory.appointments
-                    .filter(
-                      (apt) =>
+                    .filter((apt) => {
+                      const normalizedStatus = apt.status?.toUpperCase();
+                      return (
                         new Date(apt.appointmentDate) > new Date() &&
-                        apt.status !== "CANCELLED"
-                    )
+                        normalizedStatus !== "CANCELLED" &&
+                        normalizedStatus !== "CHECKED_IN" &&
+                        normalizedStatus !== "CHECKED_OUT" &&
+                        normalizedStatus !== "COMPLETED"
+                      );
+                    })
                     .map((appointment) => (
                       <div
                         key={appointment.appointmentId}
