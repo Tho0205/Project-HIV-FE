@@ -31,7 +31,7 @@ const StatCard = ({ icon, value, label }) => (
   </div>
 );
 
-const PatientRow = ({ patient, index, page, onViewHistory, onViewMedicalRecords, onManagePrescription, viewMode }) => (
+const PatientRow = ({ patient, index, page, onViewHistory, viewMode }) => (
   <tr>
     <td className="text-center">{(page - 1) * PAGE_SIZE + index + 1}</td>
     <td className="text-center">
@@ -53,41 +53,13 @@ const PatientRow = ({ patient, index, page, onViewHistory, onViewMedicalRecords,
       <span className="appointment-badge">{patient.appointmentCount || 0}</span>
     </td>
     <td className="actions-doctor">
-      {viewMode === "allPatients" ? (
-        // Trong tab "Tất cả bệnh nhân" - chỉ hiển thị nút xem hồ sơ bệnh án
-        <button
-          onClick={() => onViewMedicalRecords(patient)}
-          className="btn-medical-admin"
-          title="Xem hồ sơ bệnh án"
-        >
-          📄
-        </button>
-      ) : (
-        // Trong tab "Bệnh nhân của tôi" - hiển thị tất cả các nút
-        <>
-          <button
-            onClick={() => onViewHistory(patient)}
-            className="btn-info-admin"
-            title="Xem lịch sử khám"
-          >
-            📋
-          </button>
-          <button
-            onClick={() => onViewMedicalRecords(patient)}
-            className="btn-medical-admin"
-            title="Xem hồ sơ bệnh án"
-          >
-            📄
-          </button>
-          <button
-            onClick={() => onManagePrescription(patient)}
-            className="btn-prescription-admin"
-            title="Quản lý phác đồ điều trị"
-          >
-            💊
-          </button>
-        </>
-      )}
+      <button
+        onClick={() => onViewHistory(patient)}
+        className="btn-info-admin"
+        title="Xem lịch sử"
+      >
+        📋
+      </button>
     </td>
   </tr>
 );
@@ -150,41 +122,10 @@ export default function DoctorPatientManagement() {
   const [modals, setModals] = useState({
     history: false,
     exam: false,
-    medicalRecords: false,
-    medicalRecordDetail: false,
-    prescription: false,
-    prescriptionDetail: false,
-    protocolManagement: false,
   });
-  
-  // Data states
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [patientHistory, setPatientHistory] = useState(null);
   const [examData, setExamData] = useState(null);
-  const [medicalRecords, setMedicalRecords] = useState([]);
-  const [selectedMedicalRecord, setSelectedMedicalRecord] = useState(null);
-  const [patientPrescriptions, setPatientPrescriptions] = useState([]);
-  const [selectedPrescription, setSelectedPrescription] = useState(null);
-  const [availableARVs, setAvailableARVs] = useState([]);
-  const [standardProtocols, setStandardProtocols] = useState([]);
-  
-  // Enhanced states for protocol management
-  const [protocolManagementData, setProtocolManagementData] = useState({
-    currentProtocol: null,
-    protocolHistory: [],
-    loading: false,
-    showCreateForm: false,
-    showStandardProtocols: false,
-    selectedStandardProtocol: null,
-    newProtocolData: {
-      baseProtocolId: null,
-      name: "",
-      description: "",
-      details: [],
-    },
-    selectedARVId: "",
-  });
-  
   const [isFirstLoad, setIsFirstLoad] = useState(true);
 
   // Active tab state
@@ -200,7 +141,6 @@ export default function DoctorPatientManagement() {
       navigate("/");
     }
   }, [navigate]);
-
 
   useEffect(() => {
     const loadProtocolsAndARVs = async () => {
@@ -221,7 +161,6 @@ export default function DoctorPatientManagement() {
   }, []);
 
   // Load patients with view mode
-
   const loadPatients = useCallback(async () => {
     if (!doctorId && viewMode === "myPatients") return;
 
@@ -294,23 +233,10 @@ export default function DoctorPatientManagement() {
   const closeModal = (modalName) =>
     setModals((prev) => ({ ...prev, [modalName]: false }));
 
-  // Reset protocol management data
-  const resetProtocolManagementData = () => {
-    setProtocolManagementData({
-      currentProtocol: null,
-      protocolHistory: [],
-      loading: false,
-      showCreateForm: false,
-      showStandardProtocols: false,
-      selectedStandardProtocol: null,
-      newProtocolData: {
-        baseProtocolId: null,
-        name: "",
-        description: "",
-        details: [],
-      },
-      selectedARVId: "",
-    });
+  // Handlers
+  const handleExamClose = () => {
+    closeModal("exam");
+    openModal("history");
   };
 
   const handleViewProtocol = async (patient) => {
@@ -386,253 +312,6 @@ export default function DoctorPatientManagement() {
     }
   };
 
-  // Medical Records Handlers
-  const handleViewMedicalRecords = async (patient) => {
-    setSelectedPatient(patient);
-    try {
-      const records = await medicalRecordService.getMedicalRecordsByPatient(patient.userId);
-      setMedicalRecords(records || []);
-      openModal("medicalRecords");
-    } catch (error) {
-      console.error("Error fetching medical records:", error);
-      toast.error("Không thể tải hồ sơ bệnh án");
-      setMedicalRecords([]);
-      openModal("medicalRecords");
-    }
-  };
-
-  const handleViewMedicalRecordDetail = async (record) => {
-    try {
-      const detail = await medicalRecordService.getMedicalRecordDetail(record.recordId);
-      setSelectedMedicalRecord(detail);
-      openModal("medicalRecordDetail");
-    } catch (error) {
-      toast.error("Không thể tải chi tiết hồ sơ bệnh án");
-    }
-  };
-
-  // Protocol Management Handlers
-  const handleManagePrescription = async (patient) => {
-    setSelectedPatient(patient);
-    setProtocolManagementData(prev => ({ ...prev, loading: true }));
-    
-    try {
-      console.log("🔍 Loading protocol data for patient:", patient.userId);
-      
-      const [currentProtocol, protocolHistory] = await Promise.all([
-        CustomArvProtocolsService.getPatientCurrentProtocol(patient.userId),
-        CustomArvProtocolsService.getPatientProtocolHistory(patient.userId)
-      ]);
-      
-      console.log("📥 Current protocol:", currentProtocol);
-      console.log("📥 Protocol history:", protocolHistory);
-      
-      setProtocolManagementData(prev => ({
-        ...prev,
-        currentProtocol,
-        protocolHistory: protocolHistory || [],
-        loading: false
-      }));
-      
-      openModal("protocolManagement");
-      
-    } catch (error) {
-      console.error("Error loading protocol data:", error);
-      toast.error("Không thể tải thông tin phác đồ điều trị: " + error.message);
-      setProtocolManagementData(prev => ({ ...prev, loading: false }));
-    }
-  };
-
-  // Load protocol details for standard protocol
-  const loadProtocolDetails = async (protocolId) => {
-    try {
-      const details = await ARVProtocolService.getProtocolDetails(protocolId);
-      return details || [];
-    } catch (error) {
-      console.error("Error loading protocol details:", error);
-      toast.error("Không thể tải chi tiết phác đồ: " + error.message);
-      return [];
-    }
-  };
-
-  // Handle standard protocol selection
-  const handleStandardProtocolSelect = async (protocolId) => {
-    const protocol = standardProtocols.find((p) => p.protocolId === protocolId);
-    if (!protocol) return;
-
-    try {
-      setProtocolManagementData(prev => ({ ...prev, loading: true }));
-      
-      const details = await loadProtocolDetails(protocolId);
-
-      const selectedStandardProtocol = {
-        ...protocol,
-        details: details,
-      };
-
-      const newProtocolData = {
-        baseProtocolId: protocolId,
-        name: `Phác đồ cho ${selectedPatient.fullName} - ${protocol.name}`,
-        description: protocol.description,
-        details: details.map((d) => ({
-          arvId: d.arvId,
-          dosage: d.dosage || "1 viên",
-          usageInstruction: d.usageInstruction || "Uống hàng ngày",
-          status: "ACTIVE",
-        })),
-      };
-
-      setProtocolManagementData(prev => ({
-        ...prev,
-        selectedStandardProtocol,
-        newProtocolData,
-        showStandardProtocols: false,
-        showCreateForm: true,
-        loading: false
-      }));
-    } catch (error) {
-      console.error("Error selecting standard protocol:", error);
-      setProtocolManagementData(prev => ({ ...prev, loading: false }));
-    }
-  };
-
-  // Add ARV to new protocol
-  const addARVToProtocol = (arvId) => {
-    const arv = availableARVs.find((a) => a.arvId === arvId);
-    if (!arv) return;
-
-    const newDetail = {
-      arvId,
-      dosage: "1 viên",
-      usageInstruction: "Uống hàng ngày",
-      status: "ACTIVE",
-    };
-
-    setProtocolManagementData(prev => ({
-      ...prev,
-      newProtocolData: {
-        ...prev.newProtocolData,
-        details: [...prev.newProtocolData.details, newDetail]
-      },
-      selectedARVId: ""
-    }));
-  };
-
-  // Remove ARV from protocol
-  const removeARVFromProtocol = (index) => {
-    setProtocolManagementData(prev => ({
-      ...prev,
-      newProtocolData: {
-        ...prev.newProtocolData,
-        details: prev.newProtocolData.details.filter((_, i) => i !== index)
-      }
-    }));
-  };
-
-  // Update ARV detail in protocol
-  const updateARVDetail = (index, field, value) => {
-    setProtocolManagementData(prev => ({
-      ...prev,
-      newProtocolData: {
-        ...prev.newProtocolData,
-        details: prev.newProtocolData.details.map((detail, i) => 
-          i === index ? { ...detail, [field]: value } : detail
-        )
-      }
-    }));
-  };
-
-  // Create new protocol
-  const handleCreateNewProtocol = async () => {
-    try {
-      setProtocolManagementData(prev => ({ ...prev, loading: true }));
-      
-      const result = await CustomArvProtocolsService.createCustomProtocol(
-        doctorId,
-        selectedPatient.userId,
-        protocolManagementData.newProtocolData
-      );
-      
-      toast.success("Tạo phác đồ mới thành công!");
-      
-      // Reload protocol data
-      const [currentProtocol, protocolHistory] = await Promise.all([
-        CustomArvProtocolsService.getPatientCurrentProtocol(selectedPatient.userId),
-        CustomArvProtocolsService.getPatientProtocolHistory(selectedPatient.userId)
-      ]);
-      
-      setProtocolManagementData(prev => ({
-        ...prev,
-        currentProtocol,
-        protocolHistory: protocolHistory || [],
-        loading: false,
-        showCreateForm: false,
-        selectedStandardProtocol: null,
-        newProtocolData: {
-          baseProtocolId: null,
-          name: "",
-          description: "",
-          details: [],
-        }
-      }));
-      
-      // Refresh patient list
-      loadPatients();
-      
-    } catch (error) {
-      console.error("Error creating protocol:", error);
-      toast.error("Không thể tạo phác đồ mới: " + error.message);
-      setProtocolManagementData(prev => ({ ...prev, loading: false }));
-    }
-  };
-
-  // Update protocol
-  const handleUpdateProtocol = async (protocolId, isCustom) => {
-    try {
-      setProtocolManagementData(prev => ({ ...prev, loading: true }));
-      
-      await CustomArvProtocolsService.updatePatientProtocol(
-        selectedPatient.userId,
-        { protocolId, isCustom }
-      );
-      
-      toast.success("Cập nhật phác đồ thành công!");
-      
-      // Reload protocol data
-      const [currentProtocol, protocolHistory] = await Promise.all([
-        CustomArvProtocolsService.getPatientCurrentProtocol(selectedPatient.userId),
-        CustomArvProtocolsService.getPatientProtocolHistory(selectedPatient.userId)
-      ]);
-      
-      setProtocolManagementData(prev => ({
-        ...prev,
-        currentProtocol,
-        protocolHistory: protocolHistory || [],
-        loading: false
-      }));
-      
-      // Refresh patient list
-      loadPatients();
-      
-    } catch (error) {
-      console.error("Error updating protocol:", error);
-      toast.error("Không thể cập nhật phác đồ: " + error.message);
-      setProtocolManagementData(prev => ({ ...prev, loading: false }));
-    }
-  };
-
-  // View prescription detail
-  const handleViewPrescriptionDetail = async (prescription) => {
-    try {
-      const detail = await CustomArvProtocolsService.getProtocolById(prescription.customProtocolId);
-      setSelectedPrescription(detail);
-      openModal("prescriptionDetail");
-    } catch (error) {
-      toast.error("Không thể tải chi tiết phác đồ điều trị");
-    }
-  };
-
-  // Existing examination handlers
   const openExamModal = (exam = null) => {
     closeModal("history");
 
@@ -827,8 +506,6 @@ export default function DoctorPatientManagement() {
       PENDING: "Chờ khám",
       COMPLETED: "Hoàn thành",
       CANCELLED: "Đã hủy",
-      ACTIVE: "Đang hoạt động",
-      INACTIVE: "Ngừng hoạt động",
     };
     return (
       <span className={`status-badge-admin status-${status.toLowerCase()}`}>
@@ -1113,6 +790,7 @@ export default function DoctorPatientManagement() {
             Tất cả bệnh nhân
           </button>
         </div>
+
         {/* Statistics */}
         {viewMode === "myPatients" && (
           <div className="stats-grid">
@@ -1212,8 +890,6 @@ export default function DoctorPatientManagement() {
                     index={idx}
                     page={page}
                     onViewHistory={handleViewHistory}
-                    onViewMedicalRecords={handleViewMedicalRecords}
-                    onManagePrescription={handleManagePrescription}
                     viewMode={viewMode}
                   />
                 ))
@@ -1247,7 +923,6 @@ export default function DoctorPatientManagement() {
         </Modal>
 
         {/* Exam Modal */}
-
         <Modal
           show={modals.exam}
           onClose={() => closeModal("exam")}
@@ -1261,8 +936,12 @@ export default function DoctorPatientManagement() {
           <form onSubmit={handleExamSubmit} className="modal-form-admin">
             <div className="patient-info-box">
               <h4>Thông tin bệnh nhân</h4>
-              <p><strong>Họ tên:</strong> {selectedPatient?.fullName}</p>
-              <p><strong>Email:</strong> {selectedPatient?.email}</p>
+              <p>
+                <strong>Họ tên:</strong> {selectedPatient?.fullName}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedPatient?.email}
+              </p>
             </div>
 
             <div className="form-group-admin">
@@ -1281,6 +960,7 @@ export default function DoctorPatientManagement() {
                 />
               )}
             </div>
+
             <div className="form-group-admin">
               <label>CD4 Count (cells/μL)</label>
               <input
