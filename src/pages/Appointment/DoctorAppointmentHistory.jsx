@@ -43,7 +43,7 @@ const DoctorAppointmentHistory = () => {
     setDoctorId(numericUserId);
   }, []);
 
-  // Updated fetchDoctorAppointments to include CANCELLED appointments
+  // Updated fetchDoctorAppointments to include MORE appointment statuses
   const fetchDoctorAppointments = useCallback(async () => {
     if (!doctorId) return;
     setLoading(true);
@@ -97,12 +97,14 @@ const DoctorAppointmentHistory = () => {
         scheduleRoomMap
       );
 
-      // Include CONFIRMED and CANCELLED appointments
+      // Include MORE appointment statuses: CONFIRMED, CHECKED_IN, COMPLETED, CANCELLED
       const relevantAppointments = await Promise.all(
         doctorAppointments
           .filter(
             (appointment) =>
               appointment.status === "CONFIRMED" ||
+              appointment.status === "CHECKED_IN" ||
+              appointment.status === "COMPLETED" ||
               appointment.status === "CANCELLED" ||
               appointment.status === "Cancel" // Handle both naming conventions
           )
@@ -158,17 +160,21 @@ const DoctorAppointmentHistory = () => {
               }
             }
 
-            // Determine display status
+            // Updated display status logic to handle more statuses
             let displayStatus;
             if (
               appointment.status === "CANCELLED" ||
               appointment.status === "Cancel"
             ) {
               displayStatus = "cancelled";
+            } else if (appointment.status === "COMPLETED") {
+              displayStatus = "completed";
+            } else if (appointment.status === "CHECKED_IN") {
+              displayStatus = "checked_in";
             } else if (appointment.status === "CONFIRMED") {
-              displayStatus = isPast ? "completed" : "upcoming";
+              displayStatus = "confirmed";
             } else {
-              displayStatus = "upcoming";
+              displayStatus = "confirmed"; // Default fallback
             }
 
             return {
@@ -189,7 +195,7 @@ const DoctorAppointmentHistory = () => {
       );
 
       console.log(
-        "🎯 Final appointments with cancelled included:",
+        "🎯 Final appointments with more statuses:",
         relevantAppointments.map((apt) => ({
           id: apt.appointmentId,
           scheduleId: apt.scheduleId,
@@ -233,10 +239,12 @@ const DoctorAppointmentHistory = () => {
         appointment.note.toLowerCase().includes(searchTerm.toLowerCase()));
 
     let matchesFilter = true;
-    if (filterStatus === "completed")
+    if (filterStatus === "confirmed")
+      matchesFilter = appointment.displayStatus === "confirmed";
+    else if (filterStatus === "checked_in")
+      matchesFilter = appointment.displayStatus === "checked_in";
+    else if (filterStatus === "completed")
       matchesFilter = appointment.displayStatus === "completed";
-    else if (filterStatus === "upcoming")
-      matchesFilter = appointment.displayStatus === "upcoming";
     else if (filterStatus === "cancelled")
       matchesFilter = appointment.displayStatus === "cancelled";
 
@@ -248,17 +256,20 @@ const DoctorAppointmentHistory = () => {
   const endIndex = startIndex + itemsPerPage;
   const currentAppointments = filteredAppointments.slice(startIndex, endIndex);
 
+  // Updated status colors and texts
   const getStatusColor = (displayStatus) =>
     ({
+      confirmed: { backgroundColor: "#dbeafe", color: "#1e40af" },
+      checked_in: { backgroundColor: "#e0e7ff", color: "#4338ca" },
       completed: { backgroundColor: "#dcfce7", color: "#15803d" },
-      upcoming: { backgroundColor: "#dbeafe", color: "#1e40af" },
       cancelled: { backgroundColor: "#fee2e2", color: "#dc2626" },
     }[displayStatus] || { backgroundColor: "#f3f4f6", color: "#1f2937" });
 
   const getStatusText = (displayStatus) =>
     ({
-      completed: "Đã khám",
-      upcoming: "Sắp tới",
+      confirmed: "Đã xác nhận",
+      checked_in: "Đã check-in",
+      completed: "Đã hoàn thành",
       cancelled: "Đã hủy",
     }[displayStatus] || displayStatus);
 
@@ -431,18 +442,26 @@ const DoctorAppointmentHistory = () => {
                 }}
               >
                 <option value="all">Tất cả ({appointments.length})</option>
-                <option value="completed">
-                  Đã khám (
+                <option value="confirmed">
+                  Đã xác nhận (
                   {
-                    appointments.filter((a) => a.displayStatus === "completed")
+                    appointments.filter((a) => a.displayStatus === "confirmed")
                       .length
                   }
                   )
                 </option>
-                <option value="upcoming">
-                  Sắp tới (
+                <option value="checked_in">
+                  Đã check-in (
                   {
-                    appointments.filter((a) => a.displayStatus === "upcoming")
+                    appointments.filter((a) => a.displayStatus === "checked_in")
+                      .length
+                  }
+                  )
+                </option>
+                <option value="completed">
+                  Đã hoàn thành (
+                  {
+                    appointments.filter((a) => a.displayStatus === "completed")
                       .length
                   }
                   )
@@ -469,7 +488,7 @@ const DoctorAppointmentHistory = () => {
               >
                 <p>Không tìm thấy lịch hẹn nào</p>
                 <p style={{ fontSize: "0.875rem" }}>
-                  Hiển thị các lịch hẹn đã được xác nhận và đã hủy
+                  Hiển thị các lịch hẹn đã được xác nhận, check-in, check-out, hoàn thành và đã hủy
                 </p>
               </div>
             ) : (
