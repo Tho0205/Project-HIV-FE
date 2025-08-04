@@ -50,7 +50,7 @@ export default function SidebarAdmin({ active }) {
               </li>
               <li className={active === "appointment" ? "active" : ""}>
                 <Link to="/Doctor-Appointment-History">
-                  <span>Lịch tư vấn</span>
+                  <span>Lịch Hẹn Của Bác Sĩ</span>
                 </Link>
               </li>
               {/* <li className={active === "appointment" ? "active" : ""}>

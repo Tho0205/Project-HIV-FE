@@ -16,7 +16,7 @@ const DoctorAppointmentHistory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [doctorId, setDoctorId] = useState(null);
-  const itemsPerPage = 4;
+  const itemsPerPage = 3;
 
   useEffect(() => {
     const userId = tokenManager.getCurrentUserId();
@@ -378,10 +378,12 @@ const DoctorAppointmentHistory = () => {
       </div>
       <section
         className="profile"
-        style={{ overflowY: "hidden", maxHeight: "920px" }}
+        style={{ overflowY: "hidden", maxHeight: "1000px" }}
       >
-        <h2>Lịch Hẹn Của Bác Sĩ</h2>
-        {doctorInfo && (
+        <h2 style={{ color: "#257df4", marginTop: "10px" }}>
+          Lịch Hẹn Của Bác Sĩ
+        </h2>
+        {/* {doctorInfo && (
           <div className="card profile-header" style={{ maxHeight: "110px" }}>
             <div className="profile-photo">
               <img src="/assets/image/patient/patient.png" alt="Avatar" />
@@ -399,14 +401,12 @@ const DoctorAppointmentHistory = () => {
               </p>
             </div>
           </div>
-        )}
+        )} */}
         <div className="card">
           <div
             style={{
               display: "flex",
               flexDirection: "row",
-              gap: "1rem",
-              marginBottom: "1.5rem",
             }}
           >
             <div style={{ flex: "1", position: "relative" }}>
@@ -482,7 +482,6 @@ const DoctorAppointmentHistory = () => {
               <div
                 style={{
                   textAlign: "center",
-                  padding: "2rem 0",
                   color: "#6b7280",
                 }}
               >
@@ -497,8 +496,8 @@ const DoctorAppointmentHistory = () => {
                   key={appointment.appointmentId}
                   className="card"
                   style={{
-                    padding: "0px",
-                    margin: "0px",
+                    padding: "0",
+                    margin: "40px 0",
                     opacity:
                       appointment.displayStatus === "cancelled" ? 0.8 : 1,
                     border:
@@ -512,7 +511,6 @@ const DoctorAppointmentHistory = () => {
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      gap: "1rem",
                     }}
                   >
                     <div style={{ flex: 1 }}>

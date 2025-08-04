@@ -223,7 +223,7 @@ export default function Profile() {
           <SidebarDoctor active="Profile" />
         </div>
         <section className="profile-profile-doctor">
-          <h2>Thông Tin cá nhân</h2>
+          <h2 style={{ color: "#257df4" }}>Thông Tin cá nhân</h2>
           <div className="card-profile-doctor profile-header-profile-doctor">
             <div className="profile-photo-profile-doctor">
               <img
