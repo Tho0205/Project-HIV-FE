@@ -1178,26 +1178,6 @@ export default function DoctorPatientManagement() {
             Bệnh nhân của tôi
           </button>
         </div>
-        {viewMode === "myPatients" && (
-          <div className="stats-grid">
-            <StatCard
-              icon="👥"
-              value={stats.totalPatients}
-              label="Tổng số bệnh nhân"
-            />
-            <StatCard
-              icon="📍"
-              value={stats.todayAppointments}
-              label="Lịch hẹn hôm nay"
-            />
-            <StatCard
-              icon="✅"
-              value={stats.controlledPatients}
-              label="Đã kiểm soát"
-            />
-            <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
-          </div>
-        )}
         <div className="filters-admin">
           <div className="search-box-admin">
             <input

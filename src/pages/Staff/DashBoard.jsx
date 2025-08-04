@@ -181,22 +181,6 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="dash-card dash-card-gradient-purple">
-            <div className="dash-card-header">
-              <h3 className="dash-card-title">Hồ Sơ Y Tế</h3>
-              <FileText className="dash-card-icon" />
-            </div>
-            <div className="dash-card-content">
-              <div className="dash-card-value">
-                {stats.totalMedicalRecords.toLocaleString()}
-              </div>
-              <p className="dash-card-description">
-                <TrendingUp className="dash-trend-icon" />
-                Hồ sơ
-              </p>
-            </div>
-          </div>
-
           <div className="dash-card dash-card-gradient-orange">
             <div className="dash-card-header">
               <h3 className="dash-card-title">Phác Đồ ARV</h3>

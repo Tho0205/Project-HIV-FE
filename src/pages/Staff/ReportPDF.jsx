@@ -22,7 +22,6 @@ const ReportPDF = React.forwardRef(({
       <ul>
         <li>Tổng bệnh nhân: {stats.totalPatients}</li>
         <li>Tổng khám bệnh: {stats.totalExams}</li>
-        <li>Tổng hồ sơ y tế: {stats.totalMedicalRecords}</li>
         <li>Tổng phác đồ ARV: {stats.totalArvProtocols}</li>
       </ul>
 
