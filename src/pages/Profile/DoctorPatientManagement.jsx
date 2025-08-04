@@ -14,7 +14,6 @@ import {
 } from "../../services/medicalRecordService";
 import "./DoctorPatientManagement.css";
 import ManagerPatientNavbar from "../../components/Navbar/Navbar-Doctor";
-import appointmentService from "../../services/Appointment";
 
 const PAGE_SIZE = 5;
 const DEFAULT_AVATAR = "/assets/image/patient/patient.png";
@@ -137,13 +136,11 @@ export default function DoctorPatientManagement() {
   const [examData, setExamData] = useState(null);
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [activeTab, setActiveTab] = useState("info");
-  const [showReexamModal, setShowReexamModal] = useState(false);
-  const [reexamData, setReexamData] = useState({
-    scheduleId: "",
-    appointmentDate: "",
-    note: "",
-  });
-  const [doctorSchedules, setDoctorSchedules] = useState([]);
+  const [patientRecords, setPatientRecords] = useState([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   const navigate = useNavigate();
   const doctorId = tokenManager.getCurrentUserId();
 
@@ -293,9 +290,7 @@ export default function DoctorPatientManagement() {
       const current = await CustomArvProtocolsService.getPatientCurrentProtocol(
         patientId
       );
-      if (current && current.baseProtocolId) {
-        setCurrentProtocol(current);
-      }
+      setCurrentProtocol(current);
     } catch (error) {
       console.error("Error loading patient protocol:", error);
       setCurrentProtocol(null);
@@ -344,90 +339,51 @@ export default function DoctorPatientManagement() {
     }
   };
 
-const openExamModal = (exam = null) => {
-  closeModal("history");
+  const openExamModal = (exam = null) => {
+    closeModal("history");
 
-  // Debug logs để kiểm tra dữ liệu exam
-  console.log("🔍 Debug openExamModal - exam parameter:", exam);
-  console.log("🔍 All exam properties:", exam ? Object.keys(exam) : "exam is null");
-  console.log("🔍 appointmentId from exam:", exam?.appointmentId);
-  console.log("🔍 examId from exam:", exam?.examId);
-  console.log("🔍 examDate from exam:", exam?.examDate);
+    setExamData({
+      examId: exam?.examId || null,
+      patientId: selectedPatient.userId,
+      doctorId: doctorId,
+      examDate: exam?.examDate || new Date().toISOString().split("T")[0],
+      result: exam?.result || "",
+      cd4Count: exam?.cd4Count || "",
+      hivLoad: exam?.hivLoad || "",
+    });
+    openModal("exam");
+  };
 
-  // Cũng debug patientHistory để xem có thông tin appointments không
-  console.log("🔍 patientHistory.appointments:", patientHistory?.appointments);
+  const handleExamSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        ...examData,
+        cd4Count: examData.cd4Count ? parseInt(examData.cd4Count) : null,
+        hivLoad: examData.hivLoad ? parseInt(examData.hivLoad) : null,
+      };
+      const result = await doctorPatientService.saveExamination(payload);
+      if (result.success) {
+        toast.success(
+          examData.examId ? "Cập nhật thành công" : "Thêm kết quả thành công"
+        );
+        closeModal("exam");
 
-  setExamData({
-    examId: exam?.examId || null,
-    appointmentId: exam?.appointmentId || null,
-    patientId: selectedPatient.userId,
-    doctorId: doctorId,
-    examDate: exam?.examDate || new Date().toISOString().split("T")[0],
-    result: exam?.result || "",
-    cd4Count: exam?.cd4Count || "",
-    hivLoad: exam?.hivLoad || "",
-  });
-
-  // Debug examData sau khi set
-  console.log("🔍 examData will be set to:", {
-    examId: exam?.examId || null,
-    appointmentId: exam?.appointmentId || null,
-    patientId: selectedPatient.userId,
-    doctorId: doctorId,
-    examDate: exam?.examDate || new Date().toISOString().split("T")[0],
-    result: exam?.result || "",
-    cd4Count: exam?.cd4Count || "",
-    hivLoad: exam?.hivLoad || "",
-  });
-
-  openModal("exam");
-};
-
-const handleExamSubmit = async (e) => {
-  e.preventDefault();
-  try {
-    const payload = {
-      ...examData,
-      cd4Count: examData.cd4Count ? parseInt(examData.cd4Count) : null,
-      hivLoad: examData.hivLoad ? parseInt(examData.hivLoad) : null,
-    };
-
-    // Debug logs để kiểm tra payload
-    console.log("🔍 Debug - examData before creating payload:", examData);
-    console.log("🚀 Debug - Final payload being sent:", payload);
-    console.log("📍 appointmentId in payload:", payload.appointmentId);
-    console.log("📝 examId in payload:", payload.examId);
-
-    const result = await doctorPatientService.saveExamination(payload);
-    
-    // Debug response
-    console.log("📨 API Response:", result);
-    
-    if (result.success) {
-      toast.success(
-        examData.examId ? "Cập nhật thành công" : "Thêm kết quả thành công"
-      );
-      closeModal("exam");
-
-      const historyResult = await doctorPatientService.getPatientHistory(
-        selectedPatient.userId,
-        doctorId
-      );
-      if (historyResult.success) {
-        setPatientHistory(historyResult.data);
-        openModal("history");
+        const historyResult = await doctorPatientService.getPatientHistory(
+          selectedPatient.userId,
+          doctorId
+        );
+        if (historyResult.success) {
+          setPatientHistory(historyResult.data);
+          openModal("history");
+        }
+        loadPatients();
       }
-      loadPatients();
-    } else {
-      // Debug error response
-      console.error("❌ API Error:", result.message);
-      toast.error(result.message || "Có lỗi xảy ra");
+    } catch (error) {
+      toast.error("Có lỗi xảy ra");
     }
-  } catch (error) {
-    console.error("💥 Exception in handleExamSubmit:", error);
-    toast.error("Có lỗi xảy ra: " + error.message);
-  }
-};
+  };
+
   const handleDeleteExam = async (examId) => {
     if (
       !window.confirm(
@@ -452,61 +408,6 @@ const handleExamSubmit = async (e) => {
     } catch (error) {
       toast.error("Có lỗi xảy ra khi xóa");
     }
-  };
-
-  //Hàm xử lý tái khám này
-  const handleReexamClick = async () => {
-    try {
-      const schedules = await appointmentService.getDoctorSchedules(doctorId);
-
-      // Lọc chỉ lấy lịch trong tương lai
-      const now = new Date();
-      const futureSchedules = schedules.filter((schedule) => {
-        const scheduleTime = new Date(schedule.scheduledTime);
-        return scheduleTime > now;
-      });
-
-      setDoctorSchedules(futureSchedules);
-      setShowReexamModal(true);
-    } catch (error) {
-      toast.error("Không thể tải lịch bác sĩ");
-    }
-  };
-
-  const handleReexamSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const appointmentData = {
-        patientId: selectedPatient.userId,
-        scheduleId: parseInt(reexamData.scheduleId),
-        doctorId: doctorId,
-        note: reexamData.note || "Lịch tái khám",
-        isAnonymous: false,
-        appointmentDate: reexamData.appointmentDate,
-      };
-
-      await appointmentService.createAppointment(appointmentData);
-      toast.success("Đặt lịch tái khám thành công!");
-
-      setReexamData({ scheduleId: "", appointmentDate: "", note: "" });
-      setShowReexamModal(false);
-
-      // Refresh lại history
-      const historyResult = await doctorPatientService.getPatientHistory(
-        selectedPatient.userId,
-        doctorId
-      );
-      if (historyResult.success) {
-        setPatientHistory(historyResult.data);
-      }
-    } catch (error) {
-      toast.error("Không thể đặt lịch tái khám");
-    }
-  };
-
-  const handleReexamClose = () => {
-    setShowReexamModal(false);
-    setReexamData({ scheduleId: "", appointmentDate: "", note: "" });
   };
 
   const loadPatientProtocol = async (patientId) => {
@@ -1089,7 +990,6 @@ const handleExamSubmit = async (e) => {
                 </button>
               )}
             </div>
-            {/* Current Protocol Display */}
             {currentProtocol ? (
               <div className="current-protocol-display">
                 <div className="protocol-info">
@@ -1255,7 +1155,6 @@ const handleExamSubmit = async (e) => {
             </div>
           </div>
         );
-
       default:
         return <div>Tab không tồn tại</div>;
     }
@@ -1279,7 +1178,26 @@ const handleExamSubmit = async (e) => {
             Bệnh nhân của tôi
           </button>
         </div>
-
+        {viewMode === "myPatients" && (
+          <div className="stats-grid">
+            <StatCard
+              icon="👥"
+              value={stats.totalPatients}
+              label="Tổng số bệnh nhân"
+            />
+            <StatCard
+              icon="📍"
+              value={stats.todayAppointments}
+              label="Lịch hẹn hôm nay"
+            />
+            <StatCard
+              icon="✅"
+              value={stats.controlledPatients}
+              label="Đã kiểm soát"
+            />
+            <StatCard icon="⚠️" value={stats.unstablePatients} label="Bất ổn" />
+          </div>
+        )}
         <div className="filters-admin">
           <div className="search-box-admin">
             <input
@@ -1465,118 +1383,6 @@ const handleExamSubmit = async (e) => {
               </button>
               <button type="submit" className="btn-save-doctor">
                 {examData?.examId ? "Cập nhật" : "Thêm mới"}
-              </button>
-            </div>
-          </form>
-        </Modal>
-        {/* Reexam Modal - Thêm modal này */}
-        <Modal
-          show={showReexamModal}
-          onClose={handleReexamClose}
-          title="Đặt Lịch Tái Khám"
-          className="modal-standard"
-        >
-          <form onSubmit={handleReexamSubmit} className="modal-form-admin">
-            <div className="patient-info-box">
-              <h4>Thông tin bệnh nhân</h4>
-              <p>
-                <strong>Họ tên:</strong> {selectedPatient?.fullName}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedPatient?.email}
-              </p>
-            </div>
-
-            <div className="form-group-admin">
-              <label>
-                Chọn lịch khám <span className="required-mark">*</span>
-              </label>
-
-              {doctorSchedules.length === 0 ? (
-                <div className="no-schedule-available">
-                  <p
-                    style={{
-                      color: "#666",
-                      fontStyle: "italic",
-                      textAlign: "center",
-                      padding: "20px",
-                    }}
-                  >
-                    Không có lịch khám nào trong tương lai
-                  </p>
-                </div>
-              ) : (
-                <div className="schedule-grid">
-                  {doctorSchedules.map((schedule) => {
-                    const scheduleDate = new Date(schedule.scheduledTime);
-                    const isSelected =
-                      reexamData.scheduleId === schedule.scheduleId.toString();
-
-                    return (
-                      <div
-                        key={schedule.scheduleId}
-                        className={`schedule-card ${
-                          isSelected ? "selected" : ""
-                        }`}
-                        onClick={() => {
-                          setReexamData({
-                            ...reexamData,
-                            scheduleId: schedule.scheduleId.toString(),
-                            appointmentDate: schedule.scheduledTime,
-                          });
-                        }}
-                      >
-                        <div className="schedule-date">
-                          <strong>
-                            {scheduleDate.toLocaleDateString("vi-VN", {
-                              weekday: "short",
-                              day: "2-digit",
-                              month: "2-digit",
-                            })}
-                          </strong>
-                        </div>
-                        <div className="schedule-time">
-                          {scheduleDate.toLocaleTimeString("vi-VN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </div>
-                        <div className="schedule-room">
-                          Phòng: {schedule.room}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="form-group-admin">
-              <label>Ghi chú</label>
-              <textarea
-                value={reexamData.note}
-                onChange={(e) =>
-                  setReexamData({ ...reexamData, note: e.target.value })
-                }
-                rows="3"
-                placeholder="Ghi chú cho lịch tái khám..."
-              />
-            </div>
-
-            <div className="modal-actions-doctor">
-              <button
-                type="button"
-                className="btn-cancel-doctor"
-                onClick={handleReexamClose}
-              >
-                Hủy
-              </button>
-              <button
-                type="submit"
-                className="btn-save-doctor"
-                disabled={!reexamData.scheduleId}
-              >
-                Đặt lịch
               </button>
             </div>
           </form>

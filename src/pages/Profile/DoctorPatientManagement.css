@@ -774,13 +774,11 @@
 }
 
 .modal-container-doctor.modal-standard {
-  max-width: 1000px;
-  /* Standardized modal width */
+  max-width: 1000px; /* Standardized modal width */
 }
 
 .modal-container-doctor.modal-large {
-  max-width: 1000px;
-  /* Larger modal for complex content */
+  max-width: 1000px; /* Larger modal for complex content */
 }
 
 .modal-header-doctor {
@@ -1012,13 +1010,11 @@
   overflow-y: auto;
   padding-right: 8px;
 }
-
 .exam-list {
   max-height: 590px;
   overflow-y: auto;
   padding-right: 8px;
 }
-
 .info-section-doctor h3 {
   font-weight: bolder;
   color: black;
@@ -1967,7 +1963,6 @@
     opacity: 0;
     transform: translateY(10px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -2473,7 +2468,6 @@
   100% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.5;
   }
@@ -2592,3 +2586,4 @@
     color: #383d41;
   }
 }
+
