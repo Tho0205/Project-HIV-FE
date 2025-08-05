@@ -18,9 +18,16 @@ import {
 } from "recharts";
 import { Users, FileText, Activity, Pill, TrendingUp } from "lucide-react";
 import {
-getAllArvProtocol, getAllExam, getAllMedicalRecord, getAllPatient, 
-getAppointmentByDoctor, getAppointmentPerMonth, getNewUserMonthly, 
-getPatientByAgeGroup, getPatietnByGender, getProtocolStat,
+  getAllArvProtocol,
+  getAllExam,
+  getAllMedicalRecord,
+  getAllPatient,
+  getAppointmentByDoctor,
+  getAppointmentPerMonth,
+  getNewUserMonthly,
+  getPatientByAgeGroup,
+  getPatietnByGender,
+  getProtocolStat,
 } from "../../services/DashBoard";
 import "./DashBoard.css";
 import { toast } from "react-toastify";
@@ -28,9 +35,6 @@ import Sidebar from "../../components/Sidebar/Sidebar";
 import html2pdf from "html2pdf.js";
 import { useRef } from "react";
 import ReportPDF from "./ReportPDF.jsx";
-
-
-
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -81,7 +85,6 @@ export default function Dashboard() {
             getAppointmentByDoctor(),
           ]);
 
-
           setStats({
             totalPatients: patients || 0,
             totalExams: exams || 0,
@@ -110,10 +113,6 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-
-
-
-
       <div className="dash-container">
         <div className="dash-max-width">
           <div className="dash-header">
@@ -134,11 +133,7 @@ export default function Dashboard() {
   }
 
   return (
-
-
-    
     <div className="dash-container">
-
       <Sidebar active="static" />
       <div className="dash-max-width">
         {/* Header */}
@@ -197,12 +192,6 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-
-
-
-
-
-
 
         <div className="dash-section-header">Phân Tích Dịch Tễ</div>
         {/* Charts */}
@@ -272,47 +261,46 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Age Group Distribution */}
-        <div className="dash-chart-card">
-          <div className="dash-chart-header">
-            <h2 className="dash-chart-title">Phân Bố Bệnh Nhân Theo Nhóm Tuổi</h2>
-            <p className="dash-chart-description">Tỷ lệ độ tuổi của bệnh nhân</p>
-          </div>
-          <div className="dash-chart-content">
-            <div className="dash-chart-container">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={ageGroupData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ ageGroup, count, percent }) =>
-                      `${ageGroup}: ${count} (${(percent * 100).toFixed(1)}%)`
-                    }
-                    outerRadius={80}
-                    fill="#82ca9d"
-                    dataKey="count"
-                    nameKey="ageGroup"
-                  >
-                    {ageGroupData.map((entry, index) => (
-                      <Cell
-                        key={`cell-age-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
+          {/* Age Group Distribution */}
+          <div className="dash-chart-card">
+            <div className="dash-chart-header">
+              <h2 className="dash-chart-title">
+                Phân Bố Bệnh Nhân Theo Nhóm Tuổi
+              </h2>
+              <p className="dash-chart-description">
+                Tỷ lệ độ tuổi của bệnh nhân
+              </p>
+            </div>
+            <div className="dash-chart-content">
+              <div className="dash-chart-container">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={ageGroupData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ ageGroup, count, percent }) =>
+                        `${ageGroup}: ${count} (${(percent * 100).toFixed(1)}%)`
+                      }
+                      outerRadius={80}
+                      fill="#82ca9d"
+                      dataKey="count"
+                      nameKey="ageGroup"
+                    >
+                      {ageGroupData.map((entry, index) => (
+                        <Cell
+                          key={`cell-age-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
         </div>
-
-
-
-
 
         <div className="dash-section-header">Xu Hướng Theo Tháng</div>
         {/* Monthly New Users */}
@@ -367,7 +355,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-
         {/* Lịch Hẹn Theo Bác Sĩ */}
         <div className="dash-chart-card dash-full-width">
           <div className="dash-chart-header">
@@ -405,37 +392,29 @@ export default function Dashboard() {
           </div>
         </div>
 
-      {/* PDF Report Button */}
-      <div style={{ display: "none" }}>
-        <ReportPDF
-          ref={pdfRef}
-          stats={stats}
-          genderData={genderData}
-          ageGroupData={ageGroupData}
-          protocolData={protocolData}
-          appointmentsByMonth={appointmentsByMonth}
-          appointmentsByDoctor={appointmentsByDoctor}
-        />
-      </div>
+        {/* PDF Report Button */}
+        <div style={{ display: "none" }}>
+          <ReportPDF
+            ref={pdfRef}
+            stats={stats}
+            genderData={genderData}
+            ageGroupData={ageGroupData}
+            protocolData={protocolData}
+            appointmentsByMonth={appointmentsByMonth}
+            appointmentsByDoctor={appointmentsByDoctor}
+          />
+        </div>
 
-
-
-      <button
-        className="dashReport-exportBtn"
-        onClick={() => {
-          const element = pdfRef.current;
-          html2pdf().from(element).save("BaoCaoHIV.pdf");
-        }}
-      >
-        Xuất báo cáo PDF
-      </button>
-
-
+        <button
+          className="dashReport-exportBtn"
+          onClick={() => {
+            const element = pdfRef.current;
+            html2pdf().from(element).save("BaoCaoHIV.pdf");
+          }}
+        >
+          Xuất báo cáo PDF
+        </button>
       </div>
     </div>
-
-
-
-
   );
 }

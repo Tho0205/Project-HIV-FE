@@ -12,6 +12,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { MdClose } from "react-icons/md";
+import { toast } from "react-toastify";
 
 export default function ManagementDoctorInfo() {
   const [doctors, setDoctors] = useState([]);
@@ -34,8 +35,11 @@ export default function ManagementDoctorInfo() {
 
   // Utility functions
   const showMessage = (text, isError = false) => {
-    setMessage({ text, isError });
-    setTimeout(() => setMessage({ text: "", isError: false }), 5000);
+    if (isError) {
+      toast.error(text);
+    } else {
+      toast.success(text);
+    }
   };
 
   useEffect(() => {
@@ -280,7 +284,7 @@ export default function ManagementDoctorInfo() {
                 <th>STT</th>
                 <th>ID</th>
                 <th>Ảnh</th>
-                <th>Họ Tên</th>
+                <th>Họ Và Tên</th>
                 <th>Bằng Cấp</th>
                 <th>Chuyên Khoa</th>
                 <th>Kinh Nghiệm</th>

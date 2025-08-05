@@ -265,9 +265,9 @@ export default function ARV() {
                     }
                     className="arvpage-form-select"
                   >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                    <option value="DELETED">Deleted</option>
+                    <option value="ACTIVE">Hoạt Động</option>
+                    <option value="INACTIVE">Không Hoạt Động</option>
+                    <option value="DELETED">Xóa</option>
                   </select>
                 </div>
 

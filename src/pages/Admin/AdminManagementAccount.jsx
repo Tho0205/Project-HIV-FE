@@ -297,7 +297,7 @@ export default function AdminManagementAccount() {
           <div className="search-box-admin">
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên đăng nhập, email, họ tên..."
+              placeholder="Tìm kiếm theo tên đăng nhập, email, họ và tên..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input-admin"

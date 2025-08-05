@@ -651,7 +651,7 @@ export default function DoctorPatientManagement() {
             <h3>Thông Tin Bệnh Nhân</h3>
             <div className="patient-detail-grid">
               <div className="info-item">
-                <span className="info-label">Họ tên:</span>
+                <span className="info-label">Họ và tên:</span>
                 <span className="info-value">
                   {selectedPatient?.fullName || "Chưa có"}
                 </span>
@@ -1286,16 +1286,29 @@ export default function DoctorPatientManagement() {
             />
           </div>
           {viewMode === "myPatients" && (
-            <input
-              type="date"
-              value={scheduleDate || new Date().toISOString().split("T")[0]}
-              onChange={(e) => {
-                setScheduleDate(e.target.value || null);
-                setPage(1);
-              }}
-              className="date-filter-admin"
-              title="Lọc theo ngày hẹn"
-            />
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <input
+                type="date"
+                value={scheduleDate || ""}
+                onChange={(e) => {
+                  setScheduleDate(e.target.value || null);
+                  setPage(1);
+                }}
+                className="date-filter-admin"
+                title="Lọc theo ngày hẹn"
+                style={{ marginRight: 4 }}
+              />
+              <button
+                type="button"
+                className="btn-show-all-date"
+                onClick={() => {
+                  setScheduleDate("");
+                  setPage(1);
+                }}
+              >
+                Hiện tất cả
+              </button>
+            </div>
           )}
           <select
             value={sort}
@@ -1317,7 +1330,7 @@ export default function DoctorPatientManagement() {
               <tr>
                 <th>STT</th>
                 <th>Ảnh</th>
-                <th>Họ tên</th>
+                <th>Họ và tên</th>
                 <th>Email</th>
                 <th>Số điện thoại</th>
                 <th>Ngày sinh</th>
@@ -1388,7 +1401,7 @@ export default function DoctorPatientManagement() {
             <div className="patient-info-box">
               <h4>Thông tin bệnh nhân</h4>
               <p>
-                <strong>Họ tên:</strong> {selectedPatient?.fullName}
+                <strong>Họ Và tên:</strong> {selectedPatient?.fullName}
               </p>
               <p>
                 <strong>Email:</strong> {selectedPatient?.email}
@@ -1846,7 +1859,7 @@ export default function DoctorPatientManagement() {
                             )
                             .map((protocol) => (
                               <tr key={protocol.customProtocolId}>
-                                <td>{formatDate(protocol.createdDate)}</td>
+                                <td>{formatDate(protocol.createdAt)}</td>
                                 <td>{protocol.name}</td>
                                 <td>{protocol.description}</td>
                                 <td>

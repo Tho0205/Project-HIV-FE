@@ -204,9 +204,14 @@
   font-weight: 600;
 }
 
+.arvpage-status-deleted {
+  background-color: red;
+  color: white;
+}
+
 .arvpage-table th {
   background: #f0f8ff;
-  color: #257df4;
+  color: black;
   font-weight: bold;
 }
 
@@ -314,7 +319,7 @@
 }
 
 .arvpage-status-inactive {
-  background: #dc3545;
+  background: orange;
 }
 
 /* Responsive */

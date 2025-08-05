@@ -224,7 +224,7 @@ export default function ARVProtocol() {
         )
       );
       setShowEditModal(false);
-      alert("Protocol updated successfully!");
+      toast.success("Cập Nhật Protocol Thành Công");
     } catch (err) {
       setError(err.message || "Failed to update protocol");
       console.error(err);
@@ -314,7 +314,7 @@ export default function ARVProtocol() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Họ Và Tên</th>
+                <th>Tên</th>
                 <th>Mô Tả</th>
                 <th>Trạng Thái</th>
                 <th>Hành Động</th>
