@@ -40,7 +40,7 @@
 /* Stats Grid */
 .dash-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 32px;
   margin-bottom: 48px;
 }
@@ -137,7 +137,7 @@
 /* Charts Grid */
 .dash-charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 30px;
   margin-bottom: 30px;
   align-items: start;
@@ -152,9 +152,17 @@
   border: 1px solid #e2e8f0;
   overflow: hidden;
   transition: all 0.3s ease;
-  max-width: 800px;
+  max-width: 650px;
   width: 100%;
-  margin: 20px auto;
+  margin: 10px auto;
+}
+.dashReport-exportBtn {
+  padding: 10px 12px;
+  background-color: #3b82f6;
+  color: white;
+  border: 1px solid white;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 .dash-chart-card:hover {

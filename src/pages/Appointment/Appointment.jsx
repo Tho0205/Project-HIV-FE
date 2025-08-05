@@ -113,30 +113,30 @@ const Appointment = () => {
   };
 
   // FUNCTIONS FOR DUPLICATE APPOINTMENT PREVENTION
-  
+
   // 1. Kiểm tra lịch hẹn trùng lặp chính xác (cùng bác sĩ, cùng schedule)
   const checkExistingAppointments = async (patientId, doctorId, scheduleId) => {
     try {
       // Lấy tất cả lịch hẹn của bệnh nhân
       const allAppointments = await getAppointmentsApi();
-      
+
       // Lọc các lịch hẹn của bệnh nhân hiện tại
-      const patientAppointments = allAppointments.filter(appointment => {
+      const patientAppointments = allAppointments.filter((appointment) => {
         const appPatientId = appointment.patientId || appointment.PatientId;
         return appPatientId === patientId;
       });
 
       // Kiểm tra xem có lịch hẹn nào với cùng bác sĩ và cùng schedule không
-      const duplicateAppointment = patientAppointments.find(appointment => {
+      const duplicateAppointment = patientAppointments.find((appointment) => {
         const appDoctorId = appointment.doctorId || appointment.DoctorId;
         const appScheduleId = appointment.scheduleId || appointment.ScheduleId;
         const appStatus = appointment.status;
-        
+
         // Chỉ kiểm tra các lịch hẹn chưa hủy và chưa hoàn thành
-        const activeStatuses = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'];
-        
+        const activeStatuses = ["SCHEDULED", "CONFIRMED", "CHECKED_IN"];
+
         return (
-          appDoctorId === doctorId && 
+          appDoctorId === doctorId &&
           appScheduleId === scheduleId &&
           activeStatuses.includes(appStatus)
         );
@@ -150,40 +150,47 @@ const Appointment = () => {
   };
 
   // 2. Kiểm tra lịch hẹn cùng thời gian với bác sĩ (cùng ca)
-  const checkSameDoctorSameTime = async (patientId, doctorId, selectedScheduleTime) => {
+  const checkSameDoctorSameTime = async (
+    patientId,
+    doctorId,
+    selectedScheduleTime
+  ) => {
     try {
       const allAppointments = await getAppointmentsApi();
-      
-      const conflictingAppointments = allAppointments.filter(appointment => {
+
+      const conflictingAppointments = allAppointments.filter((appointment) => {
         const appPatientId = appointment.patientId || appointment.PatientId;
         const appDoctorId = appointment.doctorId || appointment.DoctorId;
         const appStatus = appointment.status;
-        
+
         // Chỉ kiểm tra lịch hẹn active của chính bệnh nhân này
-        const activeStatuses = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'];
-        
+        const activeStatuses = ["SCHEDULED", "CONFIRMED", "CHECKED_IN"];
+
         if (appPatientId !== patientId || !activeStatuses.includes(appStatus)) {
           return false;
         }
 
         // Kiểm tra cùng bác sĩ
         if (appDoctorId === doctorId) {
-          const appointmentDate = new Date(appointment.appointmentDate || appointment.createdAt);
+          const appointmentDate = new Date(
+            appointment.appointmentDate || appointment.createdAt
+          );
           const selectedDate = new Date(selectedScheduleTime);
-          
+
           // Kiểm tra cùng ngày
           if (appointmentDate.toDateString() === selectedDate.toDateString()) {
             // Kiểm tra cùng ca (sáng hoặc chiều)
             const appointmentHour = appointmentDate.getHours();
             const selectedHour = selectedDate.getHours();
-            
-            const appointmentShift = appointmentHour < 13 ? 'morning' : 'afternoon';
-            const selectedShift = selectedHour < 13 ? 'morning' : 'afternoon';
-            
+
+            const appointmentShift =
+              appointmentHour < 13 ? "morning" : "afternoon";
+            const selectedShift = selectedHour < 13 ? "morning" : "afternoon";
+
             return appointmentShift === selectedShift;
           }
         }
-        
+
         return false;
       });
 
@@ -198,27 +205,29 @@ const Appointment = () => {
   const filterSchedulesForPatient = async (schedules, patientId) => {
     try {
       const allAppointments = await getAppointmentsApi();
-      
+
       // Lấy danh sách scheduleId mà bệnh nhân đã đặt (trạng thái active)
       const bookedScheduleIds = allAppointments
-        .filter(appointment => {
+        .filter((appointment) => {
           const appPatientId = appointment.patientId || appointment.PatientId;
           const appStatus = appointment.status;
-          const activeStatuses = ['SCHEDULED', 'CONFIRMED', 'CHECKED_IN'];
-          
-          return appPatientId === patientId && activeStatuses.includes(appStatus);
+          const activeStatuses = ["SCHEDULED", "CONFIRMED", "CHECKED_IN"];
+
+          return (
+            appPatientId === patientId && activeStatuses.includes(appStatus)
+          );
         })
-        .map(appointment => appointment.scheduleId || appointment.ScheduleId);
+        .map((appointment) => appointment.scheduleId || appointment.ScheduleId);
 
       // Lọc ra những schedule mà bệnh nhân chưa đặt
-      const availableSchedules = schedules.filter(schedule => {
+      const availableSchedules = schedules.filter((schedule) => {
         return !bookedScheduleIds.includes(schedule.scheduleId);
       });
 
       console.log("Filtered schedules for patient:", {
         originalCount: schedules.length,
         bookedScheduleIds,
-        availableCount: availableSchedules.length
+        availableCount: availableSchedules.length,
       });
 
       return availableSchedules;
@@ -233,14 +242,14 @@ const Appointment = () => {
     try {
       setLoading(true);
       console.log("Loading schedules for doctor:", doctorId);
-      
+
       // 1. Get doctor schedules
       const schedulesData = await getDoctorSchedulesApi(doctorId);
       console.log("Raw schedules data:", schedulesData);
-      
+
       // Ensure schedulesData is an array
       const schedulesArray = Array.isArray(schedulesData) ? schedulesData : [];
-      
+
       if (schedulesArray.length === 0) {
         console.log("No schedules found for doctor:", doctorId);
         setSchedules([]);
@@ -253,12 +262,12 @@ const Appointment = () => {
       console.log("All appointments:", allAppointments);
 
       // Map and normalize the schedules data
-      const normalizedSchedules = schedulesArray.map(schedule => ({
+      const normalizedSchedules = schedulesArray.map((schedule) => ({
         scheduleId: schedule.scheduleId || schedule.ScheduleId || schedule.id,
         scheduledTime: schedule.scheduledTime || schedule.ScheduledTime,
         room: schedule.room || schedule.Room,
         status: schedule.status || schedule.Status || "ACTIVE",
-        doctorId: schedule.doctorId || schedule.DoctorId || doctorId
+        doctorId: schedule.doctorId || schedule.DoctorId || doctorId,
       }));
 
       console.log("Normalized schedules:", normalizedSchedules);
@@ -266,8 +275,8 @@ const Appointment = () => {
       // 3. Filter schedules: only show FUTURE schedules that haven't reached booking limit
       const now = new Date();
       const MAX_BOOKINGS_PER_SCHEDULE = 5; // Maximum 5 people can book the same schedule
-      
-      const filteredSchedules = normalizedSchedules.filter(schedule => {
+
+      const filteredSchedules = normalizedSchedules.filter((schedule) => {
         // Check if schedule has required fields
         if (!schedule.scheduleId || !schedule.scheduledTime) {
           console.warn("Schedule missing required fields:", schedule);
@@ -275,7 +284,7 @@ const Appointment = () => {
         }
 
         const scheduleDate = new Date(schedule.scheduledTime);
-        
+
         // Check if date is valid
         if (isNaN(scheduleDate.getTime())) {
           console.warn("Invalid schedule date:", schedule.scheduledTime);
@@ -284,25 +293,31 @@ const Appointment = () => {
 
         // Check if schedule is in the future
         const isFuture = scheduleDate > now;
-        
+
         // Check if schedule is active
-        const isActive = !schedule.status || schedule.status === "ACTIVE" || schedule.status === "Active";
-        
+        const isActive =
+          !schedule.status ||
+          schedule.status === "ACTIVE" ||
+          schedule.status === "Active";
+
         // Count how many appointments are already booked for this schedule
-        const bookingCount = allAppointments.filter(appointment => {
-          const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
+        const bookingCount = allAppointments.filter((appointment) => {
+          const appointmentScheduleId =
+            appointment.scheduleId || appointment.ScheduleId;
           const appointmentStatus = appointment.status || appointment.Status;
-          
+
           // Count only non-cancelled appointments
-          return appointmentScheduleId === schedule.scheduleId && 
-                 appointmentStatus !== "CANCELLED" && 
-                 appointmentStatus !== "REJECTED" &&
-                 appointmentStatus !== "CANCELED"; // Handle different spelling variations
+          return (
+            appointmentScheduleId === schedule.scheduleId &&
+            appointmentStatus !== "CANCELLED" &&
+            appointmentStatus !== "REJECTED" &&
+            appointmentStatus !== "CANCELED"
+          ); // Handle different spelling variations
         }).length;
-        
+
         // Check if schedule hasn't reached booking limit
         const hasAvailableSlots = bookingCount < MAX_BOOKINGS_PER_SCHEDULE;
-        
+
         console.log("Schedule filter check:", {
           scheduleId: schedule.scheduleId,
           scheduledTime: schedule.scheduledTime,
@@ -312,7 +327,7 @@ const Appointment = () => {
           bookingCount,
           hasAvailableSlots,
           maxBookings: MAX_BOOKINGS_PER_SCHEDULE,
-          willShow: isFuture && isActive && hasAvailableSlots
+          willShow: isFuture && isActive && hasAvailableSlots,
         });
 
         return isFuture && isActive && hasAvailableSlots;
@@ -320,34 +335,41 @@ const Appointment = () => {
 
       // 4. Filter schedules để loại bỏ những lịch mà bệnh nhân đã đặt
       const userId = tokenManager.getCurrentUserId();
-      const patientFilteredSchedules = userId ? 
-        await filterSchedulesForPatient(filteredSchedules, parseInt(userId)) : 
-        filteredSchedules;
+      const patientFilteredSchedules = userId
+        ? await filterSchedulesForPatient(filteredSchedules, parseInt(userId))
+        : filteredSchedules;
 
       // 5. Add booking count info to each schedule for display
-      const schedulesWithBookingInfo = patientFilteredSchedules.map(schedule => {
-        const bookingCount = allAppointments.filter(appointment => {
-          const appointmentScheduleId = appointment.scheduleId || appointment.ScheduleId;
-          const appointmentStatus = appointment.status || appointment.Status;
-          
-          return appointmentScheduleId === schedule.scheduleId && 
-                 appointmentStatus !== "CANCELLED" && 
-                 appointmentStatus !== "REJECTED" &&
-                 appointmentStatus !== "CANCELED";
-        }).length;
+      const schedulesWithBookingInfo = patientFilteredSchedules.map(
+        (schedule) => {
+          const bookingCount = allAppointments.filter((appointment) => {
+            const appointmentScheduleId =
+              appointment.scheduleId || appointment.ScheduleId;
+            const appointmentStatus = appointment.status || appointment.Status;
 
-        return {
-          ...schedule,
-          bookingCount,
-          availableSlots: MAX_BOOKINGS_PER_SCHEDULE - bookingCount
-        };
-      });
+            return (
+              appointmentScheduleId === schedule.scheduleId &&
+              appointmentStatus !== "CANCELLED" &&
+              appointmentStatus !== "REJECTED" &&
+              appointmentStatus !== "CANCELED"
+            );
+          }).length;
 
-      console.log("Final filtered schedules with booking info:", schedulesWithBookingInfo);
-      
+          return {
+            ...schedule,
+            bookingCount,
+            availableSlots: MAX_BOOKINGS_PER_SCHEDULE - bookingCount,
+          };
+        }
+      );
+
+      console.log(
+        "Final filtered schedules with booking info:",
+        schedulesWithBookingInfo
+      );
+
       setSchedules(schedulesWithBookingInfo);
       setSelectedScheduleId(null);
-
     } catch (error) {
       console.error("Error loading schedules:", error);
       showError("Không thể tải lịch khám. Vui lòng thử lại.");
@@ -394,7 +416,7 @@ const Appointment = () => {
     const selectedSchedule = schedules.find(
       (s) => s.scheduleId === selectedScheduleId
     );
-    
+
     if (!selectedSchedule) {
       showError("Lịch khám đã chọn không hợp lệ");
       return;
@@ -415,16 +437,18 @@ const Appointment = () => {
     // KIỂM TRA DUPLICATE APPOINTMENT
     try {
       setLoading(true);
-      
+
       // 1. Kiểm tra lịch hẹn trùng lặp chính xác
       const duplicateAppointment = await checkExistingAppointments(
-        parseInt(userId), 
-        parseInt(selectedDoctorId), 
+        parseInt(userId),
+        parseInt(selectedDoctorId),
         parseInt(selectedScheduleId)
       );
-      
+
       if (duplicateAppointment) {
-        showError("Bạn đã có lịch hẹn với bác sĩ này trong thời gian này. Vui lòng chọn thời gian khác hoặc kiểm tra lại lịch sử đặt khám.");
+        showError(
+          "Bạn đã có lịch hẹn với bác sĩ này trong thời gian này. Vui lòng chọn thời gian khác hoặc kiểm tra lại lịch sử đặt khám."
+        );
         setLoading(false);
         return;
       }
@@ -438,14 +462,18 @@ const Appointment = () => {
 
       if (conflictingAppointments.length > 0) {
         const conflictInfo = conflictingAppointments[0];
-        const conflictDate = new Date(conflictInfo.appointmentDate || conflictInfo.createdAt);
-        const formattedDate = conflictDate.toLocaleDateString('vi-VN');
-        const formattedTime = conflictDate.toLocaleTimeString('vi-VN', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
+        const conflictDate = new Date(
+          conflictInfo.appointmentDate || conflictInfo.createdAt
+        );
+        const formattedDate = conflictDate.toLocaleDateString("vi-VN");
+        const formattedTime = conflictDate.toLocaleTimeString("vi-VN", {
+          hour: "2-digit",
+          minute: "2-digit",
         });
-        
-        showError(`Bạn đã có lịch hẹn với bác sĩ này vào ${formattedDate} lúc ${formattedTime}. Không thể đặt thêm lịch trong cùng ca khám.`);
+
+        showError(
+          `Bạn đã có lịch hẹn với bác sĩ này vào ${formattedDate} lúc ${formattedTime}. Không thể đặt thêm lịch trong cùng ca khám.`
+        );
         setLoading(false);
         return;
       }
@@ -454,8 +482,11 @@ const Appointment = () => {
       console.log("\n🔍 === TIMEZONE DEBUGGING ===");
       console.log("Selected schedule object:", selectedSchedule);
       console.log("Original scheduledTime:", selectedSchedule.scheduledTime);
-      console.log("Type of scheduledTime:", typeof selectedSchedule.scheduledTime);
-      
+      console.log(
+        "Type of scheduledTime:",
+        typeof selectedSchedule.scheduledTime
+      );
+
       const testDate = new Date(selectedSchedule.scheduledTime);
       console.log("Date object:", testDate);
       console.log("getHours():", testDate.getHours());
@@ -465,8 +496,8 @@ const Appointment = () => {
       console.log("getTimezoneOffset():", testDate.getTimezoneOffset());
 
       let appointmentDateValue = selectedSchedule.scheduledTime;
-      
-      if (typeof appointmentDateValue !== 'string') {
+
+      if (typeof appointmentDateValue !== "string") {
         appointmentDateValue = appointmentDateValue.toString();
       }
 
@@ -487,7 +518,7 @@ const Appointment = () => {
       console.log("🚀 Calling createAppointmentApi...");
       const result = await createAppointmentApi(formData);
       console.log("✅ API Response:", result);
-      
+
       setShowSuccessModal(true);
 
       // Reset form and reload schedules to update availability
@@ -495,7 +526,6 @@ const Appointment = () => {
       if (selectedDoctorId) {
         loadSchedules(selectedDoctorId);
       }
-      
     } catch (error) {
       console.error("❌ Error creating appointment:", error);
       showError(error.message || "Không thể đặt lịch hẹn. Vui lòng thử lại!");
@@ -536,21 +566,21 @@ const Appointment = () => {
 
   const formatScheduleTime = (dateString) => {
     const date = new Date(dateString);
-    
+
     console.log("Original dateString:", dateString);
     console.log("Parsed date:", date);
     console.log("Local time:", date.toLocaleString());
-    
+
     const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
     const dayName = dayNames[date.getDay()];
-    
+
     const time = `${date.getHours().toString().padStart(2, "0")}:${date
       .getMinutes()
       .toString()
       .padStart(2, "0")}`;
-      
+
     console.log("Formatted time:", time);
-    
+
     return { date, dayName, time };
   };
 
@@ -642,7 +672,7 @@ const Appointment = () => {
                       }}
                     >
                       <div>
-                        <span style={{ color: "#4b5563" }}>Họ tên:</span>
+                        <span style={{ color: "#4b5563" }}>Họ Và tên:</span>
                         <p
                           style={{
                             fontWeight: "500",
@@ -860,7 +890,7 @@ const Appointment = () => {
                       backgroundColor: "#fafafa",
                       marginBottom: "1rem",
                       scrollbarWidth: "thin",
-                      scrollbarColor: "#cbd5e1 #f1f5f9"
+                      scrollbarColor: "#cbd5e1 #f1f5f9",
                     }}
                   >
                     <div
@@ -905,63 +935,92 @@ const Appointment = () => {
                               height: "4rem",
                             }}
                           />
-                          <p style={{ fontSize: "1.125rem", fontWeight: "500" }}>
+                          <p
+                            style={{ fontSize: "1.125rem", fontWeight: "500" }}
+                          >
                             Bạn đã đặt hết lịch khám có sẵn với bác sĩ này
                           </p>
                           <p
-                            style={{ fontSize: "0.875rem", marginTop: "0.5rem" }}
+                            style={{
+                              fontSize: "0.875rem",
+                              marginTop: "0.5rem",
+                            }}
                           >
-                            Vui lòng chọn bác sĩ khác hoặc kiểm tra lại lịch sử đặt khám
+                            Vui lòng chọn bác sĩ khác hoặc kiểm tra lại lịch sử
+                            đặt khám
                           </p>
                         </div>
                       ) : (
                         <>
                           {/* Render schedule buttons */}
                           {schedules.map((schedule) => {
-                            const { date, dayName, time } = formatScheduleTime(schedule.scheduledTime);
-                            const isSelected = selectedScheduleId === schedule.scheduleId;
+                            const { date, dayName, time } = formatScheduleTime(
+                              schedule.scheduledTime
+                            );
+                            const isSelected =
+                              selectedScheduleId === schedule.scheduleId;
 
                             return (
                               <button
                                 key={schedule.scheduleId}
                                 type="button"
-                                onClick={() => setSelectedScheduleId(schedule.scheduleId)}
+                                onClick={() =>
+                                  setSelectedScheduleId(schedule.scheduleId)
+                                }
                                 style={{
                                   padding: "0.75rem 1rem",
                                   borderRadius: "0.5rem",
                                   fontWeight: "500",
                                   textAlign: "center",
-                                  border: isSelected 
-                                    ? "2px solid #14b8a6" 
+                                  border: isSelected
+                                    ? "2px solid #14b8a6"
                                     : "2px solid transparent",
                                   cursor: "pointer",
-                                  backgroundColor: isSelected ? "#14b8a6" : "#ffffff",
+                                  backgroundColor: isSelected
+                                    ? "#14b8a6"
+                                    : "#ffffff",
                                   color: isSelected ? "white" : "#374151",
                                   fontSize: "0.875rem",
                                   transition: "all 0.2s",
-                                  boxShadow: isSelected 
-                                    ? "0 4px 12px rgba(20, 184, 166, 0.4)" 
+                                  boxShadow: isSelected
+                                    ? "0 4px 12px rgba(20, 184, 166, 0.4)"
                                     : "0 1px 3px rgba(0, 0, 0, 0.1)",
                                 }}
                               >
                                 {/* Date */}
-                                <div style={{ fontSize: "1.125rem", fontWeight: "bold" }}>
+                                <div
+                                  style={{
+                                    fontSize: "1.125rem",
+                                    fontWeight: "bold",
+                                  }}
+                                >
                                   {date.getDate()}/{date.getMonth() + 1}
                                 </div>
-                                
+
                                 {/* Day name */}
-                                <div style={{ fontSize: "0.875rem" }}>{dayName}</div>
-                                
+                                <div style={{ fontSize: "0.875rem" }}>
+                                  {dayName}
+                                </div>
+
                                 {/* Time */}
-                                <div style={{ fontSize: "0.75rem", marginTop: "0.25rem" }}>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    marginTop: "0.25rem",
+                                  }}
+                                >
                                   {time}
                                 </div>
-                                
+
                                 {/* Room */}
-                                <div style={{
-                                  fontSize: "0.75rem",
-                                  color: isSelected ? "rgba(255,255,255,0.8)" : "#6b7280",
-                                }}>
+                                <div
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    color: isSelected
+                                      ? "rgba(255,255,255,0.8)"
+                                      : "#6b7280",
+                                  }}
+                                >
                                   Phòng {schedule.room || "N/A"}
                                 </div>
                               </button>

@@ -15,7 +15,12 @@ const PAGE_SIZE = 8;
 const defaultAvatar = "/assets/image/patient/patient.png";
 
 const genderOptions = ["Male", "Female", "Other"];
-const statusOptions = ["ACTIVE", "INACTIVE", "DELETED"];
+const statusOptions = ["Active", "Inactive", "Deleted"];
+const statusLabels = {
+  Active: "Hoạt Động",
+  Inactive: "Không Hoạt Động",
+  Deleted: "Đã Xóa",
+};
 
 export default function ManagerPatient() {
   // State
@@ -258,8 +263,10 @@ export default function ManagerPatient() {
                   >
                     {p.status === "Active"
                       ? "Hoạt Động"
-                      : p.status === "Inactive  "
+                      : p.status === "Inactive"
                       ? "Không Hoạt Động"
+                      : p.status === "Deleted"
+                      ? "Đã Xóa"
                       : p.status}
                   </td>
                   <td className="actions">
@@ -287,7 +294,7 @@ export default function ManagerPatient() {
         {/* Edit Modal */}
         {showModal && (
           <div className="modal" style={{ display: "flex" }}>
-            <div className="modal-content">
+            <div className="modal-content-manager">
               <h3 style={{ marginBottom: 30 }}>Edit Profile</h3>
               <h4 style={{ marginBottom: 30, color: "red" }}>{error}</h4>
               <form id="modalForm" onSubmit={handleEditSubmit}>
@@ -389,7 +396,7 @@ export default function ManagerPatient() {
                 >
                   {statusOptions.map((s) => (
                     <option key={s} value={s}>
-                      {s}
+                      {statusLabels[s] || s}
                     </option>
                   ))}
                 </select>
