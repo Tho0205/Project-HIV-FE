@@ -443,35 +443,52 @@ export default function DoctorPatientManagement() {
   };
 
   const handleReexamSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const appointmentData = {
-        patientId: selectedPatient.userId,
-        scheduleId: parseInt(reexamData.scheduleId),
-        doctorId: doctorId,
-        note: reexamData.note || "Lịch tái khám",
-        isAnonymous: false,
-        appointmentDate: reexamData.appointmentDate,
-      };
+  e.preventDefault();
+  try {
+    // Tìm schedule được chọn để lấy đầy đủ thông tin thời gian
+    const selectedSchedule = doctorSchedules.find(
+      schedule => schedule.scheduleId === parseInt(reexamData.scheduleId)
+    );
 
-      await appointmentService.createAppointment(appointmentData);
-      toast.success("Đặt lịch tái khám thành công!");
-
-      setReexamData({ scheduleId: "", appointmentDate: "", note: "" });
-      setShowReexamModal(false);
-
-      // Refresh lại history
-      const historyResult = await doctorPatientService.getPatientHistory(
-        selectedPatient.userId,
-        doctorId
-      );
-      if (historyResult.success) {
-        setPatientHistory(historyResult.data);
-      }
-    } catch (error) {
-      toast.error("Không thể đặt lịch tái khám");
+    if (!selectedSchedule) {
+      toast.error("Vui lòng chọn lịch khám");
+      return;
     }
-  };
+
+    console.log("📋 Selected schedule:", selectedSchedule);
+    console.log("📅 Using scheduledTime:", selectedSchedule.scheduledTime);
+
+    const appointmentData = {
+      patientId: selectedPatient.userId,
+      scheduleId: parseInt(reexamData.scheduleId),
+      doctorId: doctorId,
+      note: reexamData.note || "Lịch tái khám",
+      isAnonymous: false,
+      // Sử dụng scheduledTime đầy đủ từ schedule thay vì reexamData.appointmentDate
+      appointmentDate: selectedSchedule.scheduledTime,
+    };
+
+    console.log("📤 Sending appointment data:", appointmentData);
+
+    await appointmentService.createAppointment(appointmentData);
+    toast.success("Đặt lịch tái khám thành công!");
+
+    setReexamData({ scheduleId: "", appointmentDate: "", note: "" });
+    setShowReexamModal(false);
+
+    // Refresh lại history
+    const historyResult = await doctorPatientService.getPatientHistory(
+      selectedPatient.userId,
+      doctorId
+    );
+    if (historyResult.success) {
+      setPatientHistory(historyResult.data);
+    }
+  } catch (error) {
+    console.error("❌ Error creating reexam appointment:", error);
+    toast.error("Không thể đặt lịch tái khám");
+  }
+};
 
   const handleReexamClose = () => {
     setShowReexamModal(false);
