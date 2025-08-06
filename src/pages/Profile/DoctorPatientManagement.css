@@ -821,7 +821,7 @@
   padding: 24px;
   max-height: 70vh;
   /* overflow-y: none; */ /* SAI */
-  overflow-y: hidden; /* ĐÚNG */
+  overflow-y: auto; /* ĐÚNG */
   box-sizing: border-box;
 }
 
@@ -1005,7 +1005,7 @@
 }
 
 .reexam-history-list {
-  max-height: 350px;
+  max-height: 400px;
   overflow-y: auto;
   padding-right: 8px;
 }

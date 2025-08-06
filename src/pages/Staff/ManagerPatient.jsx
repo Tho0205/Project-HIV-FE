@@ -15,6 +15,11 @@ const PAGE_SIZE = 8;
 const defaultAvatar = "/assets/image/patient/patient.png";
 
 const genderOptions = ["Male", "Female", "Other"];
+const genderLables = {
+  Male: "Nam",
+  Female: "Nữ",
+  Other: "Khác",
+};
 const statusOptions = ["Active", "Inactive", "Deleted"];
 const statusLabels = {
   Active: "Hoạt Động",
@@ -256,7 +261,9 @@ export default function ManagerPatient() {
                   <td className="phone">{p.phone}</td>
                   <td className="birthdate">{formatDate(p.birthdate)}</td>
                   <td className="address">{p.address}</td>
-                  <td className="gender">{p.gender}</td>
+                  <td className="gender">
+                    {genderLables[p.gender] || p.gender}
+                  </td>
                   <td className="created">{formatDate(p.created_at)}</td>
                   <td
                     className={`status-manager-patient ${p.status.toLowerCase()}`}
@@ -367,7 +374,7 @@ export default function ManagerPatient() {
                 >
                   {genderOptions.map((g) => (
                     <option key={g} value={g}>
-                      {g}
+                      {genderLables[g] || g}
                     </option>
                   ))}
                 </select>
@@ -383,8 +390,8 @@ export default function ManagerPatient() {
                   required
                 />
 
-                <label>Giới Tính</label>
-                <input type="text" name="role" value="Patient" readOnly />
+                <label>Vai Trò</label>
+                <input type="text" name="role" value="Bệnh Nhân" readOnly />
 
                 <label>Trạng Thái</label>
                 <select
