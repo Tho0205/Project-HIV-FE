@@ -101,6 +101,15 @@ const Modal = ({ show, onClose, title, children, className = "" }) => {
   );
 };
 
+const usageInstructions = [
+  "Uống buổi sáng",
+  "Uống buổi tối",
+  "Uống buổi sáng trước ăn",
+  "Uống buổi tối trước ăn",
+  "Uống buổi sáng sau ăn",
+  "Uống buổi tối sau ăn",
+];
+
 export default function DoctorPatientManagement() {
   const [standardProtocols, setStandardProtocols] = useState([]);
   const [availableARVs, setAvailableARVs] = useState([]);
@@ -1774,9 +1783,7 @@ export default function DoctorPatientManagement() {
                               </div>
                               <div className="form-group-ARVProtocol">
                                 <label>Hướng dẫn:</label>
-                                <input
-                                  type="text"
-                                  placeholder="VD: Uống buổi sáng"
+                                <select
                                   value={detail.usageInstruction}
                                   onChange={(e) => {
                                     const updatedDetails = [
@@ -1789,7 +1796,14 @@ export default function DoctorPatientManagement() {
                                       details: updatedDetails,
                                     });
                                   }}
-                                />
+                                >
+                                  <option value="">-- Chọn hướng dẫn --</option>
+                                  {usageInstructions.map((ins) => (
+                                    <option key={ins} value={ins}>
+                                      {ins}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                               <button
                                 className="btn-remove-ARVProtocol"
@@ -1950,6 +1964,7 @@ export default function DoctorPatientManagement() {
                       </div>
                     ))
                   )}
+                  ;
                 </div>
               </div>
               <div className="form-group-admin">
