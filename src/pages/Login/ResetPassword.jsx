@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
+import "./ResetPassword.css";
 const ResetPassword = () => {
   const [email, setEmail] = useState("");
   const [token, setToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
   // Lấy email và token từ URL query string
   useEffect(() => {
@@ -39,54 +43,47 @@ const ResetPassword = () => {
           newPassword,
         }
       );
-
-      setMessage(response.data.message || "Password reset successfully!");
+      navigate("/login");
+      toast.success("Đổi Mật Khẩu Thành Công");
     } catch (error) {
       console.error(error);
-      setMessage(error.response?.data?.message || "Failed to reset password.");
+      toast.success(
+        error.response?.data?.message || "Failed to reset password."
+      );
     }
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "400px",
-        margin: "100px auto",
-        padding: "20px",
-        border: "1px solid #ccc",
-      }}
-    >
-      <h2>Reset Password</h2>
+    <div className="reset-pass-container">
+      <h2 className="reset-pass-title">Đặt lại mật khẩu</h2>
       {message && (
         <p
-          style={{ color: message.includes("successfully") ? "green" : "red" }}
+          className={`reset-pass-message${
+            message !== "" && message !== "Kiểm tra email để tiếp tục." ? " error" : ""
+          }`}
         >
           {message}
         </p>
       )}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>New Password:</label>
-          <input
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            required
-            style={{ width: "100%" }}
-          />
-        </div>
-        <div style={{ marginTop: "10px" }}>
-          <label>Confirm Password:</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            style={{ width: "100%" }}
-          />
-        </div>
-        <button type="submit" style={{ marginTop: "15px" }}>
-          Reset Password
+      <form className="reset-pass-form" onSubmit={handleSubmit}>
+        <label className="reset-pass-label">Mật khẩu mới:</label>
+        <input
+          type="password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          required
+          className="reset-pass-input"
+        />
+        <label className="reset-pass-label">Xác nhận mật khẩu:</label>
+        <input
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          className="reset-pass-input"
+        />
+        <button type="submit" className="reset-pass-btn">
+          Đặt lại mật khẩu
         </button>
       </form>
     </div>

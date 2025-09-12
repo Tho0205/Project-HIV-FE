@@ -20,7 +20,7 @@ const Header = () => {
 
   useEffect(() => {
     const storedAvatar =
-      localStorage.getItem("user_avatar") || tokenManager.getUserAvatarUrl();
+      sessionStorage.getItem("user_avatar") || tokenManager.getUserAvatarUrl();
 
     if (storedAvatar) {
       const isFullUrl = storedAvatar.startsWith("http");
@@ -35,7 +35,7 @@ const Header = () => {
     }
 
     if (role) {
-      console.log("abvadsadd" + fetchNotifications());
+      fetchNotifications();
     }
   }, [role]);
 
@@ -117,16 +117,12 @@ const Header = () => {
         <nav className="nav-links">
           <Link to="/">Trang Chủ</Link>
           {Userrole === "Patient" && (
-            <Link Link to="/appointment">
-              Đặt Lịch Hẹn
-            </Link>
+            <Link to="/appointment">Đặt Lịch Hẹn</Link>
           )}
           <Link to="/blog">Blog</Link>
           <Link to="/education">Tài Liệu giáo dục</Link>
           {Userrole === "Doctor" && (
-            <Link Link to="/Doctor-Patient-Management">
-              Làm Việc
-            </Link>
+            <Link to="/Doctor-Patient-Management">Làm Việc</Link>
           )}
         </nav>
 

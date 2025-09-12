@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import "./ForgotPassword.css";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
@@ -25,19 +26,29 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: "100px auto", padding: 20 }}>
-      <h2>Quên mật khẩu</h2>
-      {message && <p>{message}</p>}
-      <form onSubmit={handleSubmit}>
-        <label>Nhập email:</label>
+    <div className="forgot-pass-container">
+      <h2 className="forgot-pass-title">Quên mật khẩu</h2>
+      {message && (
+        <p
+          className={`forgot-pass-message${
+            message === "Gửi thất bại." ? " error" : ""
+          }`}
+        >
+          {message}
+        </p>
+      )}
+      <form className="forgot-pass-form" onSubmit={handleSubmit}>
+        <label className="forgot-pass-label">Nhập email:</label>
         <input
           type="email"
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: 10 }}
+          className="forgot-pass-input"
         />
-        <button type="submit">Gửi liên kết đặt lại mật khẩu</button>
+        <button type="submit" className="forgot-pass-btn">
+          Gửi liên kết đặt lại mật khẩu
+        </button>
       </form>
     </div>
   );
