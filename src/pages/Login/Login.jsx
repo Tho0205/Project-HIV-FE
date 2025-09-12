@@ -18,7 +18,7 @@ const Login = () => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     if (token) {
-      tokenManager.setToken(token, 60);
+      tokenManager.setToken(token, 15);
       const role = tokenManager.getCurrentUserRole();
       if (role === "Patient") navigate("/");
       else if (role === "Staff" || role === "Manager") navigate("/DashBoard");
@@ -203,9 +203,9 @@ const Login = () => {
               />
               Ghi nhớ đăng nhập
             </label>
-            {/* <Link to="/forgot-password" className="login-forgot">
+            <Link to="/forgot-password" className="login-forgot">
               Quên mật khẩu?
-            </Link> */}
+            </Link>
           </div>
 
           <div className="login-divider">Đăng nhập bằng</div>

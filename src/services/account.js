@@ -1,21 +1,21 @@
 const backendBaseUrl = "https://localhost:7243";
 
 export const tokenManager = {
-  getToken: () => localStorage.getItem("jwt_token"),
+  getToken: () => sessionStorage.getItem("jwt_token"),
 
   setToken: (token, expiresIn = 60) => {
-    localStorage.setItem("jwt_token", token);
-    localStorage.setItem("token_expires", Date.now() + expiresIn * 60 * 1000);
+    sessionStorage.setItem("jwt_token", token);
+    sessionStorage.setItem("token_expires", Date.now() + expiresIn * 60 * 1000);
   },
 
   removeToken: () => {
-    localStorage.removeItem("jwt_token");
-    localStorage.removeItem("token_expires");
-    localStorage.removeItem("username");
-    localStorage.removeItem("role");
-    localStorage.removeItem("account_id");
-    localStorage.removeItem("user_id");
-    localStorage.removeItem("user_avatar");
+    sessionStorage.removeItem("jwt_token");
+    sessionStorage.removeItem("token_expires");
+    sessionStorage.removeItem("username");
+    sessionStorage.removeItem("role");
+    sessionStorage.removeItem("account_id");
+    sessionStorage.removeItem("user_id");
+    sessionStorage.removeItem("user_avatar");
   },
 
   // decoded token

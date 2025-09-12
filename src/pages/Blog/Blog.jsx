@@ -14,7 +14,7 @@ export default function Blog() {
         const data = await getAllBlogs();
         const approved = data
           .filter((blog) => blog.isApproved === true)
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); 
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setBlogs(approved);
       } catch (error) {
         console.error("Lỗi khi lấy danh sách blog:", error);
@@ -70,7 +70,14 @@ export default function Blog() {
           )}
         </div>
         {visibleCount < blogs.length && (
-          <div style={{ width: "100%", display: "flex", justifyContent: "center", marginTop: 24 }}>
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+              marginTop: 24,
+            }}
+          >
             <button className="hiv-btn-outline" onClick={handleShowMore}>
               Xem thêm
             </button>
